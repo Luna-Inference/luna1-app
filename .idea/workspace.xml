@@ -5,17 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69d8516e-759e-44e7-a717-25f6e84637b9" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/v1/doc/server.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/v1/lib/pages/chat_page.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/v1/lib/pages/dashboard.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/v1/lib/pages/vision_page.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/v1/lib/pages/voice_page.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/v1/lib/services/llm.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/v1/lib/services/tts.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/v1/lib/services/vlm.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/v1/lib/themes/theme.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/doc/server.md" beforeDir="false" afterPath="$PROJECT_DIR$/v1/doc/server.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/pages/chat_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/chat_page.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
