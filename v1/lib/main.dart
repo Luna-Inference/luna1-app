@@ -1,37 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:v1/app_router.dart';
+import 'package:v1/pages/chat_page.dart';
+import 'package:v1/pages/dashboard.dart';
+import 'package:v1/pages/home_page.dart';
+import 'package:v1/pages/vision_page.dart';
+import 'package:v1/pages/voice_page.dart';
 import 'package:clarity_flutter/clarity_flutter.dart';
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-void main() {
-  final config = ClarityConfig(
-      projectId: "s0pvt1yvgo",
-      userId: "your_user_id",
-    logLevel: LogLevel.Info,
-  );
-
-  runApp(ClarityWidget(
-    app: MyApp(),
-    clarityConfig: config,
-  ));
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+    return MaterialApp(
+      title: 'Luna AI Suite',
       theme: ThemeData(
-
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      routerConfig: router,
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const HomePage(),
+        '/chat': (context) => const LunaChat(),
+        '/voice': (context) => const VoicePage(),
+        '/vision': (context) => const VisionPage(),
+        '/dashboard': (context) => const Dashboard(),
+      },
     );
   }
 }
-

@@ -1,0 +1,5 @@
+class Secrets {
+  static const String tavily = 'YOUR_TAVILY_API_KEY';
+  static const String openai = 'YOUR_OPENAI_API_KEY';
+  // Add more keys as needed
+}
