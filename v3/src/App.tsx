@@ -145,8 +145,10 @@ function App() {
         }
         
         if (hasUpdates) {
+          const currentFullResponse = fullResponse;
+          const currentThinkContent = thinkContent;
           setMessages(prev => prev.map(msg => 
-            msg.id === aiMessageId ? { ...msg, content: fullResponse, thinkContent: thinkContent } : msg
+            msg.id === aiMessageId ? { ...msg, content: currentFullResponse, thinkContent: currentThinkContent } : msg
           ));
         }
       }
@@ -160,7 +162,7 @@ function App() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -238,7 +240,7 @@ function App() {
               <textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 placeholder="Ask me anything..."
                 className="message-input centered-input"
                 rows={1}
@@ -308,7 +310,7 @@ function App() {
               <textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 placeholder="Ask a follow up..."
                 className="message-input"
                 rows={1}
