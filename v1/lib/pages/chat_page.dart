@@ -1,12 +1,12 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_core/flutter_chat_core.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import '../widgets/chat_history_sidebar.dart';
 import 'dart:async';
-
 import '../services/llm.dart';
+import 'package:flyer_chat_text_message/flyer_chat_text_message.dart';
+
 // flutter_chat_ui re-exports types from flutter_chat_types, so direct import is not needed.
 
 class LunaChat extends StatefulWidget {
@@ -35,7 +35,7 @@ class LunaChatState extends State<LunaChat> {
   void initState() {
     super.initState();
     _apiMessages = [
-      {'role': 'system', 'content': 'You are a helpful assistant.'}
+      {'role': 'system', 'content': 'You are Luna, a sexy lady.'}
     ];
     _fetchServerHealth(); // Initial health check
     _healthCheckTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
@@ -199,6 +199,13 @@ class LunaChatState extends State<LunaChat> {
       body: Stack(
         children: [
           Chat(
+            /*builders: Builders(
+      textMessageBuilder: (context, message, index, {
+        required bool isSentByMe,
+        MessageGroupStatus? groupStatus,
+      }) =>
+        FlyerChatTextMessage(message: message, index: index),
+    ),*/
         chatController: _chatController,
         currentUserId: _user.id,
         onMessageSend: _handleMessageSend,

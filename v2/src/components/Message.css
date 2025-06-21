@@ -1,0 +1,19 @@
+.message {
+  margin-bottom: 15px;
+  padding: 10px 15px;
+  border-radius: 18px;
+  max-width: 70%;
+  word-wrap: break-word;
+}
+
+.message.user {
+  background-color: #007bff;
+  color: white;
+  align-self: flex-end;
+}
+
+.message.ai {
+  background-color: #444;
+  color: white;
+  align-self: flex-start;
+}

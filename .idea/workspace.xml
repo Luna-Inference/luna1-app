@@ -5,16 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69d8516e-759e-44e7-a717-25f6e84637b9" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/v1/lib/services/deep_research.dart" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/v1/lib/services/files.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/v1/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/doc/server.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/main.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/lib/pages/chat_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/chat_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/pages/voice_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/voice_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/services/llm.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/services/llm.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/services/tts.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/services/tts.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/v1/pubspec.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/v1/pubspec.yaml" afterDir="false" />
     </list>
@@ -59,7 +52,7 @@
     &quot;io.flutter.reload.alreadyRun&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/frost/Documents/GitHub/AI-Chat-Bot-Flutter&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;dart.settings&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
   }
 }</component>
