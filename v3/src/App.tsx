@@ -68,7 +68,8 @@ function App() {
         content: msg.content
       }));
 
-      const response = await fetch('http://100.76.203.80:8080/v1/chat/completions', {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://100.76.203.80:8080';
+      const response = await fetch(`${apiUrl}/v1/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
