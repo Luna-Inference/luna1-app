@@ -101,6 +101,7 @@ function App() {
         const lines = buffer.split('\n');
         buffer = lines.pop() || ''; // Keep incomplete line in buffer
 
+        let hasUpdates = false;
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.substring(6).trim();
@@ -135,15 +136,18 @@ function App() {
                     }
                   }
                 }
-                
-                setMessages(prev => prev.map(msg => 
-                  msg.id === aiMessageId ? { ...msg, content: fullResponse, thinkContent: thinkContent } : msg
-                ));
+                hasUpdates = true;
               }
             } catch (e) {
               console.error('Error parsing stream data:', e, 'Data:', data);
             }
           }
+        }
+        
+        if (hasUpdates) {
+          setMessages(prev => prev.map(msg => 
+            msg.id === aiMessageId ? { ...msg, content: fullResponse, thinkContent: thinkContent } : msg
+          ));
         }
       }
     } catch (error) {
