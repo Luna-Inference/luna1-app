@@ -2,10 +2,15 @@ import React, { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Send, Paperclip } from 'lucide-react';
 import './App.css';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Setup PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 interface Message {
   id: string;
-  content: string;
+  content: string; // Full content for API
+  displayContent?: string; // Content for UI
   sender: 'user' | 'ai';
   timestamp: Date;
   thinkContent?: string;
@@ -15,6 +20,7 @@ function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [extractedText, setExtractedText] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,9 +36,15 @@ function App() {
   const handleSend = async () => {
     if ((!inputValue.trim() && attachedFiles.length === 0) || isLoading) return;
 
+    let finalContent = inputValue;
+    if (extractedText) {
+      finalContent = `Text from attached PDF:\n\n${extractedText}\n\n---\n\nMy question:\n${inputValue}`;
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: inputValue,
+      content: finalContent,
+      displayContent: inputValue,
       sender: 'user',
       timestamp: new Date()
     };
@@ -41,6 +53,7 @@ function App() {
     setMessages(newMessages);
     setInputValue('');
     setAttachedFiles([]);
+    setExtractedText('');
     setIsLoading(true);
 
     const aiMessageId = (Date.now() + 1).toString();
@@ -156,13 +169,45 @@ function App() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setAttachedFiles(prev => [...prev, ...files]);
+    if (files.length === 0) return;
+
+    const file = files[0];
+    if (file.type !== 'application/pdf') {
+      alert('Please attach a PDF file.');
+      e.target.value = '';
+      return;
+    }
+
+    setAttachedFiles([file]);
+    setIsLoading(true);
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+      let fullText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => ('str' in item ? item.str : '')).join(' ');
+        fullText += pageText + '\n\n';
+      }
+      setExtractedText(fullText.trim());
+    } catch (error) {
+      console.error('Error processing PDF:', error);
+      alert('Failed to process PDF file.');
+      setAttachedFiles([]);
+      setExtractedText('');
+    } finally {
+      setIsLoading(false);
+      e.target.value = '';
+    }
   };
 
   const removeFile = (index: number) => {
     setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+    setExtractedText('');
   };
 
   return (
@@ -234,7 +279,7 @@ function App() {
                       <ReactMarkdown>{message.content}</ReactMarkdown>
                     </>
                   ) : (
-                    <p>{message.content}</p>
+                    <p>{message.displayContent || message.content}</p>
                   )}
                 </div>
                 <div className="message-timestamp">
@@ -291,7 +336,8 @@ function App() {
       <input
         ref={fileInputRef}
         type="file"
-        multiple
+        multiple={false}
+        accept="application/pdf"
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />
