@@ -2,10 +2,7 @@ import React, { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Send, Paperclip } from 'lucide-react';
 import './App.css';
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Setup PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+import pdfToText from 'react-pdftotext';
 
 interface Message {
   id: string;
@@ -184,16 +181,8 @@ function App() {
     setIsLoading(true);
 
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-      let fullText = '';
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items.map(item => ('str' in item ? item.str : '')).join(' ');
-        fullText += pageText + '\n\n';
-      }
-      setExtractedText(fullText.trim());
+      const text = await pdfToText(file);
+      setExtractedText(text);
     } catch (error) {
       console.error('Error processing PDF:', error);
       alert('Failed to process PDF file.');
