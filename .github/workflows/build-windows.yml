@@ -1,0 +1,38 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: v3/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd v3
+        npm ci
+    
+    - name: Build Windows app
+      run: |
+        cd v3
+        npm run electron-pack
+    
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: luna-app-windows
+        path: v3/dist/*.exe
