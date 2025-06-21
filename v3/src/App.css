@@ -333,3 +333,27 @@ body {
     padding: 15px;
   }
 }
+
+.think-block {
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+}
+
+.think-block summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #555;
+  outline: none;
+}
+
+.think-block[open] summary {
+  margin-bottom: 8px;
+}
+
+.think-block .react-markdown {
+  font-size: 14px;
+  color: #333;
+}

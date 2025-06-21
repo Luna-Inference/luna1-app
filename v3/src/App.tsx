@@ -8,6 +8,7 @@ interface Message {
   content: string;
   sender: 'user' | 'ai';
   timestamp: Date;
+  thinkContent?: string;
 }
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -25,8 +27,8 @@ function App() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = () => {
-    if (!inputValue.trim() && attachedFiles.length === 0) return;
+  const handleSend = async () => {
+    if ((!inputValue.trim() && attachedFiles.length === 0) || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -35,20 +37,112 @@ function App() {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInputValue('');
     setAttachedFiles([]);
+    setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: `I received your message: "${inputValue}". This is a **simulated AI response** with *markdown* support!\n\n- Item 1\n- Item 2\n\n\`\`\`javascript\nconst hello = 'world';\n\`\`\``,
-        sender: 'ai',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, aiMessage]);
-    }, 1000);
+    const aiMessageId = (Date.now() + 1).toString();
+    // Add placeholder
+    setMessages(prev => [...prev, {
+      id: aiMessageId,
+      content: '...',
+      sender: 'ai',
+      timestamp: new Date()
+    }]);
+
+    try {
+      const apiMessages = newMessages.map(msg => ({
+        role: msg.sender === 'ai' ? 'assistant' : 'user',
+        content: msg.content
+      }));
+
+      const response = await fetch('http://100.76.203.80:8080/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'luna-small',
+          messages: apiMessages,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok || !response.body) {
+        const errorText = response ? await response.text() : 'No response';
+        throw new Error(`API error: ${response.status} - ${errorText}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullResponse = '';
+      let thinkContent = '';
+      let inThinkBlock = false;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.substring(6).trim();
+            if (data === '[DONE]') {
+              break;
+            }
+            try {
+              const json = JSON.parse(data);
+              let deltaContent = json.choices?.[0]?.delta?.content || '';
+
+              if (deltaContent) {
+                while (deltaContent.length > 0) {
+                  if (inThinkBlock) {
+                    const endTagIndex = deltaContent.indexOf('</think>');
+                    if (endTagIndex !== -1) {
+                      thinkContent += deltaContent.substring(0, endTagIndex);
+                      deltaContent = deltaContent.substring(endTagIndex + '</think>'.length);
+                      inThinkBlock = false;
+                    } else {
+                      thinkContent += deltaContent;
+                      deltaContent = '';
+                    }
+                  } else {
+                    const startTagIndex = deltaContent.indexOf('<think>');
+                    if (startTagIndex !== -1) {
+                      fullResponse += deltaContent.substring(0, startTagIndex);
+                      deltaContent = deltaContent.substring(startTagIndex + '<think>'.length);
+                      inThinkBlock = true;
+                    } else {
+                      fullResponse += deltaContent;
+                      deltaContent = '';
+                    }
+                  }
+                }
+                
+                setMessages(prev => prev.map(msg => 
+                  msg.id === aiMessageId ? { ...msg, content: fullResponse, thinkContent: thinkContent } : msg
+                ));
+              }
+            } catch (e) {
+              console.error('Error parsing stream data:', e, 'Data:', data);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+      setMessages(prev => prev.map(msg => 
+        msg.id === aiMessageId ? { ...msg, content: `Error: ${errorMessage}` } : msg
+      ));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -109,12 +203,13 @@ function App() {
                 placeholder="Ask me anything..."
                 className="message-input centered-input"
                 rows={1}
+                disabled={isLoading}
               />
               
               <button 
                 className="send-button"
                 onClick={handleSend}
-                disabled={!inputValue.trim() && attachedFiles.length === 0}
+                disabled={(!inputValue.trim() && attachedFiles.length === 0) || isLoading}
               >
                 <Send size={18} />
               </button>
@@ -129,7 +224,15 @@ function App() {
               <div key={message.id} className={`message ${message.sender}`}>
                 <div className="message-content">
                   {message.sender === 'ai' ? (
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                    <>
+                      {message.thinkContent && (
+                        <details className="think-block">
+                          <summary>Show thought process</summary>
+                          <ReactMarkdown>{message.thinkContent}</ReactMarkdown>
+                        </details>
+                      )}
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </>
                   ) : (
                     <p>{message.content}</p>
                   )}
@@ -170,12 +273,13 @@ function App() {
                 placeholder="Ask a follow up..."
                 className="message-input"
                 rows={1}
+                disabled={isLoading}
               />
               
               <button 
                 className="send-button"
                 onClick={handleSend}
-                disabled={!inputValue.trim() && attachedFiles.length === 0}
+                disabled={(!inputValue.trim() && attachedFiles.length === 0) || isLoading}
               >
                 <Send size={18} />
               </button>
