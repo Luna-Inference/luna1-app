@@ -18,7 +18,7 @@ A React-based chat application built with TypeScript and modern web technologies
 
 ## Running the Application
 
-### Development Mode
+### Development Mode (Web)
 ```bash
 npm start
 ```
@@ -26,17 +26,29 @@ This runs the app in development mode. Open [http://localhost:3000](http://local
 
 The page will reload automatically when you make changes, and you'll see any lint errors in the console.
 
+### Electron App (Development)
+```bash
+npm run electron-dev
+```
+This starts the Electron desktop application with the React dev server. The app will be accessible on all network interfaces at port 3000.
+
 ### Testing
 ```bash
 npm test
 ```
 Launches the test runner in interactive watch mode.
 
-### Production Build
+### Production Build (Web)
 ```bash
 npm run build
 ```
 Builds the app for production to the `build` folder. The build is optimized and minified for the best performance.
+
+### Build Electron App (Windows Installer)
+```bash
+npm run electron-pack
+```
+Creates a Windows installer for the Electron desktop application. The installer will be generated in the `dist/` folder.
 
 ## Project Structure
 
