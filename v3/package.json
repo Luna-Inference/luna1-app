@@ -12,6 +12,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "lucide-react": "^0.519.0",
+    "pdfjs-dist": "^5.3.31",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-markdown": "^10.1.0",
@@ -24,11 +25,11 @@
   "homepage": "./",
   "scripts": {
     "start": "HOST=0.0.0.0 react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build --max-old-space-size=4096",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron-pack": "npm run build && electron-builder",
+    "electron-pack": "electron-builder",
     "preelectron-pack": "npm run build"
   },
   "eslintConfig": {
@@ -66,14 +67,14 @@
       "build/**/*",
       "main.js"
     ],
-    "mac": {
-      "category": "public.app-category.productivity"
-    },
+    "buildDependenciesFromSource": false,
+    "nodeGypRebuild": false,
+    "npmRebuild": false,
+    "compression": "store",
     "win": {
       "target": "nsis"
     },
-    "linux": {
-      "target": "AppImage"
-    }
+    "mac": false,
+    "linux": false
   }
 }

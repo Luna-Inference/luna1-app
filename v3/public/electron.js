@@ -14,7 +14,7 @@ function createWindow() {
       contextIsolation: true,
       webSecurity: false // Allow mixed content for development
     },
-    icon: path.join(__dirname, 'assets/icon.png') // Optional: add your app icon
+    icon: path.join(__dirname, '../assets/icon.png') // Updated path for public folder
   });
 
   mainWindow.loadURL(

@@ -68,7 +68,8 @@ function App() {
         content: msg.content
       }));
 
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://100.76.203.80:8080';
+      // Force using the correct API URL
+      const apiUrl = 'http://100.76.203.80:8080';
       const response = await fetch(`${apiUrl}/v1/chat/completions`, {
         method: 'POST',
         headers: {
