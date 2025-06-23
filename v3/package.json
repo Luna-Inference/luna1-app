@@ -57,6 +57,9 @@
     "electron-is-dev": "^3.0.1",
     "wait-on": "^8.0.3"
   },
+  "optionalDependencies": {
+    "dmg-license": "^1.0.11"
+  },
   "build": {
     "appId": "com.luna.chatapp",
     "productName": "Luna Chat App",
@@ -74,7 +77,9 @@
     "win": {
       "target": "nsis"
     },
-    "mac": false,
+    "mac": {
+      "target": "dmg"
+    },
     "linux": false
   }
 }
