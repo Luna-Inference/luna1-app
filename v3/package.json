@@ -30,7 +30,7 @@
     "eject": "react-scripts eject",
     "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
     "electron-pack": "electron-builder",
-    "preelectron-pack": "npm run build"
+    "preelectron-pack": "npm run build && node copy-pdf-worker.js"
   },
   "eslintConfig": {
     "extends": [
@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
+    "copy-webpack-plugin": "^13.0.0",
     "cross-env": "^7.0.3",
     "electron": "^36.5.0",
     "electron-builder": "^26.0.12",

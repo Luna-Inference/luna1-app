@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Send, Paperclip } from 'lucide-react';
 import './App.css';
 import pdfToText from 'react-pdftotext';
+import * as pdfjsLib from 'pdfjs-dist';
 
 interface Message {
   id: string;
@@ -21,6 +22,17 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Configure PDF.js worker for Electron
+  React.useEffect(() => {
+    if (window.require) {
+      // Running in Electron, use local worker
+      pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.mjs';
+    } else {
+      // Running in browser, use CDN
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.mjs`;
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
