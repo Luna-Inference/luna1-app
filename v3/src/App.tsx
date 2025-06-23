@@ -25,12 +25,20 @@ function App() {
 
   // Configure PDF.js worker for Electron
   React.useEffect(() => {
-    // Force using a specific worker path for consistency
     try {
-      // First try to load the worker directly from public path
-      pdfjsLib.GlobalWorkerOptions.workerSrc = window.location.origin + '/pdf.worker.mjs';
+      // Use a relative path that works in both development and production
+      const isProd = window.location.protocol === 'file:';
+      
+      if (isProd) {
+        // In Electron production build
+        pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.mjs';
+      } else {
+        // In development or web browser
+        pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.mjs';
+      }
       
       console.log('PDF.js version:', pdfjsLib.version);
+      console.log('Environment:', isProd ? 'Electron (production)' : 'Development/Browser');
       console.log('Set PDF.js worker path to:', pdfjsLib.GlobalWorkerOptions.workerSrc);
     } catch (error) {
       console.error('Error configuring PDF.js worker:', error);
