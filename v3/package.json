@@ -25,12 +25,15 @@
   "homepage": "./",
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build --max-old-space-size=4096",
+    "build": "cross-env GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron-pack": "electron-builder",
-    "preelectron-pack": "npm run build && node copy-pdf-worker.js"
+    "electron-pack": "npm run build && electron-builder --publish=never",
+    "electron-pack-win": "npm run build && electron-builder --win --publish=never",
+    "electron-pack-mac": "npm run build && electron-builder --mac --publish=never",
+    "preelectron-pack": "node copy-pdf-worker.js",
+    "analyze": "npm run build && npx webpack-bundle-analyzer build/static/js/*.js"
   },
   "eslintConfig": {
     "extends": [
@@ -57,7 +60,8 @@
     "electron": "^36.5.0",
     "electron-builder": "^26.0.12",
     "electron-is-dev": "^3.0.1",
-    "wait-on": "^8.0.3"
+    "wait-on": "^8.0.3",
+    "webpack-bundle-analyzer": "^4.10.2"
   },
   "optionalDependencies": {
     "dmg-license": "^1.0.11"
@@ -70,17 +74,35 @@
     },
     "files": [
       "build/**/*",
-      "main.js"
+      "main.js",
+      "!build/**/*.map"
     ],
     "buildDependenciesFromSource": false,
     "nodeGypRebuild": false,
     "npmRebuild": false,
     "compression": "store",
+    "removePackageScripts": true,
+    "removePackageKeywords": true,
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
     "win": {
-      "target": "nsis"
+      "target": {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }
     },
     "mac": {
-      "target": "dmg"
+      "target": {
+        "target": "dmg",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
     },
     "linux": false
   }

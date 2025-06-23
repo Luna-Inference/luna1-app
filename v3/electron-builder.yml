@@ -1,0 +1,40 @@
+appId: com.luna.chatapp
+productName: Luna Chat App
+copyright: Copyright © 2025 Luna
+
+directories:
+  output: dist
+  buildResources: build
+
+files:
+  - build/**/*
+  - main.js
+  - "!build/**/*.map"
+  - "!build/static/js/*.map"
+  - "!build/static/css/*.map"
+
+compression: store
+removePackageScripts: true
+removePackageKeywords: true
+buildDependenciesFromSource: false
+nodeGypRebuild: false
+npmRebuild: false
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: "${productName}-Setup-${version}.${ext}"
+
+linux: false
