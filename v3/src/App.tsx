@@ -25,37 +25,15 @@ function App() {
 
   // Configure PDF.js worker for Electron
   React.useEffect(() => {
-    // More reliable check for Electron environment
-    const isElectron = () => {
-      // Renderer process
-      if (typeof window !== 'undefined' && typeof window.process === 'object' && 
-          // Use any casting to avoid TypeScript errors
-          (window.process as any).type === 'renderer') {
-        return true;
-      }
-      // Main process
-      if (typeof process !== 'undefined' && typeof process.versions === 'object' && 
-          !!(process.versions as any).electron) {
-        return true;
-      }
-      // Detect the user agent when the `nodeIntegration` option is set to true
-      if (typeof navigator === 'object' && typeof navigator.userAgent === 'string' && 
-          navigator.userAgent.indexOf('Electron') >= 0) {
-        return true;
-      }
-      return false;
-    };
-
-    if (isElectron()) {
-      // Running in Electron, use local worker
-      pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.mjs';
-      console.log('App mounted in Electron (Windows or Mac) environment. PDF.js version:', pdfjsLib.version);
-      console.log('Using local PDF.js worker');
-    } else {
-      // Running in browser, use CDN
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.mjs`;
-      console.log('App mounted in browser environment. PDF.js version:', pdfjsLib.version);
-      console.log('Using CDN PDF.js worker:', pdfjsLib.GlobalWorkerOptions.workerSrc);
+    // Force using a specific worker path for consistency
+    try {
+      // First try to load the worker directly from public path
+      pdfjsLib.GlobalWorkerOptions.workerSrc = window.location.origin + '/pdf.worker.mjs';
+      
+      console.log('PDF.js version:', pdfjsLib.version);
+      console.log('Set PDF.js worker path to:', pdfjsLib.GlobalWorkerOptions.workerSrc);
+    } catch (error) {
+      console.error('Error configuring PDF.js worker:', error);
     }
   }, []);
 
