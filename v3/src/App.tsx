@@ -25,7 +25,8 @@ function App() {
 
   // Configure PDF.js worker for Electron
   React.useEffect(() => {
-    if (window.require) {
+    // Check if running in Electron by testing for window.require function
+    if (typeof window !== 'undefined' && 'require' in window) {
       // Running in Electron, use local worker
       pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.mjs';
     } else {
