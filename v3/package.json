@@ -24,7 +24,7 @@
   "main": "main.js",
   "homepage": "./",
   "scripts": {
-    "start": "HOST=0.0.0.0 react-scripts start",
+    "start": "cross-env HOST=0.0.0.0 react-scripts start",
     "build": "react-scripts build --max-old-space-size=4096",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
     "electron": "^36.5.0",
     "electron-builder": "^26.0.12",
     "electron-is-dev": "^3.0.1",
