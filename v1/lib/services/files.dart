@@ -21,9 +21,14 @@ class FileService {
   /// Extracts text from a PDF file
   /// Returns the extracted text if successful, an error message otherwise
   Future<String> extractTextFromPdf(File file) async {
+    final Uint8List bytes = await file.readAsBytes();
+    return extractTextFromPdfBytes(bytes);
+  }
+
+  /// Extracts text from PDF bytes (useful for web where File paths are unavailable)
+  Future<String> extractTextFromPdfBytes(Uint8List bytes) async {
     try {
       // Load the PDF document
-      final Uint8List bytes = await file.readAsBytes();
       final PdfDocument document = PdfDocument(inputBytes: bytes);
       
       // Extract text from all pages

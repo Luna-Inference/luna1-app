@@ -6,12 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="69d8516e-759e-44e7-a717-25f6e84637b9" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/.metadata" beforeDir="false" afterPath="$PROJECT_DIR$/v1/.metadata" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/app_router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/app_router.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/main.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/lib/pages/chat_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/chat_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/pages/chat_page2.dart" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/lib/services/files.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/services/files.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/v1/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/v1/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -12,7 +12,7 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/chat',
-      builder: (context, state) => const LunaChat(),
+      builder: (context, state) => LunaChat(),
     ),
     GoRoute(
       path: '/voice',
