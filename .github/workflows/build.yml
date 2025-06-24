@@ -11,7 +11,7 @@ jobs:
     name: Build Flutter (macOS)
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -20,7 +20,7 @@ jobs:
       - run: flutter build macos
         working-directory: ./v1
       - name: Upload macOS Build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: macos-build
           path: v1/build/macos/Build/Products/Release/
@@ -29,7 +29,7 @@ jobs:
     name: Build Flutter (Windows)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -38,7 +38,7 @@ jobs:
       - run: flutter build windows
         working-directory: ./v1
       - name: Upload Windows Build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-build
           path: v1/build/windows/runner/Release/
@@ -47,7 +47,7 @@ jobs:
     name: Build Flutter (Web)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -56,7 +56,7 @@ jobs:
       - run: flutter build web
         working-directory: ./v1
       - name: Upload Web Build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: web-build
           path: v1/build/web/

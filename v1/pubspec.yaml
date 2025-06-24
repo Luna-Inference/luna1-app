@@ -41,6 +41,10 @@ dependencies:
   http: ^1.4.0
   clarity_flutter: ^1.0.0
   just_audio: ^0.9.36
+  just_audio_windows: any
+  just_audio_media_kit: any # substitute version number
+  media_kit_libs_windows_audio: any # substitute version number
+
   path_provider: ^2.1.5
   flyer_chat_text_message: ^2.3.1
   file_picker: ^6.2.0
