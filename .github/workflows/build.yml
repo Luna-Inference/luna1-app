@@ -15,6 +15,14 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+      - name: Create .env file
+        run: |
+          echo "TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }}" > .env
+          echo "SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" >> .env
+          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> .env
+          echo "API_URL=${{ secrets.API_URL }}" >> .env
+          echo "API_KEY=${{ secrets.API_KEY }}" >> .env
+        working-directory: ./v1
       - run: flutter pub get
         working-directory: ./v1
       - run: flutter build macos
@@ -33,6 +41,14 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+      - name: Create .env file
+        run: |
+          echo "TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }}" > .env
+          echo "SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" >> .env
+          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> .env
+          echo "API_URL=${{ secrets.API_URL }}" >> .env
+          echo "API_KEY=${{ secrets.API_KEY }}" >> .env
+        working-directory: ./v1
       - run: flutter pub get
         working-directory: ./v1
       - run: flutter build windows
@@ -51,6 +67,14 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+      - name: Create .env file
+        run: |
+          echo "TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }}" > .env
+          echo "SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" >> .env
+          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> .env
+          echo "API_URL=${{ secrets.API_URL }}" >> .env
+          echo "API_KEY=${{ secrets.API_KEY }}" >> .env
+        working-directory: ./v1
       - run: flutter pub get
         working-directory: ./v1
       - run: flutter build web
