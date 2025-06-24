@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:v1/pages/chat_page.dart';
+import 'package:v1/pages/chat_page2.dart';
 import 'package:v1/pages/dashboard.dart';
 import 'package:v1/pages/home_page.dart';
 import 'package:v1/pages/vision_page.dart';
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const HomePage(),
-        '/chat': (context) => const LunaChat(),
+        '/chat': (context) => Basic(),
         '/voice': (context) => const VoicePage(),
         '/vision': (context) => const VisionPage(),
         '/dashboard': (context) => const Dashboard(),
