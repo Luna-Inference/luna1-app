@@ -9,8 +9,7 @@
       <change beforePath="$PROJECT_DIR$/v1/lib/app_router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/app_router.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/main.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/lib/pages/chat_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/chat_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/pages/chat_page2.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/services/files.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/services/files.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/pages/voice_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/voice_page.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:v1/themes/theme.dart';
 import 'package:v1/pages/chat_page.dart';
 import 'package:v1/pages/dashboard.dart';
 import 'package:v1/pages/home_page.dart';
@@ -20,14 +21,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Luna AI Suite',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+      theme: MaterialTheme(ThemeData.light().textTheme).light(),
       initialRoute: '/',
       routes: {
         '/': (context) => const HomePage(),
-        '/chat': (context) => LunaChat(),
+        '/chat': (context) => LunaChatPage(),
         '/voice': (context) => const VoicePage(),
         '/vision': (context) => const VisionPage(),
         '/dashboard': (context) => const Dashboard(),

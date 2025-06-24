@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'dart:typed_data'; // For Uint8List
-// import 'package:path_provider/path_provider.dart'; // No longer needed for web playback
-// import 'dart:io'; // No longer needed for web playback
+import 'dart:typed_data';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/tts.dart'; // Assuming tts.dart is in lib/services/
 
 class VoicePage extends StatefulWidget {
@@ -33,15 +34,29 @@ class _VoicePageState extends State<VoicePage> {
 
     try {
       // Synthesize voice to get audio bytes
+            final String? outputFilePath;
+      final String audioFormat;
+
+      if (kIsWeb) {
+        outputFilePath = null;
+        audioFormat = 'opus';
+      } else {
+        final Directory tempDir = await getTemporaryDirectory();
+        outputFilePath = '${tempDir.path}/temp.opus';
+        audioFormat = 'opus';
+      }
+
       final Uint8List audioBytes = await synthesizeVoice(
         textToSpeak: _textController.text,
-        // outputFilePath: null, // Or omit if you don't want to save the file anywhere
-        // To save on non-web platforms, you could conditionally provide a path here:
-        // outputFilePath: kIsWeb ? null : '${(await getTemporaryDirectory()).path}/temp.ogg',
+        outputFilePath: outputFilePath,
+        audioFormat: audioFormat,
       );
 
-      // Play audio from bytes
-      await _audioPlayer.play(BytesSource(audioBytes));
+      if (kIsWeb) {
+        await _audioPlayer.play(BytesSource(audioBytes));
+      } else {
+        await _audioPlayer.play(DeviceFileSource(outputFilePath!));
+      }
       
       setState(() {
         _statusMessage = 'Playing audio...';

@@ -5,28 +5,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:io';
 import 'package:v1/services/llm.dart';
 import 'package:v1/services/files.dart';
 
-ChatUser user = ChatUser(
-  id: '1',
-  firstName: 'Thomas',
-);
 
-ChatUser AI = ChatUser(
-  id: '2',
-  firstName: 'Luna',
-);
 
-class LunaChat extends StatefulWidget {
+class LunaChatPage extends StatefulWidget {
   @override
-  _LunaChatState createState() => _LunaChatState();
+  _LunaChatPageState createState() => _LunaChatPageState();
 }
 
-class _LunaChatState extends State<LunaChat> {
-
+class _LunaChatPageState extends State<LunaChatPage> {
+  final user = ChatUser(id: 'user', firstName: 'John', lastName: 'Doe');
+  final AI = ChatUser(id: 'AI', firstName: 'Luna');
 
   List<ChatMessage> messages = [];
 
@@ -41,34 +33,67 @@ class _LunaChatState extends State<LunaChat> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Basic example'),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 0,
+        title: Text('Luna', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
       ),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: DashChat(
         inputOptions: InputOptions(
           inputDecoration: InputDecoration(
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surface,
+            hintText: 'Type a message...',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(24),
+              borderSide: BorderSide.none,
+            ),
             prefixIcon: IconButton(
-              icon: const Icon(Icons.attach_file),
+              icon: Icon(Icons.attach_file, color: Theme.of(context).colorScheme.onSurfaceVariant),
               onPressed: _attachPdf,
             ),
           ),
         ),
         messageOptions: MessageOptions(
           messageTextBuilder: (message, previous, next) {
+            if (message.customProperties?['thinking'] == true) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Text(
+                      'Thinking...',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onTertiaryContainer,
+                      ),
+                    ),
+                  ),
+                  MarkdownBody(
+                    data: message.text,
+                    selectable: true,
+                  ),
+                ],
+              );
+            }
             return MarkdownBody(
               data: message.text,
-              styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)),
+              selectable: true,
             );
           },
           messageDecorationBuilder: (message, previous, next) {
             if (message.customProperties != null && message.customProperties!['thinking'] == true) {
               return BoxDecoration(
-                color: Colors.yellow.shade100,
-                borderRadius: BorderRadius.circular(12),
+                color: Theme.of(context).colorScheme.tertiaryContainer,
+                borderRadius: BorderRadius.circular(18),
               );
             }
             return BoxDecoration(
-              color: message.user.id == user.id ? Colors.blueAccent.shade100 : Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(12),
+              color: message.user.id == user.id
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : Theme.of(context).colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(18),
             );
           },
         ),
