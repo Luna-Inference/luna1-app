@@ -5,11 +5,12 @@ import 'package:v1/pages/dashboard.dart';
 import 'package:v1/pages/home_page.dart';
 import 'package:v1/pages/vision_page.dart';
 import 'package:v1/pages/voice_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:v1/pages/intern.dart';
 
-
-void main() async {
+Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
         '/voice': (context) => const VoicePage(),
         '/vision': (context) => const VisionPage(),
         '/dashboard': (context) => const Dashboard(),
+        '/intern': (context) => InternPage(),
       },
     );
   }

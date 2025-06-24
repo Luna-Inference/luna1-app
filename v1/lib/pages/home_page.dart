@@ -28,10 +28,7 @@ class HomePage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.grey[100]!,
-              Colors.grey[300]!,
-            ],
+            colors: [Colors.grey[100]!, Colors.grey[300]!],
           ),
         ),
         child: Center(
@@ -63,6 +60,11 @@ class HomePage extends StatelessWidget {
                     icon: Icons.camera_alt_outlined,
                     title: 'Vision',
                     routeName: '/vision',
+                  ),
+                  _NavigationCard(
+                    icon: Icons.work_outline,
+                    title: 'Intern',
+                    routeName: '/intern',
                   ),
                 ],
               ),
@@ -107,9 +109,10 @@ class _NavigationCardState extends State<_NavigationCard> {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: _isHovered
-                    ? Colors.blue.withOpacity(0.3)
-                    : Colors.black.withOpacity(0.1),
+                color:
+                    _isHovered
+                        ? Colors.blue.withOpacity(0.3)
+                        : Colors.black.withOpacity(0.1),
                 blurRadius: _isHovered ? 20 : 10,
                 offset: _isHovered ? const Offset(0, 10) : const Offset(0, 5),
               ),
