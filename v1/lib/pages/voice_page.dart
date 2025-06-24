@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
 import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -11,6 +11,25 @@ class VoicePage extends StatefulWidget {
 
   @override
   State<VoicePage> createState() => _VoicePageState();
+}
+
+// Custom AudioSource for just_audio to play from a byte stream
+class _MyCustomSource extends StreamAudioSource {
+  final List<int> bytes;
+  _MyCustomSource(this.bytes) : super(tag: 'MyCustomSource');
+
+  @override
+  Future<StreamAudioResponse> request([int? start, int? end]) async {
+    start ??= 0;
+    end ??= bytes.length;
+    return StreamAudioResponse(
+      sourceLength: bytes.length,
+      contentLength: end - start,
+      offset: start,
+      stream: Stream.value(bytes.sublist(start, end)),
+      contentType: 'audio/mpeg', // Assuming MP3, adjust if needed
+    );
+  }
 }
 
 class _VoicePageState extends State<VoicePage> {
@@ -42,8 +61,8 @@ class _VoicePageState extends State<VoicePage> {
         audioFormat = 'opus';
       } else {
         final Directory tempDir = await getTemporaryDirectory();
-        outputFilePath = '${tempDir.path}/temp.opus';
-        audioFormat = 'opus';
+        outputFilePath = '${tempDir.path}/temp.mp3';
+        audioFormat = 'mp3';
       }
 
       final Uint8List audioBytes = await synthesizeVoice(
@@ -52,11 +71,10 @@ class _VoicePageState extends State<VoicePage> {
         audioFormat: audioFormat,
       );
 
-      if (kIsWeb) {
-        await _audioPlayer.play(BytesSource(audioBytes));
-      } else {
-        await _audioPlayer.play(DeviceFileSource(outputFilePath!));
-      }
+            // Use just_audio to play from bytes, which is more reliable across platforms
+      final audioSource = _MyCustomSource(audioBytes);
+      await _audioPlayer.setAudioSource(audioSource);
+      await _audioPlayer.play();
       
       setState(() {
         _statusMessage = 'Playing audio...';

@@ -40,7 +40,7 @@ dependencies:
   go_router: ^15.2.0
   http: ^1.4.0
   clarity_flutter: ^1.0.0
-  audioplayers: ^6.5.0
+  just_audio: ^0.9.36
   path_provider: ^2.1.5
   flyer_chat_text_message: ^2.3.1
   file_picker: ^6.2.0

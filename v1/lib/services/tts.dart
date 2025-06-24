@@ -35,6 +35,7 @@ Future<Uint8List> synthesizeVoice({
     );
 
     if (response.statusCode == 200) {
+
       if (outputFilePath != null && outputFilePath.isNotEmpty) {
         // Save to file only if path is provided (primarily for non-web or debugging)
         try {

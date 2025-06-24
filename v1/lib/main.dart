@@ -5,7 +5,7 @@ import 'package:v1/pages/dashboard.dart';
 import 'package:v1/pages/home_page.dart';
 import 'package:v1/pages/vision_page.dart';
 import 'package:v1/pages/voice_page.dart';
-import 'package:clarity_flutter/clarity_flutter.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
