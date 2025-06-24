@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: v1/build/windows/runner/Release/
+          path: v1/build/windows/x64/runner/Release/
 
   build_web:
     name: Build Flutter (Web)
