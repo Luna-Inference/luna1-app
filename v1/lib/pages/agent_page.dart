@@ -9,14 +9,15 @@ import 'dart:io';
 import 'package:v1/services/llm.dart';
 import 'package:v1/services/files.dart';
 
-class LunaChatPage extends StatefulWidget {
+class AgentPage extends StatefulWidget {
   @override
-  _LunaChatPageState createState() => _LunaChatPageState();
+  _AgentPageState createState() => _AgentPageState();
 }
 
-class _LunaChatPageState extends State<LunaChatPage> {
+class _AgentPageState extends State<AgentPage> {
   final user = ChatUser(id: 'user', firstName: 'John', lastName: 'Doe');
-  final AI = ChatUser(id: 'AI', firstName: 'Luna');
+  final agent = ChatUser(id: 'agent', firstName: 'Luna');
+  final computer = ChatUser(id: 'computer', firstName: 'Computer');
 
   List<ChatMessage> messages = [];
 
@@ -125,7 +126,7 @@ class _LunaChatPageState extends State<LunaChatPage> {
                     messages.insert(
                       0,
                       ChatMessage(
-                        user: AI,
+                        user: agent,
                         createdAt: DateTime.now(),
                         text: event.content,
                         customProperties: {'thinking': true},
@@ -135,7 +136,7 @@ class _LunaChatPageState extends State<LunaChatPage> {
                   } else {
                     final oldMsg = messages[_thinkingMsgIndex!];
                     messages[_thinkingMsgIndex!] = ChatMessage(
-                      user: AI,
+                      user: agent,
                       createdAt: oldMsg.createdAt,
                       text: event.content,
                       customProperties: {'thinking': true},
@@ -147,7 +148,7 @@ class _LunaChatPageState extends State<LunaChatPage> {
                     messages.insert(
                       0,
                       ChatMessage(
-                        user: AI,
+                        user: agent,
                         createdAt: DateTime.now(),
                         text: event.content,
                       ),
@@ -156,7 +157,7 @@ class _LunaChatPageState extends State<LunaChatPage> {
                   } else {
                     final oldMsg = messages[_answerMsgIndex!];
                     messages[_answerMsgIndex!] = ChatMessage(
-                      user: AI,
+                      user: agent,
                       createdAt: oldMsg.createdAt,
                       text: event.content,
                     );
@@ -166,9 +167,19 @@ class _LunaChatPageState extends State<LunaChatPage> {
                   if (_answerMsgIndex != null) {
                     final oldMsg = messages[_answerMsgIndex!];
                     messages[_answerMsgIndex!] = ChatMessage(
-                      user: AI,
+                      user: agent,
                       createdAt: oldMsg.createdAt,
                       text: event.content,
+                    );
+
+                    final hasTool = _hasToolTag(event.content);
+                    messages.insert(
+                      0,
+                      ChatMessage(
+                        user: computer,
+                        createdAt: DateTime.now(),
+                        text: hasTool ? 'Tool tag found' : 'No tool tag found',
+                      ),
                     );
                   }
                   break;
@@ -176,7 +187,7 @@ class _LunaChatPageState extends State<LunaChatPage> {
                   messages.insert(
                     0,
                     ChatMessage(
-                      user: AI,
+                      user: agent,
                       createdAt: DateTime.now(),
                       text: 'Error: ${event.content}',
                     ),
@@ -189,6 +200,11 @@ class _LunaChatPageState extends State<LunaChatPage> {
         messages: messages,
       ),
     );
+  }
+
+    bool _hasToolTag(String str) {
+    final regex = RegExp(r'<tool>.*?</tool>', dotAll: true);
+    return regex.hasMatch(str);
   }
 
   List<Map<String, String>> _convertMessagesToApi(

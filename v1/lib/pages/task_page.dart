@@ -26,6 +26,9 @@ class _TaskPageState extends State<TaskPage> {
   StreamSubscription<LlmStreamEvent>? _planSub;
   StreamSubscription<LlmStreamEvent>? _reflectSub;
 
+  // Persist conversation history across tasks to give the LLM "memory"
+  final List<Map<String, String>> _convHistory = [];
+
   /// Convenience util used by InternPage – copies here verbatim.
   Map<String, dynamic>? _extractJsonWithKey(String text, String key) {
     for (final line in text.split(RegExp(r'[\r\n]+'))) {
@@ -47,7 +50,7 @@ Available tools (Dart functions you can call):
 2. sendEmail(recipient: String (email address of recipient), subject: String, body: String) -> void : Sends an email.
 3. getTodayDate() -> String : Returns today's date.
 
-Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as JSON {"plan": [<tool names>]}. Then for each step, reply with {"params":{...}} for the current tool. Wrap ANY free-form explanation inside <think>...</think> tags so the UI can show it separately.''';
+First generate a plan as JSON {"plan": [<tool names>]}. Then for each step, reply with {"params":{...}} for the current tool. Think concisely and do not over-think.''';
   }
 
   Future<void> _runTask(String userText) async {
@@ -58,18 +61,21 @@ Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as J
       _outputs.add('User: $userText');
     });
 
+    // Build / update persistent conversation memory
+    if (_convHistory.isEmpty) {
+      _convHistory.add({'role': 'system', 'content': _buildSystemPrompt()});
+    }
+    _convHistory.add({'role': 'user', 'content': userText});
+
     final reqSW = Stopwatch()..start();
 
-    // Build conversation history for proper reflection
-    final List<Map<String, String>> conversationHistory = [
-      {'role': 'system', 'content': _buildSystemPrompt()},
-      {'role': 'user', 'content': userText},
-    ];
+    // Use a copy of persisted history so we don't add internal metadata back into memory
+    final List<Map<String, String>> conversationHistory = List<Map<String, String>>.from(_convHistory);
 
     // ============= STEP 1 – PLAN (streaming) =============
     final planStart = DateTime.now();
     final planPrompt = List<Map<String, String>>.from(conversationHistory);
-    
+
     // Listen to plan stream so we can surface thinking / JSON chunks live
     final planCompleter = Completer<String>();
     final StringBuffer planBuf = StringBuffer();
@@ -105,7 +111,9 @@ Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as J
     final planJson = _extractJsonWithKey(planRespStr, 'plan');
     final planDur = DateTime.now().difference(planStart).inMilliseconds;
     if (planJson == null || planJson['plan'] == null) {
-      setState(() => _outputs.add('[Error] Could not parse plan. Raw: $planRespStr'));
+      setState(
+        () => _outputs.add('[Error] Could not parse plan. Raw: $planRespStr'),
+      );
       return;
     }
     final List<dynamic> plan = planJson['plan'];
@@ -115,6 +123,8 @@ Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as J
     conversationHistory.add({'role': 'assistant', 'content': planRespStr});
 
     // ============= STEP 2 – EXECUTE EACH TOOL =============
+    // Collect results for reflection summary
+    final List<String> _toolResults = [];
     dynamic prevResult;
 
     for (final step in plan) {
@@ -123,10 +133,13 @@ Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as J
       // ---- params (streaming) ----
       final paramPrompt = List<Map<String, String>>.from(conversationHistory);
       if (prevResult != null) {
-        paramPrompt.add({'role': 'system', 'content': 'Previous Step Result: $prevResult'});
+        paramPrompt.add({
+          'role': 'system',
+          'content': 'Previous Step Result: $prevResult',
+        });
       }
       paramPrompt.add({'role': 'system', 'content': 'Current Tool: $toolName'});
-      
+
       final paramStart = DateTime.now();
       final Completer<Map<String, dynamic>?> paramCompleter = Completer();
       final StringBuffer paramBuf = StringBuffer();
@@ -139,7 +152,8 @@ Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as J
                 _outputs.add('[Params $toolName thinking] ${event.content}');
                 paramThinkingIdx = _outputs.length - 1;
               } else {
-                _outputs[paramThinkingIdx!] = '[Params $toolName thinking] ${event.content}';
+                _outputs[paramThinkingIdx!] =
+                    '[Params $toolName thinking] ${event.content}';
               }
               break;
             case LlmStreamEventType.response:
@@ -147,12 +161,17 @@ Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as J
               break;
             case LlmStreamEventType.fullResponse:
               paramBuf.write(event.content);
-              final paramJson = _extractJsonWithKey(paramBuf.toString(), 'params');
+              final paramJson = _extractJsonWithKey(
+                paramBuf.toString(),
+                'params',
+              );
               if (paramJson == null) {
                 _outputs.add('[Error] Failed to parse params for $toolName.');
                 paramCompleter.complete(null);
               } else {
-                paramCompleter.complete(paramJson['params'] as Map<String, dynamic>?);
+                paramCompleter.complete(
+                  paramJson['params'] as Map<String, dynamic>?,
+                );
               }
               break;
             case LlmStreamEventType.error:
@@ -166,9 +185,13 @@ Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as J
       final params = await paramCompleter.future;
       final paramDur = DateTime.now().difference(paramStart).inMilliseconds;
       if (params == null) return;
-      setState(() => _outputs.add('Params for $toolName (${paramDur}ms): ${jsonEncode(params)}'));
+      setState(
+        () => _outputs.add(
+          'Params for $toolName (${paramDur}ms): ${jsonEncode(params)}',
+        ),
+      );
 
-      // Add params response to conversation history
+      // Add params assistant response only to THIS run's history copy, not global memory
       final paramResponse = paramBuf.toString();
       conversationHistory.add({'role': 'assistant', 'content': paramResponse});
 
@@ -198,18 +221,30 @@ Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as J
         prevResult = 'Error executing $toolName: $e';
       }
       execSW.stop();
-      setState(() => _outputs.add('Result of $toolName (${execSW.elapsedMilliseconds}ms): $prevResult'));
+      setState(
+        () => _outputs.add(
+          'Result of $toolName (${execSW.elapsedMilliseconds}ms): $prevResult',
+        ),
+      );
+
+      // Save for reflection summary
+      _toolResults.add('$toolName => $prevResult');
 
       // Add tool result to conversation history as a system message
-      conversationHistory.add({'role': 'system', 'content': 'Tool result for $toolName: $prevResult'});
+      conversationHistory.add({
+        'role': 'system',
+        'content': 'Tool result for $toolName: $prevResult',
+      });
     }
 
     // ============= STEP 3 – REFLECT & ANSWER (streaming) =============
     // Now ask the LLM to provide a final answer based on all the tool results
     final reflectPrompt = List<Map<String, String>>.from(conversationHistory);
+    // Provide explicit summary of tool outputs for better reflection
     reflectPrompt.add({
-      'role': 'system', 
-      'content': 'All tools have been executed. Now provide a comprehensive final answer to the user\'s original question based on all the tool results you received.'
+      'role': 'system',
+      'content':
+          'All tools have been executed. Here is a summary of each tool\'s output:\n${_toolResults.join('\n')}\n\nNow provide a comprehensive final answer or status updates to the user\'s original question based on these results.',
     });
 
     final reflectStart = DateTime.now();
@@ -234,7 +269,8 @@ Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as J
               _outputs.add('Final Answer: ${event.content}');
               _reflectionIdx = _outputs.length - 1;
             } else {
-              _outputs[_reflectionIdx!] = 'Final Answer: ${reflectBuf.toString()}';
+              _outputs[_reflectionIdx!] =
+                  'Final Answer: ${reflectBuf.toString()}';
             }
             break;
           case LlmStreamEventType.fullResponse:
@@ -242,7 +278,8 @@ Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as J
             if (_reflectionIdx == null) {
               _outputs.add('Final Answer: ${event.content}');
             } else {
-              _outputs[_reflectionIdx!] = 'Final Answer: ${reflectBuf.toString()}';
+              _outputs[_reflectionIdx!] =
+                  'Final Answer: ${reflectBuf.toString()}';
             }
             final dur = DateTime.now().difference(reflectStart).inMilliseconds;
             _outputs.add('Final answer ready (${dur}ms)');
@@ -258,6 +295,9 @@ Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as J
 
     await reflectCompleter.future;
     await _reflectSub?.cancel();
+
+    // Save assistant reflection to memory
+    _convHistory.add({'role': 'assistant', 'content': reflectBuf.toString()});
 
     reqSW.stop();
     setState(() => _outputs.add('Total time: ${reqSW.elapsedMilliseconds}ms'));
@@ -285,10 +325,11 @@ Follow the "Luna Agent: Spec v5 (Reactive Workflow)". First generate a plan as J
             Expanded(
               child: ListView.builder(
                 itemCount: _outputs.length,
-                itemBuilder: (context, idx) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: Text(_outputs[idx]),
-                ),
+                itemBuilder:
+                    (context, idx) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Text(_outputs[idx]),
+                    ),
               ),
             ),
           ],

@@ -56,20 +56,25 @@ class HomePage extends StatelessWidget {
                     title: 'Voice',
                     routeName: '/voice',
                   ),
-                  _NavigationCard(
+                  /*_NavigationCard(
                     icon: Icons.camera_alt_outlined,
                     title: 'Vision',
                     routeName: '/vision',
                   ),
-                  /*_NavigationCard(
+                  _NavigationCard(
                     icon: Icons.work_outline,
                     title: 'Intern',
                     routeName: '/intern',
-                  ),*/
+                  ),
                   _NavigationCard(
                     icon: Icons.pending,
                     title: 'Task',
                     routeName: '/task',
+                  ),*/
+                  _NavigationCard(
+                    icon: Icons.pending,
+                    title: 'Agent',
+                    routeName: '/agent',
                   ),
                 ],
               ),

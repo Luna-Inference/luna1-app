@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:v1/pages/agent_page.dart';
 import 'package:v1/themes/theme.dart';
 import 'package:v1/pages/chat_page.dart';
 import 'package:v1/pages/dashboard.dart';
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => const Dashboard(),
         '/intern': (context) => InternPage(),
         '/task': (context) => TaskPage(),
+        '/agent': (context) => AgentPage(),
       },
     );
   }

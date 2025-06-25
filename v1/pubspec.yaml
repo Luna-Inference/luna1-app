@@ -51,6 +51,7 @@ dependencies:
   flyer_chat_text_message: ^2.3.1
   file_picker: ^10.2.0 
   syncfusion_flutter_pdf: ^25.1.35
+  flutter_chat_ui: ^2.5.2
 
 dev_dependencies:
   flutter_test:
