@@ -1,106 +1,83 @@
-Luna Agent: Advanced Spec v2 (Parallel Execution)
-This document outlines the JSON-based format for tool calling, now with support for parallel command execution to improve efficiency.
 
-1. Master Prompt (System Message)
-You are Luna, an advanced AI assistant that converts user requests into a structured plan of tool calls.
+tool plan (tool 1, tool 2, tool 3, etc.) + tool 1 + tool 1 param = llm ( user intent + tools available)
 
-Your Thought Process for Generating a Plan:
+tool 1 result = computer (tool 1 + tool 1 param)
 
-Deconstruct the User's Goal: First, understand the final objective of the user's request.
+tool 2 input = llm (tool 1 result)
 
-Identify Dependencies: Determine what information is needed and which tool calls depend on the results of others.
+tool 2 result = computer (tool 2 + tool 2 input)
 
-Create a Step-by-Step Plan: Formulate a plan where independent commands are grouped into a single step for parallel execution. Commands that rely on the results of a previous step must be in a subsequent step.
+tool 3 input = llm (tool 2 result)
 
-Assign Variables: For any command whose result will be used by a later command, you must use the "save_result_as" key to assign its output to a descriptive variable (e.g., "weather_report").
+... repeat until the end
 
-Construct the Final JSON: Based on your plan, build the final JSON array of steps. Ensure you use placeholders (e.g., <weather_report>) correctly to reference the saved variables.
+Luna Agent: Spec v5 (Reactive Workflow)
+This document outlines the official, reactive workflow for the Luna Agent. In this model, the agent first creates a high-level plan, then executes it step-by-step, generating the parameters for each command just-in-time based on the latest context.
 
-You must respond only with the final JSON object. Do not include your thought process in the response.
+Core Architecture
+The system operates in two distinct phases:
 
-2. Available Tools
-Tool Name
+Phase 1: Planning
 
-Description
+The LLM receives the user's request and its only job is to create a high-level plan.
 
-Parameters
+LLM Output: A JSON object with a single "plan" key, containing an ordered list of tool names.
 
-Returns
+Phase 2: Step-by-Step Execution
 
-search
+The system iterates through the generated plan. For each tool in the sequence, it initiates a new "turn" with the LLM.
 
-Performs a web search and returns the top result as a string.
+LLM Input for each turn: The full context, including the original user request, the plan, and all previous tool results.
 
-query (string): The search term.
+LLM Output for each turn: A JSON object with a single "params" key, containing the parameters for the tool that is about to be executed.
 
-The search result (string).
+Test Prompt Structure
+This section defines how to test the reactive workflow turn-by-turn.
 
-save_note
+Turn 1: Generate the Plan
+System Prompt to LLM:
 
-Saves text content to a new note.
+Instructions: You are Luna, a helpful AI assistant.
 
-content (string): The text to be saved.
+Available Tools: search, send_email
 
-The unique ID of the new note (string).
+User Request: "Please search for the current price of Bitcoin and email it to my financial advisor at advisor@example.com."
 
-send_email
+Task: Create a high-level plan to solve the user's request. Respond only with a JSON object containing a "plan" key.
 
-Sends an email to a specified recipient.
+Expected LLM Response:
 
-recipient (string),
-subject (string),
-body (string).
+{
+  "plan": [
+    "search",
+    "send_email"
+  ]
+}
 
-None
+Turn 2: Generate Parameters for send_email
+(This turn occurs after the system has executed the search tool from the plan and has a result).
 
-get_time
+System Prompt to LLM:
 
-Returns the current time as a string.
+Instructions: You are Luna, a helpful AI assistant.
 
-None
+User Request: "Please search for the current price of Bitcoin and email it to my financial advisor at advisor@example.com."
 
-The current time (string).
+Plan: ["search", "send_email"]
 
-3. Test Scenario (with Parallel Execution)
-This test case demonstrates how independent tasks can be run in parallel.
+Previous Step Result (search): "The current price of Bitcoin is $65,432.10 USD."
 
-User Query:
+Current Tool: send_email
 
-"I'm planning an outing. Please find the current weather forecast for Jupiter, Florida. Separately, find a highly-rated seafood restaurant nearby. Once you have both, send an email to friend@example.com suggesting we go to the restaurant and include the weather in the message."
+Task: Generate the parameters for the send_email tool based on all available information. Respond only with a JSON object containing a "params" key.
 
-Expected Model Output (JSON):
+Expected LLM Response:
 
-[
-  {
-    "step": 1,
-    "commands": [
-      {
-        "save_result_as": "weather_report",
-        "tool": "search",
-        "params": {
-          "query": "weather forecast in Jupiter, Florida"
-        }
-      },
-      {
-        "save_result_as": "restaurant_suggestion",
-        "tool": "search",
-        "params": {
-          "query": "highly-rated seafood restaurant in Jupiter, Florida"
-        }
-      }
-    ]
-  },
-  {
-    "step": 2,
-    "commands": [
-      {
-        "tool": "send_email",
-        "params": {
-          "recipient": "friend@example.com",
-          "subject": "Dinner Idea",
-          "body": "Hey! I found a great seafood place for us: <restaurant_suggestion>. Also, the weather is looking like this: <weather_report>. Let me know if you're interested!"
-        }
-      }
-    ]
+{
+  "params": {
+    "recipient": "advisor@example.com",
+    "subject": "Current Bitcoin Price",
+    "body": "Hi, as requested, here is the current price of Bitcoin: $65,432.10 USD."
   }
-]
+}
+

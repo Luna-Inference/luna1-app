@@ -8,6 +8,8 @@ import 'package:v1/pages/voice_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:v1/pages/intern.dart';
 
+import 'pages/task_page.dart';
+
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -31,6 +33,7 @@ class MyApp extends StatelessWidget {
         '/vision': (context) => const VisionPage(),
         '/dashboard': (context) => const Dashboard(),
         '/intern': (context) => InternPage(),
+        '/task': (context) => TaskPage(),
       },
     );
   }

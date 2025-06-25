@@ -61,10 +61,15 @@ class HomePage extends StatelessWidget {
                     title: 'Vision',
                     routeName: '/vision',
                   ),
-                  _NavigationCard(
+                  /*_NavigationCard(
                     icon: Icons.work_outline,
                     title: 'Intern',
                     routeName: '/intern',
+                  ),*/
+                  _NavigationCard(
+                    icon: Icons.pending,
+                    title: 'Task',
+                    routeName: '/task',
                   ),
                 ],
               ),

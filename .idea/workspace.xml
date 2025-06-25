@@ -5,28 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69d8516e-759e-44e7-a717-25f6e84637b9" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/.metadata" beforeDir="false" afterPath="$PROJECT_DIR$/v1/.metadata" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/pubspec.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/app_router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/app_router.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/pages/home_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/home_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/pages/intern.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/intern.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/services/doc/tool_calling.md" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/services/doc/tool_calling.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/services/tools.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/services/tools.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/macos/Flutter/GeneratedPluginRegistrant.swift" beforeDir="false" afterPath="$PROJECT_DIR$/v1/macos/Flutter/GeneratedPluginRegistrant.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/v1/pubspec.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/v1/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/CMakeLists.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/flutter/CMakeLists.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/flutter/generated_plugin_registrant.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/flutter/generated_plugins.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/runner/CMakeLists.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/runner/Runner.rc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/runner/flutter_window.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/runner/flutter_window.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/runner/main.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/runner/resource.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/runner/resources/app_icon.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/runner/runner.exe.manifest" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/runner/utils.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/runner/utils.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/runner/win32_window.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/runner/win32_window.h" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

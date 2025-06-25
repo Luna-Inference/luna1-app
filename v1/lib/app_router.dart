@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:v1/pages/chat_page.dart';
+import 'package:v1/pages/task_page.dart';
 import 'package:v1/pages/voice_page.dart';
 import 'package:v1/pages/vision_page.dart';
 import 'package:v1/pages/dashboard.dart';
@@ -25,6 +26,10 @@ final router = GoRouter(
     GoRoute(
       path: '/dashboard',
       builder: (context, state) => const Dashboard(),
+    ),
+    GoRoute(
+      path: '/task',
+      builder: (context, state) => const TaskPage(),
     ),
   ],
 );

@@ -11,6 +11,7 @@ import 'package:mailer/smtp_server.dart';
 /// Returns:
 ///   - String: The search result.
 Future<String> search(String query) async {
+  print('performing tavily search');
   final apiKey = dotenv.env['TAVILY_API_KEY'] ?? '';
   if (apiKey.isEmpty) {
     throw StateError('TAVILY_API_KEY not set in environment.');
@@ -49,7 +50,7 @@ Future<String> search(String query) async {
 ///   - body (String): The body of the email.
 /// Returns:
 ///   - None
-Future<void> sendEmail({required String recipient, required String subject, required String body}) async {
+Future<void> sendEmail({required String recipient, String subject = 'Message from Luna', required String body}) async {
   final username = dotenv.env['SMTP_USERNAME'] ?? '';
   final password = dotenv.env['SMTP_PASSWORD'] ?? '';
   if (username.isEmpty || password.isEmpty) {
@@ -68,3 +69,8 @@ Future<void> sendEmail({required String recipient, required String subject, requ
   await send(message, smtpServer);
 }
 
+/// Returns today's date as a formatted string (YYYY-MM-DD).
+String getTodayDate() {
+  final now = DateTime.now();
+  return '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+}
