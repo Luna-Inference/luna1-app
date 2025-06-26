@@ -32,14 +32,20 @@ jobs:
         run: npm install --global create-dmg
       - name: Create DMG
         run: |
-          # Get app name and version from pubspec.yaml, allowing for leading spaces
-          APP_NAME=$(grep '^[[:space:]]*name:' pubspec.yaml | head -n1 | awk '{print $2}')
+          # List all .app bundles for debugging
+          ls -l build/macos/Build/Products/Release/*.app || true
+
+          # Use the first .app bundle found as the app name
+          APP_PATH=$(ls build/macos/Build/Products/Release/*.app | head -n1)
+          APP_NAME=$(basename "$APP_PATH" .app)
+
+          # Extract version from pubspec.yaml (robust to indentation)
           APP_VERSION=$(grep '^[[:space:]]*version:' pubspec.yaml | head -n1 | awk '{print $2}' | cut -d '+' -f 1)
 
           echo "APP_NAME: $APP_NAME"
           echo "APP_VERSION: $APP_VERSION"
+          echo "APP_PATH: $APP_PATH"
 
-          APP_PATH="build/macos/Build/Products/Release/${APP_NAME}.app"
           if [ ! -d "$APP_PATH" ]; then
             echo "Error: App bundle not found at $APP_PATH"
             exit 1
