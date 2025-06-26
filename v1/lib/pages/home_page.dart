@@ -27,7 +27,10 @@ class HomePage extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32.0,
+              vertical: 24.0,
+            ),
             child: GridView.count(
               crossAxisCount: isDesktop ? 4 : 2,
               crossAxisSpacing: 24,
@@ -103,13 +106,13 @@ class _NavigationCardState extends State<_NavigationCard> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final cardColor = _isHovered
-        ? colorScheme.surfaceContainerHigh
-        : colorScheme.surfaceContainer;
+    final cardColor =
+        _isHovered
+            ? colorScheme.surfaceContainerHigh
+            : colorScheme.surfaceContainer;
 
-    final contentColor = _isHovered
-        ? colorScheme.primary
-        : colorScheme.onSurfaceVariant;
+    final contentColor =
+        _isHovered ? colorScheme.primary : colorScheme.onSurfaceVariant;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -124,26 +127,28 @@ class _NavigationCardState extends State<_NavigationCard> {
             color: cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: _isHovered ? colorScheme.outline.withOpacity(0.5) : Colors.transparent,
+              color:
+                  _isHovered
+                      ? colorScheme.outline.withOpacity(0.5)
+                      : Colors.transparent,
               width: 1,
             ),
-            boxShadow: _isHovered ? [
-              BoxShadow(
-                color: colorScheme.primary.withOpacity(0.1),
-                blurRadius: 16,
-                spreadRadius: 2,
-              ),
-            ] : [],
+            boxShadow:
+                _isHovered
+                    ? [
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(0.1),
+                        blurRadius: 16,
+                        spreadRadius: 2,
+                      ),
+                    ]
+                    : [],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              Icon(
-                widget.icon,
-                size: 48,
-                color: contentColor,
-              ),
+              Icon(widget.icon, size: 48, color: contentColor),
               const SizedBox(height: 16),
               Text(
                 widget.title,
