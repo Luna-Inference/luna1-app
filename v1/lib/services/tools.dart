@@ -74,3 +74,57 @@ String getTodayDate() {
   final now = DateTime.now();
   return '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 }
+
+/// Adds a new line of text to a specified Notion page.
+///
+/// Parameters:
+///   - content (String): The text content to add to the Notion page.
+/// Returns:
+///   - Future<String>: A confirmation message.
+Future<String> addNote(String content) async {
+  print('adding note to notion');
+  final apiKey = dotenv.env['NOTION_API_KEY'] ?? '';
+  final pageId = dotenv.env['NOTION_NOTES_PAGE_ID'] ?? '';
+
+  if (apiKey.isEmpty) {
+    throw StateError('NOTION_API_KEY not set in environment.');
+  }
+  if (pageId.isEmpty) {
+    throw StateError('NOTION_NOTES_PAGE_ID not set in environment.');
+  }
+
+  final uri = Uri.parse('https://api.notion.com/v1/blocks/$pageId/children');
+
+  final response = await http.patch(  // Changed from post to patch
+    uri,
+    headers: {
+      'Authorization': 'Bearer $apiKey',
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28',
+    },
+    body: jsonEncode({
+      'children': [
+        {
+          'object': 'block',
+          'type': 'paragraph',
+          'paragraph': {
+            'rich_text': [
+              {
+                'type': 'text',
+                'text': {
+                  'content': content,
+                },
+              },
+            ],
+          },
+        },
+      ],
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    return 'Successfully added note to Notion.';
+  } else {
+    throw http.ClientException('Notion API error: ${response.statusCode} ${response.body}');
+  }
+}

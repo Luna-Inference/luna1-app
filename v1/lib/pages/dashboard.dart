@@ -13,10 +13,15 @@ class _DashboardState extends State<Dashboard> {
   // Email controllers
   final TextEditingController _emailReceiverController = TextEditingController();
   final TextEditingController _emailBodyController = TextEditingController();
+  // Notion controller
+  final TextEditingController _notionNoteController = TextEditingController();
+
   String _result = '';
   String _emailStatus = '';
+  String _notionStatus = '';
   bool _loading = false;
   bool _sending = false;
+  bool _isAddingNote = false;
 
   Future<void> _performSearch() async {
     final query = _controller.text.trim();
@@ -56,7 +61,7 @@ class _DashboardState extends State<Dashboard> {
               child: _buildWebSearchSection(),
             ),
           ),
-                    const SizedBox(height: 24),
+          const SizedBox(height: 24),
           Card(
             elevation: 4,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -65,10 +70,18 @@ class _DashboardState extends State<Dashboard> {
               child: _buildEmailSection(),
             ),
           ),
+          const SizedBox(height: 24),
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _buildNotionSection(),
+            ),
+          ),
         ],
       ),
     );
-  
   }
 
   Widget _buildWebSearchSection() {
@@ -156,11 +169,74 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
+  Future<void> _addNoteToNotion() async {
+    final content = _notionNoteController.text.trim();
+    if (content.isEmpty) return;
+    setState(() {
+      _isAddingNote = true;
+      _notionStatus = '';
+    });
+    try {
+      final result = await addNote(content);
+      setState(() {
+        _notionStatus = result;
+        _notionNoteController.clear();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result), backgroundColor: Colors.green),
+      );
+    } catch (e) {
+      final errorMessage = 'Error: $e';
+      setState(() {
+        _notionStatus = errorMessage;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+      );
+    } finally {
+      setState(() {
+        _isAddingNote = false;
+      });
+    }
+  }
+
+  Widget _buildNotionSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Add Note to Notion', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _notionNoteController,
+          decoration: const InputDecoration(
+            labelText: 'Note Content',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 3,
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          onPressed: _isAddingNote ? null : _addNoteToNotion,
+          child: _isAddingNote
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Add Note'),
+        ),
+        const SizedBox(height: 8),
+        if (_notionStatus.isNotEmpty && !_isAddingNote) Text(_notionStatus),
+      ],
+    );
+  }
+
   @override
   void dispose() {
     _controller.dispose();
     _emailReceiverController.dispose();
     _emailBodyController.dispose();
+    _notionNoteController.dispose();
     super.dispose();
   }
 }

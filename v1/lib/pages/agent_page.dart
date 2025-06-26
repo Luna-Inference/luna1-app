@@ -43,6 +43,12 @@ You have access to the following tools:
 - Parameters: None
 - Returns: String date in YYYY-MM-DD format
 
+**addNote(content)**
+- Adds a new line of text to a specified Notion page.
+- Parameters:
+  - `content` (String) - The text content to add.
+- Returns: String confirmation message.
+
 ## Output Format
 
 When you need to use a tool, you MUST format your response exactly as follows:
@@ -370,6 +376,11 @@ Getting today's date.
       } else if (name == 'getTodayDate') {
         final date = await getTodayDate();
         return 'Today\'s date: $date';
+      } else if (name == 'addNote') {
+        final content = params['content'] as String?;
+        if (content == null) return 'Missing content parameter for addNote.';
+        final result = await addNote(content);
+        return 'Notion result: $result';
       } else {
         return 'Unknown tool: $name';
       }
