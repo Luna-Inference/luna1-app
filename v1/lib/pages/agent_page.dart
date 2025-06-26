@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:v1/services/llm.dart';
 import 'package:v1/services/files.dart';
 import 'package:v1/services/tools.dart';
+import 'package:v1/widgets/speed_display_app_bar.dart';
 
 class AgentPage extends StatefulWidget {
   @override
@@ -17,28 +18,20 @@ class AgentPage extends StatefulWidget {
 }
 
 class _AgentPageState extends State<AgentPage> {
-  ServerHealth? _serverHealth;
-  Timer? _healthTimer;
+
   late final LlmService _llmService;
 
   @override
   void initState() {
     super.initState();
     _llmService = LlmService();
-    _fetchHealth();
-    _healthTimer = Timer.periodic(Duration(seconds: 2), (_) => _fetchHealth());
+
   }
 
-  void _fetchHealth() async {
-    final health = await _llmService.fetchServerHealth();
-    setState(() {
-      _serverHealth = health;
-    });
-  }
+
 
   @override
   void dispose() {
-    _healthTimer?.cancel();
     _llmSubscription?.cancel();
     super.dispose();
   }
@@ -126,36 +119,7 @@ Getting today's date.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Row(
-          children: [
-            const Text('Luna Agent'),
-            const Spacer(),
-            if (_serverHealth != null)
-              Row(
-                children: [
-                  Icon(
-                    Icons.speed,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Input: ${_serverHealth!.promptEvalSpeedWps} wps',
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Output: ${_serverHealth!.generationSpeedWps} wps',
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                ],
-              ),
-          ],
-        ),
-      ),
+      appBar: const SpeedDisplayAppBar(title: 'Luna Agent'),
       backgroundColor: Theme.of(context).colorScheme.background,
       body: DashChat(
         inputOptions: InputOptions(

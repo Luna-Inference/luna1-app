@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:v1/services/llm.dart';
 import 'package:v1/services/files.dart';
+import 'package:v1/widgets/speed_display_app_bar.dart';
 import 'package:v1/services/chat_persona.dart';
 
 class LunaChatPage extends StatefulWidget {
@@ -15,21 +16,10 @@ class LunaChatPage extends StatefulWidget {
 }
 
 class _LunaChatPageState extends State<LunaChatPage> {
-  ServerHealth? _serverHealth;
-  Timer? _healthTimer;
 
   @override
   void initState() {
     super.initState();
-    _fetchHealth();
-    _healthTimer = Timer.periodic(Duration(seconds: 2), (_) => _fetchHealth());
-  }
-
-  void _fetchHealth() async {
-    final health = await _llmService.fetchServerHealth();
-    setState(() {
-      _serverHealth = health;
-    });
   }
 
   List<ChatMessage> messages = [];
@@ -44,16 +34,7 @@ class _LunaChatPageState extends State<LunaChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Luna Chat',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-      ),
+      appBar: const SpeedDisplayAppBar(title: 'Luna Chat'),
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Column(
         children: [
@@ -210,35 +191,7 @@ class _LunaChatPageState extends State<LunaChatPage> {
               messages: messages,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 8.0,
-              horizontal: 16.0,
-            ),
-            child:
-                _serverHealth == null
-                    ? SizedBox(height: 18)
-                    : Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Icon(
-                          Icons.speed,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        SizedBox(width: 6),
-                        Text(
-                          'Input: ${_serverHealth!.promptEvalSpeedWps} wps',
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                        SizedBox(width: 12),
-                        Text(
-                          'Output: ${_serverHealth!.generationSpeedWps} wps',
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                      ],
-                    ),
-          ),
+
         ],
       ),
     );
@@ -304,7 +257,6 @@ class _LunaChatPageState extends State<LunaChatPage> {
   @override
   void dispose() {
     _llmSubscription?.cancel();
-    _healthTimer?.cancel();
     super.dispose();
   }
 }

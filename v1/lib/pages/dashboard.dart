@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:v1/services/tools.dart';
 import 'dart:async';
-import 'package:v1/services/llm.dart';
+import 'package:v1/widgets/speed_display_app_bar.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -11,23 +11,6 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  ServerHealth? _serverHealth;
-  Timer? _healthTimer;
-  final LlmService _llmService = LlmService();
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchHealth();
-    _healthTimer = Timer.periodic(Duration(seconds: 2), (_) => _fetchHealth());
-  }
-
-  void _fetchHealth() async {
-    final health = await _llmService.fetchServerHealth();
-    setState(() {
-      _serverHealth = health;
-    });
-  }
 
   final TextEditingController _controller = TextEditingController();
   // Email controllers
@@ -70,34 +53,7 @@ class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            const Text('Dashboard'),
-            const Spacer(),
-            if (_serverHealth != null)
-              Row(
-                children: [
-                  Icon(
-                    Icons.speed,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Input: ${_serverHealth!.promptEvalSpeedWps} wps',
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Output: ${_serverHealth!.generationSpeedWps} wps',
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                ],
-              ),
-          ],
-        ),
-      ),
+      appBar: const SpeedDisplayAppBar(title: 'Dashboard'),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -301,7 +257,6 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   void dispose() {
-    _healthTimer?.cancel();
     _controller.dispose();
     _emailReceiverController.dispose();
     _emailBodyController.dispose();
