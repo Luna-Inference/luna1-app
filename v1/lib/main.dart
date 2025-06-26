@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:v1/pages/agent_page.dart';
 import 'package:v1/themes/theme.dart';
+import 'package:v1/themes/util.dart';
 import 'package:v1/pages/chat_page.dart';
 import 'package:v1/pages/dashboard.dart';
 import 'package:v1/pages/home_page.dart';
@@ -19,10 +21,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = View.of(context).platformDispatcher.platformBrightness;
+    TextTheme textTheme = createTextTheme(context, "Inter", "Inter");
+    MaterialTheme theme = MaterialTheme(textTheme);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Luna AI Suite',
-      theme: MaterialTheme(ThemeData.light().textTheme).light(),
+      theme: brightness == Brightness.light ? theme.light() : theme.dark(),
       initialRoute: '/',
       routes: {
         '/': (context) => const HomePage(),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:v1/services/tools.dart';
+import 'dart:async';
+import 'package:v1/services/llm.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -9,9 +11,28 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  ServerHealth? _serverHealth;
+  Timer? _healthTimer;
+  final LlmService _llmService = LlmService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHealth();
+    _healthTimer = Timer.periodic(Duration(seconds: 2), (_) => _fetchHealth());
+  }
+
+  void _fetchHealth() async {
+    final health = await _llmService.fetchServerHealth();
+    setState(() {
+      _serverHealth = health;
+    });
+  }
+
   final TextEditingController _controller = TextEditingController();
   // Email controllers
-  final TextEditingController _emailReceiverController = TextEditingController();
+  final TextEditingController _emailReceiverController =
+      TextEditingController();
   final TextEditingController _emailBodyController = TextEditingController();
   // Notion controller
   final TextEditingController _notionNoteController = TextEditingController();
@@ -49,13 +70,42 @@ class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            const Text('Dashboard'),
+            const Spacer(),
+            if (_serverHealth != null)
+              Row(
+                children: [
+                  Icon(
+                    Icons.speed,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Input: ${_serverHealth!.promptEvalSpeedWps} wps',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Output: ${_serverHealth!.generationSpeedWps} wps',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Card(
             elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: _buildWebSearchSection(),
@@ -64,7 +114,9 @@ class _DashboardState extends State<Dashboard> {
           const SizedBox(height: 24),
           Card(
             elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: _buildEmailSection(),
@@ -73,7 +125,9 @@ class _DashboardState extends State<Dashboard> {
           const SizedBox(height: 24),
           Card(
             elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: _buildNotionSection(),
@@ -101,13 +155,14 @@ class _DashboardState extends State<Dashboard> {
         const SizedBox(height: 12),
         ElevatedButton(
           onPressed: _loading ? null : _performSearch,
-          child: _loading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Search'),
+          child:
+              _loading
+                  ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                  : const Text('Search'),
         ),
         const SizedBox(height: 12),
         if (_result.isNotEmpty) Text(_result),
@@ -124,7 +179,11 @@ class _DashboardState extends State<Dashboard> {
       _emailStatus = '';
     });
     try {
-      await sendEmail(recipient: receiver, subject: 'Message from Luna Dashboard', body: body);
+      await sendEmail(
+        recipient: receiver,
+        subject: 'Message from Luna Dashboard',
+        body: body,
+      );
       setState(() => _emailStatus = 'Email sent!');
     } catch (e) {
       setState(() => _emailStatus = 'Error: $e');
@@ -159,9 +218,14 @@ class _DashboardState extends State<Dashboard> {
         const SizedBox(height: 12),
         ElevatedButton(
           onPressed: _sending ? null : _sendEmail,
-          child: _sending
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Send Email'),
+          child:
+              _sending
+                  ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                  : const Text('Send Email'),
         ),
         const SizedBox(height: 8),
         if (_emailStatus.isNotEmpty) Text(_emailStatus),
@@ -204,7 +268,10 @@ class _DashboardState extends State<Dashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Add Note to Notion', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          'Add Note to Notion',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 12),
         TextField(
           controller: _notionNoteController,
@@ -217,13 +284,14 @@ class _DashboardState extends State<Dashboard> {
         const SizedBox(height: 12),
         ElevatedButton(
           onPressed: _isAddingNote ? null : _addNoteToNotion,
-          child: _isAddingNote
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Add Note'),
+          child:
+              _isAddingNote
+                  ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                  : const Text('Add Note'),
         ),
         const SizedBox(height: 8),
         if (_notionStatus.isNotEmpty && !_isAddingNote) Text(_notionStatus),
@@ -233,6 +301,7 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   void dispose() {
+    _healthTimer?.cancel();
     _controller.dispose();
     _emailReceiverController.dispose();
     _emailBodyController.dispose();

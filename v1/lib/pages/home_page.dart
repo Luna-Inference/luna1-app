@@ -9,14 +9,13 @@ class HomePage extends StatelessWidget {
     final isDesktop = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Luna AI Suite',
-          style: TextStyle(
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
-            fontSize: 24,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         centerTitle: true,
@@ -28,7 +27,10 @@ class HomePage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.grey[100]!, Colors.grey[300]!],
+            colors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surfaceVariant,
+            ],
           ),
         ),
         child: Center(
@@ -115,14 +117,13 @@ class _NavigationCardState extends State<_NavigationCard> {
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color:
-                    _isHovered
-                        ? Colors.blue.withOpacity(0.3)
-                        : Colors.black.withOpacity(0.1),
+                color: _isHovered
+                    ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
+                    : Theme.of(context).shadowColor.withOpacity(0.1),
                 blurRadius: _isHovered ? 20 : 10,
                 offset: _isHovered ? const Offset(0, 10) : const Offset(0, 5),
               ),
@@ -134,15 +135,18 @@ class _NavigationCardState extends State<_NavigationCard> {
               Icon(
                 widget.icon,
                 size: 50,
-                color: _isHovered ? Colors.blueAccent : Colors.black54,
+                color: _isHovered
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               const SizedBox(height: 20),
               Text(
                 widget.title,
-                style: TextStyle(
-                  fontSize: 18,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: _isHovered ? Colors.blueAccent : Colors.black87,
+                  color: _isHovered
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],

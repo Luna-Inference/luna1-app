@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -8,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:v1/services/llm.dart';
 import 'package:v1/services/files.dart';
+import 'package:v1/services/chat_persona.dart';
 
 class LunaChatPage extends StatefulWidget {
   @override
@@ -15,8 +15,22 @@ class LunaChatPage extends StatefulWidget {
 }
 
 class _LunaChatPageState extends State<LunaChatPage> {
-  final user = ChatUser(id: 'user', firstName: 'John', lastName: 'Doe');
-  final AI = ChatUser(id: 'AI', firstName: 'Luna');
+  ServerHealth? _serverHealth;
+  Timer? _healthTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHealth();
+    _healthTimer = Timer.periodic(Duration(seconds: 2), (_) => _fetchHealth());
+  }
+
+  void _fetchHealth() async {
+    final health = await _llmService.fetchServerHealth();
+    setState(() {
+      _serverHealth = health;
+    });
+  }
 
   List<ChatMessage> messages = [];
 
@@ -31,162 +45,201 @@ class _LunaChatPageState extends State<LunaChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Luna',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-        ),
-      ),
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: DashChat(
-        inputOptions: InputOptions(
-          inputDecoration: InputDecoration(
-            filled: true,
-            fillColor: Theme.of(context).colorScheme.surface,
-            hintText: 'Type a message...',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(24),
-              borderSide: BorderSide.none,
-            ),
-            prefixIcon: IconButton(
-              icon: Icon(
-                Icons.attach_file,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              onPressed: _attachPdf,
-            ),
+          'Luna Chat',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        messageOptions: MessageOptions(
-          messageTextBuilder: (message, previous, next) {
-            if (message.customProperties?['thinking'] == true) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4.0),
-                    child: Text(
-                      'Thinking...',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color:
-                            Theme.of(context).colorScheme.onTertiaryContainer,
-                      ),
-                    ),
+      ),
+      backgroundColor: Theme.of(context).colorScheme.background,
+      body: Column(
+        children: [
+          Expanded(
+            child: DashChat(
+              inputOptions: InputOptions(
+                inputDecoration: InputDecoration(
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surfaceVariant,
+                  hintText: 'Type a message...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
                   ),
-                  MarkdownBody(data: message.text, selectable: true),
-                ],
-              );
-            }
-            return MarkdownBody(data: message.text, selectable: true);
-          },
-          messageDecorationBuilder: (message, previous, next) {
-            if (message.customProperties != null &&
-                message.customProperties!['thinking'] == true) {
-              return BoxDecoration(
-                color: Theme.of(context).colorScheme.tertiaryContainer,
-                borderRadius: BorderRadius.circular(18),
-              );
-            }
-            return BoxDecoration(
-              color:
-                  message.user.id == user.id
-                      ? Theme.of(context).colorScheme.primaryContainer
-                      : Theme.of(context).colorScheme.secondaryContainer,
-              borderRadius: BorderRadius.circular(18),
-            );
-          },
-        ),
-        currentUser: user,
-        onSend: (ChatMessage m) async {
-          setState(() {
-            messages.insert(0, m);
-            _thinkingMsgIndex = null;
-            _answerMsgIndex = null;
-          });
-
-          // Cancel any existing LLM stream subscription
-          // _llmSubscription?.cancel();
-
-          final apiMessages = _convertMessagesToApi(messages);
-          // Debug log
-          print(
-            '[LLM] Sending first messages: \\${jsonEncode(apiMessages.take(3).toList())}',
-          );
-
-          _llmSubscription = _llmService.getAIResponse(apiMessages).listen((
-            event,
-          ) {
-            setState(() {
-              switch (event.type) {
-                case LlmStreamEventType.thinking:
-                  if (_thinkingMsgIndex == null) {
-                    messages.insert(
-                      0,
-                      ChatMessage(
-                        user: AI,
-                        createdAt: DateTime.now(),
-                        text: event.content,
-                        customProperties: {'thinking': true},
-                      ),
-                    );
-                    _thinkingMsgIndex = 0;
-                  } else {
-                    final oldMsg = messages[_thinkingMsgIndex!];
-                    messages[_thinkingMsgIndex!] = ChatMessage(
-                      user: AI,
-                      createdAt: oldMsg.createdAt,
-                      text: event.content,
-                      customProperties: {'thinking': true},
-                    );
-                  }
-                  break;
-                case LlmStreamEventType.response:
-                  if (_answerMsgIndex == null) {
-                    messages.insert(
-                      0,
-                      ChatMessage(
-                        user: AI,
-                        createdAt: DateTime.now(),
-                        text: event.content,
-                      ),
-                    );
-                    _answerMsgIndex = 0;
-                  } else {
-                    final oldMsg = messages[_answerMsgIndex!];
-                    messages[_answerMsgIndex!] = ChatMessage(
-                      user: AI,
-                      createdAt: oldMsg.createdAt,
-                      text: event.content,
-                    );
-                  }
-                  break;
-                case LlmStreamEventType.fullResponse:
-                  if (_answerMsgIndex != null) {
-                    final oldMsg = messages[_answerMsgIndex!];
-                    messages[_answerMsgIndex!] = ChatMessage(
-                      user: AI,
-                      createdAt: oldMsg.createdAt,
-                      text: event.content,
-                    );
-                  }
-                  break;
-                case LlmStreamEventType.error:
-                  messages.insert(
-                    0,
-                    ChatMessage(
-                      user: AI,
-                      createdAt: DateTime.now(),
-                      text: 'Error: ${event.content}',
+                  prefixIcon: IconButton(
+                    icon: Icon(
+                      Icons.attach_file,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
+                    onPressed: _attachPdf,
+                  ),
+                ),
+              ),
+              messageOptions: MessageOptions(
+                messageTextBuilder: (message, previous, next) {
+                  if (message.customProperties?['thinking'] == true) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4.0),
+                          child: Text(
+                            'Thinking...',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                        ),
+                        MarkdownBody(data: message.text, selectable: true),
+                      ],
+                    );
+                  }
+                  return MarkdownBody(data: message.text, selectable: true);
+                },
+                messageDecorationBuilder: (message, previous, next) {
+                  if (message.customProperties != null &&
+                      message.customProperties!['thinking'] == true) {
+                    return BoxDecoration(
+                      color: Theme.of(context).colorScheme.tertiaryContainer,
+                      borderRadius: BorderRadius.circular(16),
+                    );
+                  }
+                  return BoxDecoration(
+                    color:
+                        message.user.id == user.id
+                            ? Theme.of(context).colorScheme.primaryContainer
+                            : Theme.of(context).colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(16),
                   );
-                  break;
-              }
-            });
-          });
-        },
-        messages: messages,
+                },
+              ),
+              currentUser: user,
+              onSend: (ChatMessage m) async {
+                setState(() {
+                  messages.insert(0, m);
+                  _thinkingMsgIndex = null;
+                  _answerMsgIndex = null;
+                });
+
+                // Cancel any existing LLM stream subscription
+                // _llmSubscription?.cancel();
+
+                final apiMessages = _convertMessagesToApi(messages);
+                // Debug log
+                print(
+                  '[LLM] Sending first messages: \\${jsonEncode(apiMessages.take(3).toList())}',
+                );
+
+                _llmSubscription = _llmService
+                    .getAIResponse(apiMessages)
+                    .listen((event) {
+                      setState(() {
+                        switch (event.type) {
+                          case LlmStreamEventType.thinking:
+                            if (_thinkingMsgIndex == null) {
+                              messages.insert(
+                                0,
+                                ChatMessage(
+                                  user: luna,
+                                  createdAt: DateTime.now(),
+                                  text: event.content,
+                                  customProperties: {'thinking': true},
+                                ),
+                              );
+                              _thinkingMsgIndex = 0;
+                            } else {
+                              final oldMsg = messages[_thinkingMsgIndex!];
+                              messages[_thinkingMsgIndex!] = ChatMessage(
+                                user: luna,
+                                createdAt: oldMsg.createdAt,
+                                text: event.content,
+                                customProperties: {'thinking': true},
+                              );
+                            }
+                            break;
+                          case LlmStreamEventType.response:
+                            if (_answerMsgIndex == null) {
+                              messages.insert(
+                                0,
+                                ChatMessage(
+                                  user: luna,
+                                  createdAt: DateTime.now(),
+                                  text: event.content,
+                                ),
+                              );
+                              _answerMsgIndex = 0;
+                            } else {
+                              final oldMsg = messages[_answerMsgIndex!];
+                              messages[_answerMsgIndex!] = ChatMessage(
+                                user: luna,
+                                createdAt: oldMsg.createdAt,
+                                text: event.content,
+                              );
+                            }
+                            break;
+                          case LlmStreamEventType.fullResponse:
+                            if (_answerMsgIndex != null) {
+                              final oldMsg = messages[_answerMsgIndex!];
+                              messages[_answerMsgIndex!] = ChatMessage(
+                                user: luna,
+                                createdAt: oldMsg.createdAt,
+                                text: event.content,
+                              );
+                            }
+                            break;
+                          case LlmStreamEventType.error:
+                            messages.insert(
+                              0,
+                              ChatMessage(
+                                user: luna,
+                                createdAt: DateTime.now(),
+                                text: 'Error: ${event.content}',
+                              ),
+                            );
+                            break;
+                        }
+                      });
+                    });
+              },
+              messages: messages,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 8.0,
+              horizontal: 16.0,
+            ),
+            child:
+                _serverHealth == null
+                    ? SizedBox(height: 18)
+                    : Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Icon(
+                          Icons.speed,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          'Input: ${_serverHealth!.promptEvalSpeedWps} wps',
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          'Output: ${_serverHealth!.generationSpeedWps} wps',
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ],
+                    ),
+          ),
+        ],
       ),
     );
   }
@@ -195,6 +248,12 @@ class _LunaChatPageState extends State<LunaChatPage> {
     List<ChatMessage> chatMessages,
   ) {
     final List<Map<String, String>> api = [];
+    // Main system prompt
+    api.add({
+      'role': 'system',
+      'content':
+          'Your name is Luna, an intelligent assistant that answers very concisely and avoid long responses if not needed or a short response can solve the problem.',
+    });
     for (final ctx in _pdfContexts) {
       api.add({'role': 'system', 'content': ctx});
     }
@@ -245,6 +304,7 @@ class _LunaChatPageState extends State<LunaChatPage> {
   @override
   void dispose() {
     _llmSubscription?.cancel();
+    _healthTimer?.cancel();
     super.dispose();
   }
 }

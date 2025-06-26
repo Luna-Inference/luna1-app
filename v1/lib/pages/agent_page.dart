@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:v1/services/chat_persona.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -16,6 +17,32 @@ class AgentPage extends StatefulWidget {
 }
 
 class _AgentPageState extends State<AgentPage> {
+  ServerHealth? _serverHealth;
+  Timer? _healthTimer;
+  late final LlmService _llmService;
+
+  @override
+  void initState() {
+    super.initState();
+    _llmService = LlmService();
+    _fetchHealth();
+    _healthTimer = Timer.periodic(Duration(seconds: 2), (_) => _fetchHealth());
+  }
+
+  void _fetchHealth() async {
+    final health = await _llmService.fetchServerHealth();
+    setState(() {
+      _serverHealth = health;
+    });
+  }
+
+  @override
+  void dispose() {
+    _healthTimer?.cancel();
+    _llmSubscription?.cancel();
+    super.dispose();
+  }
+
   /// Same system prompt as TaskPage for tool calling.
   String _buildSystemPrompt() {
     return '''# Tool Call Test Prompt
@@ -88,13 +115,8 @@ Getting today's date.
 ''';
   }
 
-  final user = ChatUser(id: 'user', firstName: 'John', lastName: 'Doe');
-  final agent = ChatUser(id: 'agent', firstName: 'Luna');
-  final computer = ChatUser(id: 'computer', firstName: 'Computer');
-
   List<ChatMessage> messages = [];
 
-  final LlmService _llmService = LlmService();
   StreamSubscription<LlmStreamEvent>? _llmSubscription;
   int? _thinkingMsgIndex;
   int? _answerMsgIndex;
@@ -105,28 +127,50 @@ Getting today's date.
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(
-          'Luna',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        title: Row(
+          children: [
+            const Text('Luna Agent'),
+            const Spacer(),
+            if (_serverHealth != null)
+              Row(
+                children: [
+                  Icon(
+                    Icons.speed,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Input: ${_serverHealth!.promptEvalSpeedWps} wps',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Output: ${_serverHealth!.generationSpeedWps} wps',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                ],
+              ),
+          ],
         ),
       ),
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: DashChat(
         inputOptions: InputOptions(
           inputDecoration: InputDecoration(
             filled: true,
-            fillColor: Theme.of(context).colorScheme.surface,
+            fillColor: Theme.of(context).colorScheme.surfaceVariant,
             hintText: 'Type a message...',
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(20),
               borderSide: BorderSide.none,
             ),
             prefixIcon: IconButton(
               icon: Icon(
                 Icons.attach_file,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                color: Theme.of(context).colorScheme.primary,
               ),
               onPressed: _attachPdf,
             ),
@@ -160,7 +204,7 @@ Getting today's date.
                 message.customProperties!['thinking'] == true) {
               return BoxDecoration(
                 color: Theme.of(context).colorScheme.tertiaryContainer,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(16),
               );
             }
             return BoxDecoration(
@@ -168,7 +212,7 @@ Getting today's date.
                   message.user.id == user.id
                       ? Theme.of(context).colorScheme.primaryContainer
                       : Theme.of(context).colorScheme.secondaryContainer,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(16),
             );
           },
         ),
@@ -199,7 +243,7 @@ Getting today's date.
                     messages.insert(
                       0,
                       ChatMessage(
-                        user: agent,
+                        user: luna,
                         createdAt: DateTime.now(),
                         text: event.content,
                         customProperties: {'thinking': true},
@@ -209,7 +253,7 @@ Getting today's date.
                   } else {
                     final oldMsg = messages[_thinkingMsgIndex!];
                     messages[_thinkingMsgIndex!] = ChatMessage(
-                      user: agent,
+                      user: luna,
                       createdAt: oldMsg.createdAt,
                       text: event.content,
                       customProperties: {'thinking': true},
@@ -221,7 +265,7 @@ Getting today's date.
                     messages.insert(
                       0,
                       ChatMessage(
-                        user: agent,
+                        user: luna,
                         createdAt: DateTime.now(),
                         text: event.content,
                       ),
@@ -230,7 +274,7 @@ Getting today's date.
                   } else {
                     final oldMsg = messages[_answerMsgIndex!];
                     messages[_answerMsgIndex!] = ChatMessage(
-                      user: agent,
+                      user: luna,
                       createdAt: oldMsg.createdAt,
                       text: event.content,
                     );
@@ -240,7 +284,7 @@ Getting today's date.
                   if (_answerMsgIndex != null) {
                     final oldMsg = messages[_answerMsgIndex!];
                     messages[_answerMsgIndex!] = ChatMessage(
-                      user: agent,
+                      user: luna,
                       createdAt: oldMsg.createdAt,
                       text: event.content,
                     );
@@ -256,36 +300,48 @@ Getting today's date.
                               ChatMessage(
                                 user: computer,
                                 createdAt: DateTime.now(),
-                                text: toolOutput ?? 'Tool executed with no output.',
+                                text:
+                                    toolOutput ??
+                                    'Tool executed with no output.',
                               ),
                             );
                           });
                           // Send tool output back to LLM for reflection/answer
-                          final reflectionMessages = List<ChatMessage>.from(messages);
-                          reflectionMessages.insert(0, ChatMessage(
-                            user: user,
-                            createdAt: DateTime.now(),
-                            text: toolOutput ?? '',
-                          ));
-                          final apiReflection = _convertMessagesToApi(reflectionMessages);
-                          final reflectionStream = _llmService.getAIResponse(apiReflection);
+                          final reflectionMessages = List<ChatMessage>.from(
+                            messages,
+                          );
+                          reflectionMessages.insert(
+                            0,
+                            ChatMessage(
+                              user: user,
+                              createdAt: DateTime.now(),
+                              text: toolOutput ?? '',
+                            ),
+                          );
+                          final apiReflection = _convertMessagesToApi(
+                            reflectionMessages,
+                          );
+                          final reflectionStream = _llmService.getAIResponse(
+                            apiReflection,
+                          );
                           // Insert a placeholder agent message for streaming
                           int agentMsgIndex = 0;
                           setState(() {
                             messages.insert(
                               agentMsgIndex,
                               ChatMessage(
-                                user: agent,
+                                user: luna,
                                 createdAt: DateTime.now(),
                                 text: '',
                               ),
                             );
                           });
                           await for (final event in reflectionStream) {
-                            if (event.type == LlmStreamEventType.response || event.type == LlmStreamEventType.fullResponse) {
+                            if (event.type == LlmStreamEventType.response ||
+                                event.type == LlmStreamEventType.fullResponse) {
                               setState(() {
                                 messages[agentMsgIndex] = ChatMessage(
-                                  user: agent,
+                                  user: luna,
                                   createdAt: DateTime.now(),
                                   text: event.content,
                                 );
@@ -299,7 +355,8 @@ Getting today's date.
                           ChatMessage(
                             user: computer,
                             createdAt: DateTime.now(),
-                            text: 'Tool call detected but could not parse JSON.',
+                            text:
+                                'Tool call detected but could not parse JSON.',
                           ),
                         );
                       }
@@ -319,7 +376,7 @@ Getting today's date.
                   messages.insert(
                     0,
                     ChatMessage(
-                      user: agent,
+                      user: luna,
                       createdAt: DateTime.now(),
                       text: 'Error: ${event.content}',
                     ),
@@ -336,7 +393,10 @@ Getting today's date.
 
   bool _hasToolTag(String str) {
     // Detects a JSON object with both 'name' and 'parameters' keys anywhere in the string
-    final regex = RegExp(r'\{[^\}]*"name"\s*:\s*"[^"]+"[^\}]*"parameters"\s*:\s*\{[^\}]*\}[^"]*\}', dotAll: true);
+    final regex = RegExp(
+      r'\{[^\}]*"name"\s*:\s*"[^"]+"[^\}]*"parameters"\s*:\s*\{[^\}]*\}[^"]*\}',
+      dotAll: true,
+    );
     return regex.hasMatch(str);
   }
 
@@ -370,7 +430,8 @@ Getting today's date.
         final recipient = params['recipient'] as String?;
         final subject = params['subject'] as String? ?? 'Message from Luna';
         final body = params['body'] as String?;
-        if (recipient == null || body == null) return 'Missing recipient or body for sendEmail.';
+        if (recipient == null || body == null)
+          return 'Missing recipient or body for sendEmail.';
         await sendEmail(recipient: recipient, subject: subject, body: body);
         return 'Email sent to $recipient.';
       } else if (name == 'getTodayDate') {
@@ -440,11 +501,5 @@ Getting today's date.
         );
       });
     }
-  }
-
-  @override
-  void dispose() {
-    _llmSubscription?.cancel();
-    super.dispose();
   }
 }
