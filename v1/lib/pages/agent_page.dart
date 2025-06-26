@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:v1/services/llm.dart';
 import 'package:v1/services/files.dart';
+import 'package:v1/services/tools.dart';
 
 class AgentPage extends StatefulWidget {
   @override
@@ -15,6 +16,72 @@ class AgentPage extends StatefulWidget {
 }
 
 class _AgentPageState extends State<AgentPage> {
+  /// Same system prompt as TaskPage for tool calling.
+  String _buildSystemPrompt() {
+    return '''# Tool Call Test Prompt
+
+## Available Tools
+
+You have access to the following tools:
+
+**search(query)**
+- Performs a web search and returns the top result
+- Parameters: 
+  - `query` (String) - The search term
+- Returns: String content from search results
+
+**sendEmail(recipient, subject, body)**  
+- Sends an email to a specified recipient
+- Parameters: 
+  - `recipient` (String) - Email address to send to
+  - `subject` (String) - Email subject line (optional, defaults to "Message from Luna")
+  - `body` (String) - Email content
+- Returns: None (confirms email sent)
+
+**getTodayDate()**
+- Returns today's date in YYYY-MM-DD format
+- Parameters: None
+- Returns: String date in YYYY-MM-DD format
+
+## Output Format
+
+When you need to use a tool, you MUST format your response exactly as follows:
+
+```
+[Brief explanation of what you're doing]
+
+{"name": "toolName", "parameters": {"param1": "value1", "param2": "value2"}}
+
+## Examples
+
+**Example 1: Using the search tool**
+
+```
+Looking up the current weather in Paris.
+
+{"name": "search", "parameters": {"query": "current weather in Paris"}}
+```
+
+**Example 2: Using the sendEmail tool**
+
+```
+Sending your requested email.
+
+{"name": "sendEmail", "parameters": {"recipient": "jane@example.com", "subject": "Hello from Luna", "body": "Hi Jane, just checking in!"}}
+```
+
+**Example 3: Using the getTodayDate tool**
+
+```
+Getting today's date.
+
+{"name": "getTodayDate", "parameters": {}}
+```
+
+```
+''';
+  }
+
   final user = ChatUser(id: 'user', firstName: 'John', lastName: 'Doe');
   final agent = ChatUser(id: 'agent', firstName: 'Luna');
   final computer = ChatUser(id: 'computer', firstName: 'Computer');
@@ -173,14 +240,73 @@ class _AgentPageState extends State<AgentPage> {
                     );
 
                     final hasTool = _hasToolTag(event.content);
-                    messages.insert(
-                      0,
-                      ChatMessage(
-                        user: computer,
-                        createdAt: DateTime.now(),
-                        text: hasTool ? 'Tool tag found' : 'No tool tag found',
-                      ),
-                    );
+                    if (hasTool) {
+                      final toolCall = _extractToolCallJson(event.content);
+                      if (toolCall != null) {
+                        _executeTool(toolCall).then((toolOutput) async {
+                          setState(() {
+                            messages.insert(
+                              0,
+                              ChatMessage(
+                                user: computer,
+                                createdAt: DateTime.now(),
+                                text: toolOutput ?? 'Tool executed with no output.',
+                              ),
+                            );
+                          });
+                          // Send tool output back to LLM for reflection/answer
+                          final reflectionMessages = List<ChatMessage>.from(messages);
+                          reflectionMessages.insert(0, ChatMessage(
+                            user: user,
+                            createdAt: DateTime.now(),
+                            text: toolOutput ?? '',
+                          ));
+                          final apiReflection = _convertMessagesToApi(reflectionMessages);
+                          final reflectionStream = _llmService.getAIResponse(apiReflection);
+                          // Insert a placeholder agent message for streaming
+                          int agentMsgIndex = 0;
+                          setState(() {
+                            messages.insert(
+                              agentMsgIndex,
+                              ChatMessage(
+                                user: agent,
+                                createdAt: DateTime.now(),
+                                text: '',
+                              ),
+                            );
+                          });
+                          await for (final event in reflectionStream) {
+                            if (event.type == LlmStreamEventType.response || event.type == LlmStreamEventType.fullResponse) {
+                              setState(() {
+                                messages[agentMsgIndex] = ChatMessage(
+                                  user: agent,
+                                  createdAt: DateTime.now(),
+                                  text: event.content,
+                                );
+                              });
+                            }
+                          }
+                        });
+                      } else {
+                        messages.insert(
+                          0,
+                          ChatMessage(
+                            user: computer,
+                            createdAt: DateTime.now(),
+                            text: 'Tool call detected but could not parse JSON.',
+                          ),
+                        );
+                      }
+                    } else {
+                      messages.insert(
+                        0,
+                        ChatMessage(
+                          user: computer,
+                          createdAt: DateTime.now(),
+                          text: 'No tool tag found',
+                        ),
+                      );
+                    }
                   }
                   break;
                 case LlmStreamEventType.error:
@@ -202,15 +328,62 @@ class _AgentPageState extends State<AgentPage> {
     );
   }
 
-    bool _hasToolTag(String str) {
-    final regex = RegExp(r'<tool>.*?</tool>', dotAll: true);
+  bool _hasToolTag(String str) {
+    // Detects a JSON object with both 'name' and 'parameters' keys anywhere in the string
+    final regex = RegExp(r'\{[^\}]*"name"\s*:\s*"[^"]+"[^\}]*"parameters"\s*:\s*\{[^\}]*\}[^"]*\}', dotAll: true);
     return regex.hasMatch(str);
+  }
+
+  // Extracts the first tool call JSON object from a string
+  Map<String, dynamic>? _extractToolCallJson(String text) {
+    final lines = text.split(RegExp(r'[\r\n]+'));
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty) continue;
+      try {
+        final obj = jsonDecode(trimmed) as Map<String, dynamic>;
+        if (obj.containsKey('name') && obj.containsKey('parameters')) {
+          return obj;
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  // Executes the tool call and returns the output as a Future<String?>
+  Future<String?> _executeTool(Map<String, dynamic> toolCall) async {
+    try {
+      final name = toolCall['name'] as String;
+      final params = toolCall['parameters'] as Map<String, dynamic>;
+      if (name == 'search') {
+        final query = params['query'] as String?;
+        if (query == null) return 'Missing query parameter for search.';
+        final result = await search(query);
+        return 'Search result: $result';
+      } else if (name == 'sendEmail') {
+        final recipient = params['recipient'] as String?;
+        final subject = params['subject'] as String? ?? 'Message from Luna';
+        final body = params['body'] as String?;
+        if (recipient == null || body == null) return 'Missing recipient or body for sendEmail.';
+        await sendEmail(recipient: recipient, subject: subject, body: body);
+        return 'Email sent to $recipient.';
+      } else if (name == 'getTodayDate') {
+        final date = await getTodayDate();
+        return 'Today\'s date: $date';
+      } else {
+        return 'Unknown tool: $name';
+      }
+    } catch (e) {
+      return 'Tool execution error: $e';
+    }
   }
 
   List<Map<String, String>> _convertMessagesToApi(
     List<ChatMessage> chatMessages,
   ) {
     final List<Map<String, String>> api = [];
+    // Always inject the canonical system prompt as the first message
+    api.add({'role': 'system', 'content': _buildSystemPrompt()});
     for (final ctx in _pdfContexts) {
       api.add({'role': 'system', 'content': ctx});
     }

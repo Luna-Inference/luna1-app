@@ -29,7 +29,7 @@ class _TaskPageState extends State<TaskPage> {
   // Persist conversation history across tasks to give the LLM "memory"
   final List<Map<String, String>> _convHistory = [];
 
-  /// Convenience util used by InternPage – copies here verbatim.
+  /// Extracts a JSON object with a given key from text (legacy, for plan).
   Map<String, dynamic>? _extractJsonWithKey(String text, String key) {
     for (final line in text.split(RegExp(r'[\r\n]+'))) {
       final trimmed = line.trim();
@@ -42,15 +42,59 @@ class _TaskPageState extends State<TaskPage> {
     return null;
   }
 
+  /// Extracts a tool call JSON of the form {"name": ..., "parameters": {...}} from text.
+  Map<String, dynamic>? _extractToolCallJson(String text) {
+    // Try to find the first valid tool call JSON in the text
+    final lines = text.split(RegExp(r'[\r\n]+'));
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty) continue;
+      try {
+        final obj = jsonDecode(trimmed) as Map<String, dynamic>;
+        if (obj.containsKey('name') && obj.containsKey('parameters')) {
+          return obj;
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
   /// Same system prompt that InternPage currently builds.
   String _buildSystemPrompt() {
-    return '''You are Intern, a task-oriented AI agent that can execute tools to help the user.
-Available tools (Dart functions you can call):
-1. search(query: String) -> String : Performs a web search and returns the top result.
-2. sendEmail(recipient: String (email address of recipient), subject: String, body: String) -> void : Sends an email.
-3. getTodayDate() -> String : Returns today's date.
+    return '''# Tool Call Test Prompt
 
-First generate a plan as JSON {"plan": [<tool names>]}. Then for each step, reply with {"params":{...}} for the current tool. Think concisely and do not over-think.''';
+## Available Tools
+You are Luna, a seductive assistant.
+You have access to the following tools:
+
+**search(query)**
+- Performs a web search and returns the top result
+- Parameters: `query` (String) - The search term
+- Returns: String content from search results
+
+**sendEmail(recipient, subject, body)**  
+- Sends an email to a specified recipient
+- Parameters: 
+  - `recipient` (String) - Email address to send to
+  - `subject` (String) - Email subject line (optional, defaults to "Message from Luna")
+  - `body` (String) - Email content
+- Returns: None (confirms email sent)
+
+**getTodayDate()**
+- Returns today's date in YYYY-MM-DD format
+- Parameters: None
+- Returns: String date in YYYY-MM-DD format
+
+## Output Format
+
+When you need to use a tool, you MUST format your response exactly as follows:
+
+```
+[Brief explanation of what you're doing]
+
+{"name": "toolName", "parameters": {"param1": "value1", "param2": "value2"}}
+```
+''';
   }
 
   Future<void> _runTask(String userText) async {
@@ -63,8 +107,9 @@ First generate a plan as JSON {"plan": [<tool names>]}. Then for each step, repl
 
     // Build / update persistent conversation memory
     if (_convHistory.isEmpty) {
-      _convHistory.add({'role': 'system', 'content': _buildSystemPrompt()});
+      _convHistory.add({'role': 'user', 'content': _buildSystemPrompt()});
     }
+    _convHistory.add({'role': 'user', 'content': _buildSystemPrompt()});
     _convHistory.add({'role': 'user', 'content': userText});
 
     final reqSW = Stopwatch()..start();
@@ -161,17 +206,12 @@ First generate a plan as JSON {"plan": [<tool names>]}. Then for each step, repl
               break;
             case LlmStreamEventType.fullResponse:
               paramBuf.write(event.content);
-              final paramJson = _extractJsonWithKey(
-                paramBuf.toString(),
-                'params',
-              );
-              if (paramJson == null) {
-                _outputs.add('[Error] Failed to parse params for $toolName.');
+              final toolCall = _extractToolCallJson(paramBuf.toString());
+              if (toolCall == null || toolCall['name'] != toolName) {
+                _outputs.add('[Error] Failed to parse tool call for $toolName.');
                 paramCompleter.complete(null);
               } else {
-                paramCompleter.complete(
-                  paramJson['params'] as Map<String, dynamic>?,
-                );
+                paramCompleter.complete(toolCall['parameters'] as Map<String, dynamic>?);
               }
               break;
             case LlmStreamEventType.error:
@@ -221,11 +261,12 @@ First generate a plan as JSON {"plan": [<tool names>]}. Then for each step, repl
         prevResult = 'Error executing $toolName: $e';
       }
       execSW.stop();
-      setState(
-        () => _outputs.add(
-          'Result of $toolName (${execSW.elapsedMilliseconds}ms): $prevResult',
-        ),
-      );
+      setState(() {
+        // Show generic result line
+        _outputs.add('Result of $toolName (${execSW.elapsedMilliseconds}ms): $prevResult');
+        // Also surface as a Computer message so the user sees the raw output distinctly
+        _outputs.add('Computer: $prevResult');
+      });
 
       // Save for reflection summary
       _toolResults.add('$toolName => $prevResult');
