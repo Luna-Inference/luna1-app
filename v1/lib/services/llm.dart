@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+String llm_ip = 'http://100.65.35.72:1306';
+
 /// A data model for the server health status.
 class ServerHealth {
   final String status;
@@ -48,7 +50,7 @@ class LlmStreamEvent {
 
 /// A service class to handle all interactions with the LLM backend.
 class LlmService {
-  final String _baseUrl = 'http://100.76.203.80:8080';
+  final String _baseUrl =  llm_ip;
 
   /// Fetches the health status of the server.
   Future<ServerHealth> fetchServerHealth() async {
