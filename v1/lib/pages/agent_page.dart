@@ -257,7 +257,7 @@ Getting today's date.
                     if (hasTool) {
                       final toolCall = _extractToolCallJson(event.content);
                       if (toolCall != null) {
-                        _executeTool(toolCall).then((toolOutput) async {
+                        _executeTool(toolCall).then((toolOutput) {
                           setState(() {
                             messages.insert(
                               0,
@@ -270,48 +270,6 @@ Getting today's date.
                               ),
                             );
                           });
-                          // Send tool output back to LLM for reflection/answer
-                          final reflectionMessages = List<ChatMessage>.from(
-                            messages,
-                          );
-                          reflectionMessages.insert(
-                            0,
-                            ChatMessage(
-                              user: user,
-                              createdAt: DateTime.now(),
-                              text: toolOutput ?? '',
-                            ),
-                          );
-                          final apiReflection = _convertMessagesToApi(
-                            reflectionMessages,
-                          );
-                          final reflectionStream = _llmService.getAIResponse(
-                            apiReflection,
-                          );
-                          // Insert a placeholder agent message for streaming
-                          int agentMsgIndex = 0;
-                          setState(() {
-                            messages.insert(
-                              agentMsgIndex,
-                              ChatMessage(
-                                user: luna,
-                                createdAt: DateTime.now(),
-                                text: '',
-                              ),
-                            );
-                          });
-                          await for (final event in reflectionStream) {
-                            if (event.type == LlmStreamEventType.response ||
-                                event.type == LlmStreamEventType.fullResponse) {
-                              setState(() {
-                                messages[agentMsgIndex] = ChatMessage(
-                                  user: luna,
-                                  createdAt: DateTime.now(),
-                                  text: event.content,
-                                );
-                              });
-                            }
-                          }
                         });
                       } else {
                         messages.insert(
