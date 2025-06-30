@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:v1/pages/agent_page.dart';
+import 'package:v1/pages/network.dart';
 import 'package:v1/themes/theme.dart';
 import 'package:v1/themes/util.dart';
 import 'package:v1/pages/chat_page.dart';
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
         '/vision': (context) => const VisionPage(),
         '/dashboard': (context) => const Dashboard(),
         '/agent': (context) => AgentPage(),
+        '/network': (context) => NetworkPage(),
       },
     );
   }

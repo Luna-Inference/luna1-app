@@ -4,6 +4,7 @@ import 'package:v1/pages/chat_page.dart';
 import 'package:v1/pages/voice_page.dart';
 import 'package:v1/pages/vision_page.dart';
 import 'package:v1/pages/dashboard.dart';
+import 'package:v1/pages/network.dart';
 
 final router = GoRouter(
   routes: [
@@ -13,5 +14,6 @@ final router = GoRouter(
     GoRoute(path: '/vision', builder: (context, state) => VisionPage()),
     GoRoute(path: '/dashboard', builder: (context, state) => Dashboard()),
     GoRoute(path: '/agent', builder: (context, state) => AgentPage()),
+    GoRoute(path: '/network', builder: (context, state) => NetworkPage()),
   ],
 );

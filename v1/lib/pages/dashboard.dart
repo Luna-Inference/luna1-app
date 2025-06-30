@@ -3,6 +3,7 @@ import 'package:v1/services/tools.dart';
 import 'dart:async';
 import 'package:v1/widgets/speed_display_app_bar.dart';
 import 'package:v1/services/hardware/bluetooth.dart' as bt;
+import 'package:v1/services/hardware/scan.dart' as net;
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -29,6 +30,9 @@ class _DashboardState extends State<Dashboard> {
   bool _isAddingNote = false;
   List<String> _bluetoothDevices = [];
   bool _scanning = false;
+  // Network scan
+  List<String> _lunaDevices = [];
+  bool _networkScanning = false;
 
   Future<void> _performSearch() async {
     final query = _controller.text.trim();
@@ -90,6 +94,17 @@ class _DashboardState extends State<Dashboard> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: _buildNotionSection(),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _buildNetworkScanSection(),
             ),
           ),
           const SizedBox(height: 24),
@@ -280,6 +295,41 @@ class _DashboardState extends State<Dashboard> {
     } finally {
       setState(() { _scanning = false; });
     }
+  }
+
+  Future<void> _scanNetworkDevices() async {
+    setState(() { _networkScanning = true; });
+    try {
+      final devices = await net.scanForLunaDevices();
+      setState(() { _lunaDevices = devices; });
+    } catch (e) {
+      // ignore: avoid_print
+      print('Network scan error: $e');
+    } finally {
+      setState(() { _networkScanning = false; });
+    }
+  }
+
+  Widget _buildNetworkScanSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Network Scan', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          onPressed: _networkScanning ? null : _scanNetworkDevices,
+          child: _networkScanning
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Scan Network'),
+        ),
+        const SizedBox(height: 12),
+        for (final ip in _lunaDevices) Text(ip),
+      ],
+    );
   }
 
   Widget _buildBluetoothSection() {

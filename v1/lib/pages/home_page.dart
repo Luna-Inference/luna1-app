@@ -56,6 +56,11 @@ class HomePage extends StatelessWidget {
                   title: 'Agent',
                   routeName: '/agent',
                 ),
+                _NavigationCard(
+                  icon: Icons.network_check,
+                  title: 'Network',
+                  routeName: '/network',
+                ),
                 // You can add more cards here if needed
                 /*
                 _NavigationCard(

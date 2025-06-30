@@ -5,15 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69d8516e-759e-44e7-a717-25f6e84637b9" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/v1/lib/services/hardware/bluetooth.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/v1/lib/services/hardware/connect_ap.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/app_router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/app_router.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/main.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/lib/pages/dashboard.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/dashboard.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/macos/Flutter/GeneratedPluginRegistrant.swift" beforeDir="false" afterPath="$PROJECT_DIR$/v1/macos/Flutter/GeneratedPluginRegistrant.swift" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/v1/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/v1/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/v1/windows/flutter/generated_plugin_registrant.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/windows/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/v1/windows/flutter/generated_plugins.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/pages/home_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/home_page.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +29,7 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/Luna1-server" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
