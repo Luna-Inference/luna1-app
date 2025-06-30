@@ -54,6 +54,8 @@ dependencies:
   flutter_chat_ui: ^2.5.2
   universal_ble: ^0.20.1
   shared_preferences: ^2.0.15
+  googleapis: ^14.0.0
+  googleapis_auth: ^2.0.0
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +72,7 @@ flutter:
   assets:
     - .env
     - assets/images/
+    - secrets/
 
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
