@@ -28,52 +28,12 @@ jobs:
         working-directory: ./v1
       - run: flutter build macos
         working-directory: ./v1
-      - name: Install create-dmg
-        run: npm install --global create-dmg
-      - name: Create DMG
-        run: |
-          # List all .app bundles for debugging
-          ls -l build/macos/Build/Products/Release/*.app || true
-
-          # Use the first .app bundle found as the app name
-          APP_PATH=$(ls build/macos/Build/Products/Release/*.app | head -n1)
-          APP_NAME=$(basename "$APP_PATH" .app)
-
-          # Extract version from pubspec.yaml (robust to indentation)
-          APP_VERSION=$(grep '^[[:space:]]*version:' pubspec.yaml | head -n1 | awk '{print $2}' | cut -d '+' -f 1)
-
-          echo "APP_NAME: $APP_NAME"
-          echo "APP_VERSION: $APP_VERSION"
-          echo "APP_PATH: $APP_PATH"
-
-          if [ ! -d "$APP_PATH" ]; then
-            echo "Error: App bundle not found at $APP_PATH"
-            exit 1
-          fi
-
-          create-dmg \
-            --volname "${APP_NAME} ${APP_VERSION}" \
-            --volicon "${APP_PATH}/Contents/Resources/AppIcon.icns" \
-            --window-pos 200 120 \
-            --window-size 600 300 \
-            --icon-size 100 \
-            --icon "${APP_NAME}.app" 175 120 \
-            --hide-extension "${APP_NAME}.app" \
-            --app-drop-link 425 120 \
-            "${APP_NAME}-${APP_VERSION}.dmg" \
-            "${APP_PATH}"
-        working-directory: ./v1
-      - name: Upload DMG artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-dmg
-          path: v1/*.dmg
-          retention-days: 30
       - name: Upload macOS Build
         uses: actions/upload-artifact@v4
         with:
           name: macos-build
           path: v1/build/macos/Build/Products/Release/
+          retention-days: 30
 
   build_windows:
     name: Build Flutter (Windows)
@@ -95,22 +55,12 @@ jobs:
         working-directory: ./v1
       - run: flutter build windows
         working-directory: ./v1
-      - name: Get app info
-        id: app_info
-        shell: pwsh
-        run: |
-          $content = Get-Content pubspec.yaml
-          $name = ($content | Select-String "^name:" | ForEach-Object { $_.ToString().Split(':')[1].Trim() })
-          $version = ($content | Select-String "^version:" | ForEach-Object { $_.ToString().Split(':')[1].Trim().Split('+')[0] })
-          echo "APP_NAME=$name" >> $env:GITHUB_OUTPUT
-          echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
-          echo "Building $name version $version"
-        working-directory: ./v1
       - name: Upload Windows Build
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
           path: v1/build/windows/x64/runner/Release/
+          retention-days: 30
 
   build_web:
     name: Build Flutter (Web)
@@ -137,3 +87,90 @@ jobs:
         with:
           name: web-build
           path: v1/build/web/
+          retention-days: 30
+
+  create_macos_dmg:
+    name: Create macOS DMG
+    runs-on: macos-latest
+    needs: build_macos
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download macOS Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-build
+          path: v1/build/macos/Build/Products/Release/
+      - name: Install create-dmg
+        run: npm install --global create-dmg
+      - name: Create DMG
+        run: |
+          # List all .app bundles for debugging
+          ls -l v1/build/macos/Build/Products/Release/*.app || true
+
+          # Use the first .app bundle found as the app name
+          APP_PATH=$(ls v1/build/macos/Build/Products/Release/*.app | head -n1)
+          APP_NAME=$(basename "$APP_PATH" .app)
+
+          # Extract version from pubspec.yaml (robust to indentation)
+          APP_VERSION=$(grep '^[[:space:]]*version:' v1/pubspec.yaml | head -n1 | awk '{print $2}' | cut -d '+' -f 1)
+
+          echo "APP_NAME: $APP_NAME"
+          echo "APP_VERSION: $APP_VERSION"
+          echo "APP_PATH: $APP_PATH"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "Error: App bundle not found at $APP_PATH"
+            exit 1
+          fi
+
+          create-dmg \
+            --volname "${APP_NAME} ${APP_VERSION}" \
+            --volicon "${APP_PATH}/Contents/Resources/AppIcon.icns" \
+            --window-pos 200 120 \
+            --window-size 600 300 \
+            --icon-size 100 \
+            --icon "${APP_NAME}.app" 175 120 \
+            --hide-extension "${APP_NAME}.app" \
+            --app-drop-link 425 120 \
+            "${APP_NAME}-${APP_VERSION}.dmg" \
+            "${APP_PATH}"
+        working-directory: .
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: "*.dmg"
+          retention-days: 30
+
+  package_windows_build:
+    name: Package Windows Build
+    runs-on: windows-latest
+    needs: build_windows
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Windows Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: v1/build/windows/x64/runner/Release/
+      - name: Get app info
+        id: app_info
+        shell: pwsh
+        run: |
+          $content = Get-Content v1/pubspec.yaml
+          $name = ($content | Select-String "^name:" | ForEach-Object { $_.ToString().Split(':')[1].Trim() })
+          $version = ($content | Select-String "^version:" | ForEach-Object { $_.ToString().Split(':')[1].Trim().Split('+')[0] })
+          echo "APP_NAME=$name" >> $env:GITHUB_OUTPUT
+          echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "Building $name version $version"
+        working-directory: .
+      - name: Create Zip Archive
+        run: |
+          Compress-Archive -Path v1/build/windows/x64/runner/Release/* -DestinationPath "${{ steps.app_info.outputs.APP_NAME }}-${{ steps.app_info.outputs.APP_VERSION }}-windows.zip"
+        shell: pwsh
+      - name: Upload Windows Zip Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-zip
+          path: "*.zip"
+          retention-days: 30
