@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:v1/services/tools.dart';
 import 'dart:async';
-import 'package:v1/widgets/speed_display_app_bar.dart';
+import 'package:v1/widgets/setting_appbar.dart';
 import 'package:v1/services/hardware/bluetooth.dart' as bt;
 import 'package:v1/services/hardware/scan.dart' as net;
 
@@ -60,7 +60,7 @@ class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const SpeedDisplayAppBar(title: 'Dashboard'),
+      appBar: const SettingAppBar(title: 'Dashboard'),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

@@ -10,7 +10,7 @@ import 'dart:io';
 import 'package:v1/services/llm.dart';
 import 'package:v1/services/files.dart';
 import 'package:v1/services/tools.dart';
-import 'package:v1/widgets/speed_display_app_bar.dart';
+import 'package:v1/widgets/setting_appbar.dart';
 
 class AgentPage extends StatefulWidget {
   @override
@@ -119,7 +119,7 @@ Getting today's date.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const SpeedDisplayAppBar(title: 'Luna Agent'),
+      appBar: const SettingAppBar(title: 'Luna Agent'),
       backgroundColor: Theme.of(context).colorScheme.background,
       body: DashChat(
         inputOptions: InputOptions(

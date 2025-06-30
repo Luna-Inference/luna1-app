@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:v1/services/llm.dart';
 import 'package:v1/services/files.dart';
-import 'package:v1/widgets/speed_display_app_bar.dart';
+import 'package:v1/widgets/setting_appbar.dart';
 import 'package:v1/services/chat_persona.dart';
 
 class LunaChatPage extends StatefulWidget {
@@ -34,7 +34,7 @@ class _LunaChatPageState extends State<LunaChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const SpeedDisplayAppBar(title: 'Luna Chat'),
+      appBar: const SettingAppBar(title: 'Luna Chat'),
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Column(
         children: [

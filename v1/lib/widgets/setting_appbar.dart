@@ -3,19 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:v1/services/llm.dart';
 
-class SpeedDisplayAppBar extends StatefulWidget implements PreferredSizeWidget {
+class SettingAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String title;
 
-  const SpeedDisplayAppBar({super.key, required this.title});
+  const SettingAppBar({super.key, required this.title});
 
   @override
-  _SpeedDisplayAppBarState createState() => _SpeedDisplayAppBarState();
+  _SettingAppBarState createState() => _SettingAppBarState();
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
-class _SpeedDisplayAppBarState extends State<SpeedDisplayAppBar> {
+class _SettingAppBarState extends State<SettingAppBar> {
   ServerHealth? _serverHealth;
   Timer? _healthTimer;
   final LlmService _llmService = LlmService();
@@ -74,11 +74,7 @@ class _SpeedDisplayAppBarState extends State<SpeedDisplayAppBar> {
           ),
         IconButton(
           icon: const Icon(Icons.settings),
-          onPressed: () {
-            if (mounted) {
-              context.go('/network');
-            }
-          },
+          onPressed: () => Navigator.pushNamed(context, '/network')
         ),
       ],
     );
