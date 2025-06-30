@@ -40,26 +40,31 @@ class HomePage extends StatelessWidget {
                   icon: Icons.dashboard_outlined,
                   title: 'Dashboard',
                   routeName: '/dashboard',
+                  isExperimental: true,
                 ),
                 _NavigationCard(
                   icon: Icons.chat_bubble_outline,
                   title: 'Chat',
                   routeName: '/chat',
+                  isExperimental: false,
                 ),
                 _NavigationCard(
                   icon: Icons.mic_none,
                   title: 'Voice',
                   routeName: '/voice',
+                  isExperimental: true,
                 ),
                 _NavigationCard(
                   icon: Icons.smart_toy_outlined,
                   title: 'Agent',
                   routeName: '/agent',
+                  isExperimental: false,
                 ),
                 _NavigationCard(
                   icon: Icons.network_check,
                   title: 'Network',
                   routeName: '/network',
+                  isExperimental: false,
                 ),
                 // You can add more cards here if needed
                 /*
@@ -93,11 +98,13 @@ class _NavigationCard extends StatefulWidget {
     required this.icon,
     required this.title,
     required this.routeName,
+    this.isExperimental = true, // New parameter
   });
 
   final IconData icon;
   final String title;
   final String routeName;
+  final bool isExperimental; // New property
 
   @override
   State<_NavigationCard> createState() => _NavigationCardState();
@@ -163,6 +170,16 @@ class _NavigationCardState extends State<_NavigationCard> {
                   color: contentColor,
                 ),
               ),
+              const SizedBox(height: 4), // Spacing between title and tag
+              if (widget.isExperimental)
+                Text(
+                  'Experimental',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: Colors.orange,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
             ],
           ),
         ),

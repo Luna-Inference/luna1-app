@@ -60,6 +60,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^5.0.0
+  msix: ^3.16.9
 
 
 flutter:
@@ -92,3 +93,11 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+msix_config:
+  display_name: Luna AI Box
+  publisher_display_name: BillulloNex
+  identity_name: com.billullonex.luna
+  msix_version: 1.0.0.0
+  logo_path: assets/images/luna.png
+  capabilities: internetClient, microphone
