@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:v1/services/tools.dart';
 import 'dart:async';
 import 'package:v1/widgets/speed_display_app_bar.dart';
+import 'package:v1/services/hardware/bluetooth.dart' as bt;
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -26,6 +27,8 @@ class _DashboardState extends State<Dashboard> {
   bool _loading = false;
   bool _sending = false;
   bool _isAddingNote = false;
+  List<String> _bluetoothDevices = [];
+  bool _scanning = false;
 
   Future<void> _performSearch() async {
     final query = _controller.text.trim();
@@ -87,6 +90,17 @@ class _DashboardState extends State<Dashboard> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: _buildNotionSection(),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _buildBluetoothSection(),
             ),
           ),
         ],
@@ -251,6 +265,41 @@ class _DashboardState extends State<Dashboard> {
         ),
         const SizedBox(height: 8),
         if (_notionStatus.isNotEmpty && !_isAddingNote) Text(_notionStatus),
+      ],
+    );
+  }
+
+  Future<void> _scanBluetoothDevices() async {
+    setState(() { _scanning = true; });
+    try {
+      final devices = await bt.scanNearbyDeviceIds();
+      setState(() { _bluetoothDevices = devices; });
+    } catch (e) {
+      // ignore: avoid_print
+      print('Bluetooth scan error: $e');
+    } finally {
+      setState(() { _scanning = false; });
+    }
+  }
+
+  Widget _buildBluetoothSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Bluetooth Scan', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          onPressed: _scanning ? null : _scanBluetoothDevices,
+          child: _scanning
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Scan Devices'),
+        ),
+        const SizedBox(height: 12),
+        for (final id in _bluetoothDevices) Text(id),
       ],
     );
   }
