@@ -5,6 +5,22 @@ class HardwareSetup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Hardware Setup'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Plug your Luna into power'),
+            ElevatedButton(
+              onPressed: () {},
+              child: const Text('Next'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

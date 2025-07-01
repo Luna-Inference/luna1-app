@@ -17,6 +17,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:v1/config.dart';
 
+import 'pages/setup/full_setup.dart';
+
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -74,7 +76,10 @@ final GoRouter _router = GoRouter(
         path:'/email-setup',
         builder: (BuildContext context, GoRouterState state) => EmailSetup()
     ),
-
+    GoRoute(
+        path:'/initial-setup',
+        builder: (BuildContext context, GoRouterState state) => FullSetupPage()
+    ),
     
   ],
 );
