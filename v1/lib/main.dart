@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
+import 'package:go_router/go_router.dart';
 import 'package:v1/pages/agent_page.dart';
 import 'package:v1/pages/network.dart';
 import 'package:v1/themes/theme.dart';
@@ -24,6 +24,42 @@ Future main() async {
   runApp(const MyApp());
 }
 
+/// The route configuration.
+final GoRouter _router = GoRouter(
+  routes: <RouteBase>[
+    GoRoute(
+      path: '/',
+      builder: (BuildContext context, GoRouterState state) {
+        return const HomePage();
+      },
+    ),
+    GoRoute(
+      path: '/chat',
+      builder: (BuildContext context, GoRouterState state) => LunaChatPage(),
+    ),
+    GoRoute(
+      path: '/voice',
+      builder: (BuildContext context, GoRouterState state) => const VoicePage(),
+    ),
+    GoRoute(
+      path: '/vision',
+      builder: (BuildContext context, GoRouterState state) => const VisionPage(),
+    ),
+    GoRoute(
+      path: '/dashboard',
+      builder: (BuildContext context, GoRouterState state) => const Dashboard(),
+    ),
+    GoRoute(
+      path: '/agent',
+      builder: (BuildContext context, GoRouterState state) => AgentPage(),
+    ),
+    GoRoute(
+      path: '/network',
+      builder: (BuildContext context, GoRouterState state) => NetworkPage(),
+    ),
+  ],
+);
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -33,7 +69,8 @@ class MyApp extends StatelessWidget {
     TextTheme textTheme = createTextTheme(context, "Inter", "Inter");
     MaterialTheme theme = MaterialTheme(textTheme);
 
-    return MaterialApp(
+    return MaterialApp.router(
+      routerConfig: _router,
       debugShowCheckedModeBanner: false,
       title: 'Luna AI Suite',
       theme: brightness == Brightness.light ? theme.light() : theme.dark(),
@@ -46,8 +83,6 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => const Dashboard(),
         '/agent': (context) => AgentPage(),
         '/network': (context) => NetworkPage(),
-        '/email-setup': (context) => EmailSetup(),
-        '/hotspot-setup': (context) => const HotspotPage(),
       },
     );
   }
