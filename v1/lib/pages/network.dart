@@ -1,10 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '/services/hardware/scan.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config.dart';
+import '../widgets/setting_appbar.dart';
 
 class NetworkPage extends StatefulWidget {
   const NetworkPage({super.key});
@@ -125,9 +125,7 @@ class _NetworkPageState extends State<NetworkPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Network Configuration'),
-      ),
+      appBar: const SettingAppBar(title: 'Network Configuration'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

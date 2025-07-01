@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:v1/pages/agent_page.dart';
+import 'package:v1/pages/app_store.dart';
 import 'package:v1/pages/network.dart';
-import 'package:v1/pages/setup/email_setup.dart';
 import 'package:v1/pages/setup/hardware_setup.dart';
 import 'package:v1/pages/setup/hotspot_page.dart';
 import 'package:v1/pages/setup/luna_scan.dart';
@@ -17,7 +17,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:v1/config.dart';
 
-import 'pages/setup/full_setup.dart';
+// Global RouteObserver for navigation monitoring
+final RouteObserver<ModalRoute<dynamic>> routeObserver = RouteObserver<ModalRoute<dynamic>>();
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,8 +31,9 @@ Future main() async {
 /// The route configuration.
 final GoRouter _router = GoRouter(
   routes: <RouteBase>[
+
     GoRoute(
-      path: '/',
+      path: '/home',
       builder: (BuildContext context, GoRouterState state) {
         return const HomePage();
       },
@@ -65,7 +67,7 @@ final GoRouter _router = GoRouter(
       builder: (BuildContext context, GoRouterState state) => HotspotPage()
     ),
     GoRoute(
-        path:'/hardware-setup',
+        path:'/',
         builder: (BuildContext context, GoRouterState state) => HardwareSetup()
     ),
     GoRoute(
@@ -73,14 +75,11 @@ final GoRouter _router = GoRouter(
         builder: (BuildContext context, GoRouterState state) => LunaScanPage()
     ),
     GoRoute(
-        path:'/email-setup',
-        builder: (BuildContext context, GoRouterState state) => EmailSetup()
+        path:'/app-store',
+        builder: (BuildContext context, GoRouterState state) => AppStore()
     ),
-    GoRoute(
-        path:'/initial-setup',
-        builder: (BuildContext context, GoRouterState state) => FullSetupPage()
-    ),
-    
+
+
   ],
 );
 
@@ -89,15 +88,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = View.of(context).platformDispatcher.platformBrightness;
+    final brightness = MediaQuery.platformBrightnessOf(context);
     TextTheme textTheme = createTextTheme(context, "Inter", "Inter");
     MaterialTheme theme = MaterialTheme(textTheme);
 
     return MaterialApp.router(
       routerConfig: _router,
-      debugShowCheckedModeBanner: false,
       title: 'Luna AI Suite',
       theme: brightness == Brightness.light ? theme.light() : theme.dark(),
+      debugShowCheckedModeBanner: false,
+      //navigatorObservers: [routeObserver],
     );
   }
 }

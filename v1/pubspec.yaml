@@ -73,6 +73,7 @@ flutter:
   assets:
     - .env
     - assets/images/
+    - assets/setup/hardware-setup.png
 
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package

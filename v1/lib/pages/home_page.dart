@@ -1,9 +1,86 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:go_router/go_router.dart';
+import '../persistent_data/app_list.dart';
+import '../widgets/setting_appbar.dart';
+import '../main.dart' show routeObserver;
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver, RouteAware {
+  List<LunaApp> _installedApps = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _loadInstalledApps();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to route changes
+    final ModalRoute<dynamic>? route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadInstalledApps();
+    }
+  }
+
+  // Called when the top route has been popped off, and the current route shows up
+  @override
+  void didPopNext() {
+    // Refresh the app list when returning to this page
+    _loadInstalledApps();
+  }
+
+  Future<void> _loadInstalledApps() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final apps = await getInstalledApps();
+      
+      if (mounted) {
+        setState(() {
+          _installedApps = apps;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading apps: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,107 +89,69 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surfaceContainerLowest,
-      appBar: AppBar(
-        title: Text(
-          'Luna AI Suite',
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
+      appBar: const SettingAppBar(
+        title: 'Luna AI Suite',
+        //showBackButton: false,
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32.0,
-              vertical: 24.0,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32.0,
+                    vertical: 24.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: _loadInstalledApps,
+                          child: _installedApps.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'No apps installed. Visit the App Store to install apps.',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                )
+                              : GridView.count(
+                                  crossAxisCount: isDesktop ? 4 : 2,
+                                  crossAxisSpacing: 24,
+                                  mainAxisSpacing: 24,
+                                  children: _installedApps.map((app) {
+                                    return _NavigationCard(
+                                      icon: app.icon,
+                                      title: app.title,
+                                      routeName: app.routeName,
+                                      isExperimental: app.isExperimental,
+                                    );
+                                  }).toList(),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            child: GridView.count(
-              crossAxisCount: isDesktop ? 4 : 2,
-              crossAxisSpacing: 24,
-              mainAxisSpacing: 24,
-              children: const <Widget>[
-                _NavigationCard(
-                  icon: Icons.dashboard_outlined,
-                  title: 'Dashboard',
-                  routeName: '/dashboard',
-                  isExperimental: true,
-                ),
-                _NavigationCard(
-                  icon: Icons.chat_bubble_outline,
-                  title: 'Chat',
-                  routeName: '/chat',
-                  isExperimental: false,
-                ),
-                _NavigationCard(
-                  icon: Icons.mic_none,
-                  title: 'Voice',
-                  routeName: '/voice',
-                  isExperimental: true,
-                ),
-                _NavigationCard(
-                  icon: Icons.smart_toy_outlined,
-                  title: 'Agent',
-                  routeName: '/agent',
-                  isExperimental: false,
-                ),
-                _NavigationCard(
-                  icon: Icons.network_check,
-                  title: 'Network',
-                  routeName: '/network',
-                  isExperimental: false,
-                ),
-                _NavigationCard(
-                  icon: Icons.horizontal_split,
-                  title: 'Hotspot',
-                  routeName: '/hotspot-setup',
-                  isExperimental: false,
-                ),
-                _NavigationCard(
-                  icon: Icons.horizontal_split,
-                  title: 'Hardware Setup',
-                  routeName: '/hardware-setup',
-                  isExperimental: false,
-                ),
-                _NavigationCard(
-                  icon: Icons.scanner,
-                  title: 'Luna Scan',
-                  routeName: '/luna-scan',
-                  isExperimental: false,
-                ),
-                _NavigationCard(
-                  icon: Icons.email,
-                  title: 'Email Setup',
-                  routeName: '/email-setup',
-                  isExperimental: false,
-                ),
-
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
 
 class _NavigationCard extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final String routeName;
+  final bool isExperimental;
+
   const _NavigationCard({
     required this.icon,
     required this.title,
     required this.routeName,
-    this.isExperimental = true, // New parameter
+    required this.isExperimental,
   });
-
-  final IconData icon;
-  final String title;
-  final String routeName;
-  final bool isExperimental; // New property
 
   @override
   State<_NavigationCard> createState() => _NavigationCardState();
@@ -126,10 +165,9 @@ class _NavigationCardState extends State<_NavigationCard> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final cardColor =
-        _isHovered
-            ? colorScheme.surfaceContainerHigh
-            : colorScheme.surfaceContainer;
+    final cardColor = _isHovered
+        ? colorScheme.surfaceContainerHigh
+        : colorScheme.surfaceContainer;
 
     final contentColor =
         _isHovered ? colorScheme.primary : colorScheme.onSurfaceVariant;
@@ -140,8 +178,6 @@ class _NavigationCardState extends State<_NavigationCard> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () => context.push(widget.routeName),
-
-
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
@@ -149,22 +185,20 @@ class _NavigationCardState extends State<_NavigationCard> {
             color: cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color:
-                  _isHovered
-                      ? colorScheme.outline.withOpacity(0.5)
-                      : Colors.transparent,
+              color: _isHovered
+                  ? colorScheme.outline.withOpacity(0.5)
+                  : Colors.transparent,
               width: 1,
             ),
-            boxShadow:
-                _isHovered
-                    ? [
-                      BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.1),
-                        blurRadius: 16,
-                        spreadRadius: 2,
-                      ),
-                    ]
-                    : [],
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color: colorScheme.primary.withOpacity(0.1),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : [],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
