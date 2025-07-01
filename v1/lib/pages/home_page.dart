@@ -66,24 +66,20 @@ class HomePage extends StatelessWidget {
                   routeName: '/network',
                   isExperimental: false,
                 ),
+                _NavigationCard(
+                  icon: Icons.email,
+                  title: 'Email',
+                  routeName: '/email-setup',
+                  isExperimental: true,
+                ),
+                _NavigationCard(
+                  icon: Icons.wifi_tethering,
+                  title: 'Hotspot',
+                  routeName: '/hotspot-setup',
+                  isExperimental: true,
+                ),
                 // You can add more cards here if needed
-                /*
-                _NavigationCard(
-                  icon: Icons.camera_alt_outlined,
-                  title: 'Vision',
-                  routeName: '/vision',
-                ),
-                _NavigationCard(
-                  icon: Icons.work_outline,
-                  title: 'Intern',
-                  routeName: '/intern',
-                ),
-                _NavigationCard(
-                  icon: Icons.pending_actions_outlined,
-                  title: 'Task',
-                  routeName: '/task',
-                ),
-                */
+
               ],
             ),
           ),

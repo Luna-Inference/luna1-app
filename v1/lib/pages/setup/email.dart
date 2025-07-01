@@ -1,11 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:googleapis/gmail/v1.dart';
-import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import 'dart:async';
+
+// Custom authenticated HTTP client
+class _AuthenticatedClient extends http.BaseClient {
+  final http.Client _inner;
+  final String _accessToken;
+
+  _AuthenticatedClient(this._inner, this._accessToken);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    request.headers['Authorization'] = 'Bearer $_accessToken';
+    return _inner.send(request);
+  }
+
+  @override
+  void close() {
+    _inner.close();
+  }
+}
 
 class EmailSetup extends StatefulWidget {
   final String? clientSecretAssetPath;
@@ -18,8 +36,8 @@ class EmailSetup extends StatefulWidget {
 
   const EmailSetup({
     Key? key,
-    this.clientSecretAssetPath = 'secrets/client_secret_962396646874-n36473pf4dldce1ono0a43qms8d7a87r.apps.googleusercontent.com.json',
-    this.clientSecretFilePath = 'secrets/client_secret_962396646874-n36473pf4dldce1ono0a43qms8d7a87r.apps.googleusercontent.com.json',
+    this.clientSecretAssetPath = 'secrets/gcp.json',
+    this.clientSecretFilePath = 'secrets/gcp.json',
     this.onAuthSuccess,
     this.onAuthError,
     this.showFullUI = true,
@@ -102,56 +120,94 @@ class _EmailSetupState extends State<EmailSetup>
     try {
       // Load client secrets
       final clientSecrets = await _loadClientSecrets();
-      final clientId = auth.ClientId(
-        clientSecrets['installed']['client_id'],
-        clientSecrets['installed']['client_secret'],
-      );
+      final clientId = clientSecrets['installed']['client_id'];
+      final clientSecret = clientSecrets['installed']['client_secret'];
 
       setState(() {
-        _statusMessage = 'Opening browser for authentication...';
+        _statusMessage = 'Generating authentication URL...';
       });
 
-      // Use manual OAuth flow - no server binding required
-      final auth.AuthClient client = await auth.clientViaUserConsentManual(
-        clientId,
-        _scopes,
-        (String url) {
-          print('=== GMAIL SMTP OAUTH URL ===');
-          print('Please open this URL in your browser:');
-          print(url);
-          print('\n=== ATTEMPTING TO OPEN BROWSER ===');
+      // Use postmessage redirect URI for desktop apps
+      final redirectUri = 'postmessage';
+      final scopesEncoded = Uri.encodeComponent(_scopes.join(' '));
+      
+      final authUrl = 'https://accounts.google.com/o/oauth2/v2/auth'
+          '?client_id=$clientId'
+          '&redirect_uri=$redirectUri'
+          '&response_type=code'
+          '&scope=$scopesEncoded'
+          '&access_type=offline'
+          '&prompt=consent';
 
-          // Auto-open browser
-          _openBrowser(url);
-          
-          // Update UI to show we're waiting for manual code entry
-          setState(() {
-            _statusMessage = 'Complete authentication in browser, then enter the code...';
-          });
+      print('=== GMAIL SMTP OAUTH URL ===');
+      print('Please open this URL in your browser:');
+      print(authUrl);
+      print('\n=== ATTEMPTING TO OPEN BROWSER ===');
+
+      // Auto-open browser
+      _openBrowser(authUrl);
+
+      setState(() {
+        _statusMessage = 'Complete authentication in browser, then enter the code...';
+      });
+
+      // Get authorization code from user
+      final authCode = await _getAuthCodeFromUser('Complete authentication in browser, then paste the authorization code here:');
+      
+      if (authCode.isEmpty) {
+        throw Exception('Authentication cancelled');
+      }
+
+      setState(() {
+        _statusMessage = 'Exchanging code for access token...';
+      });
+
+      // Exchange authorization code for access token
+      final tokenResponse = await http.post(
+        Uri.parse('https://oauth2.googleapis.com/token'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        (String message) {
-          print('OAuth Prompt: $message');
-          // This function should return the authorization code
-          return _getAuthCodeFromUser(message);
+        body: {
+          'client_id': clientId,
+          'client_secret': clientSecret,
+          'code': authCode,
+          'grant_type': 'authorization_code',
+          'redirect_uri': 'postmessage',
         },
       );
+
+      if (tokenResponse.statusCode != 200) {
+        throw Exception('Token exchange failed: ${tokenResponse.body}');
+      }
+
+      final tokenData = json.decode(tokenResponse.body);
+      final accessToken = tokenData['access_token'] as String;
+      final refreshToken = tokenData['refresh_token'] as String?;
+      
+      // Calculate expiry time
+      final expiresIn = tokenData['expires_in'] as int? ?? 3600;
+      final expiry = DateTime.now().add(Duration(seconds: expiresIn));
 
       setState(() {
         _statusMessage = 'Fetching Gmail profile...';
       });
 
-      // Get Gmail profile and access token
-      final GmailApi gmailApi = GmailApi(client);
+      // Create authenticated HTTP client
+      final authClient = http.Client();
+      final authenticatedClient = _AuthenticatedClient(authClient, accessToken);
+
+      // Get Gmail profile
+      final GmailApi gmailApi = GmailApi(authenticatedClient);
       final profile = await gmailApi.users.getProfile('me');
-      final accessToken = client.credentials.accessToken;
 
       // Store authentication data
       _authenticatedEmail = profile.emailAddress;
-      _accessToken = accessToken.data;
-      _tokenExpiry = accessToken.expiry;
+      _accessToken = accessToken;
+      _tokenExpiry = expiry;
 
       // Print SMTP credentials to console
-      _printSmtpCredentials(profile.emailAddress!, accessToken);
+      _printSmtpCredentialsManual(profile.emailAddress!, accessToken, expiry);
 
       setState(() {
         _statusMessage = 'Authentication successful!';
@@ -159,10 +215,10 @@ class _EmailSetupState extends State<EmailSetup>
       });
 
       // Call success callback
-      widget.onAuthSuccess?.call(profile.emailAddress!, accessToken.data);
+      widget.onAuthSuccess?.call(profile.emailAddress!, accessToken);
 
       // Close the HTTP client
-      client.close();
+      authClient.close();
 
     } catch (error) {
       final errorMessage = 'Authentication failed: $error';
@@ -177,6 +233,26 @@ class _EmailSetupState extends State<EmailSetup>
       widget.onAuthError?.call(errorMessage);
       _animationController.reverse();
     }
+  }
+
+  void _printSmtpCredentialsManual(String email, String accessToken, DateTime expiry) {
+    print('\n' + '=' * 50);
+    print('🔐 GMAIL SMTP CREDENTIALS');
+    print('=' * 50);
+    print('📧 Email: $email');
+    print('🔑 Access Token: $accessToken');
+    print('⏰ Expires: $expiry');
+    print('\n📨 SMTP SERVER CONFIGURATION:');
+    print('   Server: smtp.gmail.com');
+    print('   Port: 587 (STARTTLS) or 465 (SSL)');
+    print('   Username: $email');
+    print('   Auth Method: OAuth2');
+    print('   Access Token: $accessToken');
+    print('\n💡 USAGE NOTES:');
+    print('   • Use OAuth2 authentication with your SMTP client');
+    print('   • Token expires at: $expiry');
+    print('   • Refresh token as needed for long-term use');
+    print('=' * 50);
   }
 
   Future<String> _getAuthCodeFromUser(String message) async {
@@ -263,6 +339,9 @@ class _EmailSetupState extends State<EmailSetup>
                 if (code.isNotEmpty) {
                   completer.complete(code);
                   Navigator.of(context).pop();
+                } else {
+                  completer.complete(''); // Return empty string if no code
+                  Navigator.of(context).pop();
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -281,36 +360,22 @@ class _EmailSetupState extends State<EmailSetup>
 
   void _openBrowser(String url) {
     try {
+      // Try different methods to detect platform and open browser
       if (Platform.isWindows) {
-        Process.run('start', [url], runInShell: true);
+        Process.run('cmd', ['/c', 'start', url], runInShell: true);
       } else if (Platform.isMacOS) {
         Process.run('open', [url]);
       } else if (Platform.isLinux) {
         Process.run('xdg-open', [url]);
+      } else {
+        // Fallback: try Windows command
+        Process.run('cmd', ['/c', 'start', url], runInShell: true);
       }
     } catch (e) {
       print('Could not auto-open browser: $e');
+      print('Please manually open this URL in your browser:');
+      print(url);
     }
-  }
-
-  void _printSmtpCredentials(String email, auth.AccessToken accessToken) {
-    print('\n' + '=' * 50);
-    print('🔐 GMAIL SMTP CREDENTIALS');
-    print('=' * 50);
-    print('📧 Email: $email');
-    print('🔑 Access Token: ${accessToken.data}');
-    print('⏰ Expires: ${accessToken.expiry}');
-    print('\n📨 SMTP SERVER CONFIGURATION:');
-    print('   Server: smtp.gmail.com');
-    print('   Port: 587 (STARTTLS) or 465 (SSL)');
-    print('   Username: $email');
-    print('   Auth Method: OAuth2');
-    print('   Access Token: ${accessToken.data}');
-    print('\n💡 USAGE NOTES:');
-    print('   • Use OAuth2 authentication with your SMTP client');
-    print('   • Token expires at: ${accessToken.expiry}');
-    print('   • Refresh token as needed for long-term use');
-    print('=' * 50);
   }
 
   void _copyToClipboard(String text, String label) {

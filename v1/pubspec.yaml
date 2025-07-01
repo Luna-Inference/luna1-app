@@ -56,6 +56,7 @@ dependencies:
   shared_preferences: ^2.0.15
   googleapis: ^14.0.0
   googleapis_auth: ^2.0.0
+  url_launcher: ^6.2.5
 
 dev_dependencies:
   flutter_test:
@@ -72,7 +73,6 @@ flutter:
   assets:
     - .env
     - assets/images/
-    - secrets/
 
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package

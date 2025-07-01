@@ -13,6 +13,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:v1/config.dart';
 
+import 'pages/setup/email.dart';
+import 'package:v1/pages/setup/hotspot_page.dart';
+
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -43,6 +46,8 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => const Dashboard(),
         '/agent': (context) => AgentPage(),
         '/network': (context) => NetworkPage(),
+        '/email-setup': (context) => EmailSetup(),
+        '/hotspot-setup': (context) => const HotspotPage(),
       },
     );
   }
