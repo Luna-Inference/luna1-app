@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:v1/pages/agent_page.dart';
 import 'package:v1/pages/chat_page.dart';
+import 'package:v1/pages/setup/hotspot_page.dart';
 import 'package:v1/pages/voice_page.dart';
 import 'package:v1/pages/vision_page.dart';
 import 'package:v1/pages/dashboard.dart';
@@ -15,5 +16,6 @@ final router = GoRouter(
     GoRoute(path: '/dashboard', builder: (context, state) => Dashboard()),
     GoRoute(path: '/agent', builder: (context, state) => AgentPage()),
     GoRoute(path: '/network', builder: (context, state) => NetworkPage()),
+    GoRoute(path: '/hotspot-setup', builder: (context, state) => HotspotPage())
   ],
 );

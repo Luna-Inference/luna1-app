@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:v1/pages/agent_page.dart';
 import 'package:v1/pages/network.dart';
+import 'package:v1/pages/setup/email_setup.dart';
+import 'package:v1/pages/setup/hardware_setup.dart';
+import 'package:v1/pages/setup/hotspot_page.dart';
+import 'package:v1/pages/setup/luna_scan.dart';
 import 'package:v1/themes/theme.dart';
 import 'package:v1/themes/util.dart';
 import 'package:v1/pages/chat_page.dart';
@@ -54,6 +58,24 @@ final GoRouter _router = GoRouter(
       path: '/network',
       builder: (BuildContext context, GoRouterState state) => NetworkPage(),
     ),
+    GoRoute(
+      path:'/hotspot-setup',
+      builder: (BuildContext context, GoRouterState state) => HotspotPage()
+    ),
+    GoRoute(
+        path:'/hardware-setup',
+        builder: (BuildContext context, GoRouterState state) => HardwareSetup()
+    ),
+    GoRoute(
+        path:'/luna-scan',
+        builder: (BuildContext context, GoRouterState state) => LunaScanPage()
+    ),
+    GoRoute(
+        path:'/email-setup',
+        builder: (BuildContext context, GoRouterState state) => EmailSetup()
+    ),
+
+    
   ],
 );
 

@@ -74,7 +74,7 @@ class _SettingAppBarState extends State<SettingAppBar> {
           ),
         IconButton(
           icon: const Icon(Icons.settings),
-          onPressed: () => Navigator.pushNamed(context, '/network')
+          onPressed: () => context.push('/network'),
         ),
       ],
     );

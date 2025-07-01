@@ -8,7 +8,7 @@ class HotspotSettingsButton extends StatelessWidget {
   Future<void> _openHotspotSettings() async {
     String url;
     if (Platform.isWindows) {
-      url = 'ms-settings:network-hospot';
+      url = 'ms-settings:network-mobilehotspot';
     } else if (Platform.isMacOS) {
       url = 'x-apple.systempreferences:com.apple.Sharing-Settings.extension';
     } else {

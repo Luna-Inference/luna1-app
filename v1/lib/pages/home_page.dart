@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:go_router/go_router.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -67,18 +68,29 @@ class HomePage extends StatelessWidget {
                   isExperimental: false,
                 ),
                 _NavigationCard(
-                  icon: Icons.email,
-                  title: 'Email',
-                  routeName: '/email-setup',
-                  isExperimental: true,
-                ),
-                _NavigationCard(
-                  icon: Icons.wifi_tethering,
+                  icon: Icons.horizontal_split,
                   title: 'Hotspot',
                   routeName: '/hotspot-setup',
-                  isExperimental: true,
+                  isExperimental: false,
                 ),
-                // You can add more cards here if needed
+                _NavigationCard(
+                  icon: Icons.horizontal_split,
+                  title: 'Hardware Setup',
+                  routeName: '/hardware-setup',
+                  isExperimental: false,
+                ),
+                _NavigationCard(
+                  icon: Icons.scanner,
+                  title: 'Luna Scan',
+                  routeName: '/luna-scan',
+                  isExperimental: false,
+                ),
+                _NavigationCard(
+                  icon: Icons.email,
+                  title: 'Email Setup',
+                  routeName: '/email-setup',
+                  isExperimental: false,
+                ),
 
               ],
             ),
@@ -127,7 +139,9 @@ class _NavigationCardState extends State<_NavigationCard> {
       onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: () => Navigator.pushNamed(context, widget.routeName),
+        onTap: () => context.push(widget.routeName),
+
+
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,

@@ -4,7 +4,18 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69d8516e-759e-44e7-a717-25f6e84637b9" name="Changes" comment="" />
+    <list default="true" id="69d8516e-759e-44e7-a717-25f6e84637b9" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/v1/lib/pages/setup/email_setup.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/v1/lib/pages/setup/hardware_setup.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/v1/lib/pages/setup/luna_scan.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/app_router.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/app_router.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/pages/home_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/home_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/pages/setup/hotspot.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/widgets/hotspot.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/pages/setup/hotspot_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/setup/hotspot_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/widgets/setting_appbar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/widgets/setting_appbar.dart" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -52,6 +63,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\frost\Documents\GitHub\luna1-app\v1\lib\widgets" />
       <recent name="C:\Users\frost\Documents\GitHub\luna1-app\v1\lib\themes" />
     </key>
   </component>

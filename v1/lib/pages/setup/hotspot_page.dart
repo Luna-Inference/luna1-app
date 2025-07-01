@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:v1/pages/setup/hotspot.dart';
+import 'package:v1/widgets/hotspot.dart';
 
 class HotspotPage extends StatelessWidget {
   const HotspotPage({super.key});
