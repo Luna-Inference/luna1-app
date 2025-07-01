@@ -57,6 +57,15 @@ class _LunaChatPageState extends State<LunaChatPage> {
                     onPressed: _attachPdf,
                   ),
                 ),
+                sendButtonBuilder: (void Function()? onPressed) {
+                  return IconButton(
+                    icon: Icon(
+                      Icons.send,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: onPressed,
+                  );
+                },
               ),
               messageOptions: MessageOptions(
                 messageTextBuilder: (message, previous, next) {

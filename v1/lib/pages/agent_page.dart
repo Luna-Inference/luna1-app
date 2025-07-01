@@ -139,7 +139,17 @@ Getting today's date.
               onPressed: _attachPdf,
             ),
           ),
+          sendButtonBuilder: (void Function()? onPressed) {
+            return IconButton(
+              icon: Icon(
+                Icons.send,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              onPressed: onPressed,
+            );
+          },
         ),
+        
         messageOptions: MessageOptions(
           messageTextBuilder: (message, previous, next) {
             if (message.customProperties?['thinking'] == true) {
