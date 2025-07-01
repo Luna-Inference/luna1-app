@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69d8516e-759e-44e7-a717-25f6e84637b9" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/v1/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/main.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/pages/home_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/home_page.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/pages/setup/email.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/setup/email.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/v1/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/v1/pubspec.yaml" afterDir="false" />
-    </list>
+    <list default="true" id="69d8516e-759e-44e7-a717-25f6e84637b9" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

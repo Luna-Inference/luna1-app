@@ -13,8 +13,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:v1/config.dart';
 
-import 'package:v1/pages/setup/hotspot_page.dart';
-
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -73,16 +71,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Luna AI Suite',
       theme: brightness == Brightness.light ? theme.light() : theme.dark(),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const HomePage(),
-        '/chat': (context) => LunaChatPage(),
-        '/voice': (context) => const VoicePage(),
-        '/vision': (context) => const VisionPage(),
-        '/dashboard': (context) => const Dashboard(),
-        '/agent': (context) => AgentPage(),
-        '/network': (context) => NetworkPage(),
-      },
     );
   }
 }
