@@ -22,7 +22,7 @@ class _HardwareSetupState extends State<HardwareSetup> {
   
   // List of additional IP addresses to scan
   final List<String> _additionalIpsToScan = [
-    '100.76.203.80',     // Known Luna backend server
+    //'100.76.203.80',     // Known Luna backend server
   ];
 
   @override
@@ -46,7 +46,7 @@ class _HardwareSetupState extends State<HardwareSetup> {
     final existingIp = await readIpAddress();
     if (existingIp != null) {
       setState(() {
-        _statusMessage = 'Trying to connect to Luna at $existingIp...';
+        _statusMessage = 'Trying to connect to Luna...';
       });
 
       final isLuna = await _checkIfLuna(existingIp);
@@ -140,7 +140,7 @@ class _HardwareSetupState extends State<HardwareSetup> {
     if (mounted) {
       setState(() {
         _isScanning = false;
-        _statusMessage = 'Connected to Luna at $ip! You can now proceed to the home page.';
+        _statusMessage = 'Connected to Luna! You can now proceed to the home page.';
       });
     }
   }
@@ -229,7 +229,7 @@ class _HardwareSetupState extends State<HardwareSetup> {
                           backgroundColor: Theme.of(context).colorScheme.primary,
                           foregroundColor: Theme.of(context).colorScheme.onPrimary,
                         ),
-                        child: const Text('Go to Home'),
+                        child: const Text('Next'),
                       ),
                   ],
                 ),

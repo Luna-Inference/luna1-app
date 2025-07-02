@@ -43,11 +43,32 @@ class _LunaChatPageState extends State<LunaChatPage> {
               inputOptions: InputOptions(
                 inputDecoration: InputDecoration(
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.surfaceVariant,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   hintText: 'Type a message...',
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide.none,
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.outline,
+                      width: 1.0,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                      width: 1.0,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 2.0,
+                    ),
                   ),
                   prefixIcon: IconButton(
                     icon: Icon(
@@ -247,8 +268,14 @@ class _LunaChatPageState extends State<LunaChatPage> {
       // text resolved above
       // Debug log
       print(
-        '[PDF] Extracted text length: \\${text.length}. Preview: \\${text.substring(0, text.length > 200 ? 200 : text.length)}',
+        '[PDF] Extracted text length: ${text.length}. Preview: ${text.substring(0, 1000)}',
       );
+      
+      // Create a preview of the PDF content
+      final String previewText = text.length > 300
+          ? '${text.substring(0, 1000)}...'
+          : text;
+      
       setState(() {
         _pdfContexts.add(text);
         messages.insert(
@@ -256,7 +283,12 @@ class _LunaChatPageState extends State<LunaChatPage> {
           ChatMessage(
             user: user,
             createdAt: DateTime.now(),
-            text: '[PDF Attached] 📄 ${result.files.single.name}',
+            text: '''[PDF Attached] 📄 ${result.files.single.name}
+
+**Preview of PDF content:**
+```
+$previewText
+```''',
           ),
         );
       });

@@ -82,6 +82,64 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver, RouteA
     }
   }
 
+  void _uninstallApp(LunaApp app) async {
+    // Don't allow uninstalling App Store
+    if (app.title == 'App Store') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('App Store cannot be uninstalled')),
+      );
+      return;
+    }
+    
+    // Show confirmation dialog
+    final shouldUninstall = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Uninstall ${app.title}?'),
+        content: Text('Are you sure you want to uninstall ${app.title}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('UNINSTALL'),
+          ),
+        ],
+      ),
+    ) ?? false;
+    
+    if (shouldUninstall) {
+      setState(() {
+        _isLoading = true;
+      });
+      
+      final success = await uninstallApp(app.title);
+      
+      if (success) {
+        await _loadInstalledApps();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${app.title} uninstalled')),
+          );
+        }
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to uninstall ${app.title}')),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width > 800;
@@ -116,18 +174,34 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver, RouteA
                                     style: TextStyle(fontSize: 16),
                                   ),
                                 )
-                              : GridView.count(
-                                  crossAxisCount: isDesktop ? 4 : 2,
-                                  crossAxisSpacing: 24,
-                                  mainAxisSpacing: 24,
-                                  children: _installedApps.map((app) {
-                                    return _NavigationCard(
-                                      icon: app.icon,
-                                      title: app.title,
-                                      routeName: app.routeName,
-                                      isExperimental: app.isExperimental,
-                                    );
-                                  }).toList(),
+                              : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Show message when only App Store is installed
+                                    if (_installedApps.length == 1 && 
+                                        _installedApps.first.title == 'App Store')
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 16.0),
+                                        child: Center(
+                                          child: Text(
+                                            'Welcome to Luna! Use the App Store to install more apps.',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: theme.colorScheme.onSurfaceVariant,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                    Expanded(
+                                      child: GridView.count(
+                                        crossAxisCount: isDesktop ? 4 : 2,
+                                        crossAxisSpacing: 24,
+                                        mainAxisSpacing: 24,
+                                        children: _buildAppGridItems(),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                         ),
                       ),
@@ -138,6 +212,45 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver, RouteA
             ),
     );
   }
+
+  // Helper method to build app grid items with App Store always last
+  List<Widget> _buildAppGridItems() {
+    // Sort apps to ensure App Store is last
+    final sortedApps = List<LunaApp>.from(_installedApps);
+    
+    // Find and remove App Store
+    final appStoreIndex = sortedApps.indexWhere((app) => app.title == 'App Store');
+    LunaApp? appStore;
+    
+    if (appStoreIndex != -1) {
+      appStore = sortedApps.removeAt(appStoreIndex);
+    }
+    
+    // Build list of app widgets
+    final appWidgets = sortedApps.map((app) {
+      return _NavigationCard(
+        icon: app.icon,
+        title: app.title,
+        routeName: app.routeName,
+        isExperimental: app.isExperimental,
+        onUninstall: () => _uninstallApp(app),
+      );
+    }).toList();
+    
+    // Add App Store at the end if it exists
+    if (appStore != null) {
+      appWidgets.add(_NavigationCard(
+        icon: appStore.icon,
+        title: appStore.title,
+        routeName: appStore.routeName,
+        isExperimental: appStore.isExperimental,
+        // App Store cannot be uninstalled, so no uninstall callback
+        onUninstall: null,
+      ));
+    }
+    
+    return appWidgets;
+  }
 }
 
 class _NavigationCard extends StatefulWidget {
@@ -145,12 +258,14 @@ class _NavigationCard extends StatefulWidget {
   final String title;
   final String routeName;
   final bool isExperimental;
+  final VoidCallback? onUninstall;
 
   const _NavigationCard({
     required this.icon,
     required this.title,
     required this.routeName,
     required this.isExperimental,
+    this.onUninstall,
   });
 
   @override
@@ -178,6 +293,9 @@ class _NavigationCardState extends State<_NavigationCard> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () => context.push(widget.routeName),
+        onSecondaryTap: widget.onUninstall != null 
+            ? () => _showUninstallMenu(context)
+            : null,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
@@ -229,5 +347,47 @@ class _NavigationCardState extends State<_NavigationCard> {
         ),
       ),
     );
+  }
+  
+  void _showUninstallMenu(BuildContext context) {
+    final RenderBox button = context.findRenderObject() as RenderBox;
+    final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+    final RelativeRect position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        button.localToGlobal(Offset.zero, ancestor: overlay),
+        button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+      ),
+      Offset.zero & overlay.size,
+    );
+
+    showMenu<String>(
+      context: context,
+      position: position,
+      items: [
+        PopupMenuItem<String>(
+          value: 'uninstall',
+          child: Row(
+            children: [
+              Icon(
+                Icons.delete_outline,
+                color: Theme.of(context).colorScheme.error,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Uninstall ${widget.title}',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ).then((value) {
+      if (value == 'uninstall' && widget.onUninstall != null) {
+        widget.onUninstall!();
+      }
+    });
   }
 }

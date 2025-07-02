@@ -67,12 +67,12 @@ class LunaApp {
 // Default apps available in the app store
 List<LunaApp> getDefaultApps() {
   return [
-    LunaApp(
+    /*LunaApp(
       icon: Icons.dashboard_outlined,
       title: 'Dashboard',
       routeName: '/dashboard',
       isExperimental: true,
-    ),
+    ),*/
     LunaApp(
       icon: Icons.chat_bubble_outline,
       title: 'Chat',
@@ -91,7 +91,7 @@ List<LunaApp> getDefaultApps() {
       routeName: '/agent',
       isExperimental: false,
     ),
-    LunaApp(
+    /*LunaApp(
       icon: Icons.network_check,
       title: 'Network',
       routeName: '/network',
@@ -120,7 +120,7 @@ List<LunaApp> getDefaultApps() {
       title: 'Email Setup',
       routeName: '/email-setup',
       isExperimental: false,
-    ),
+    ),*/
     LunaApp(
       icon: Icons.apps,
       title: 'App Store',

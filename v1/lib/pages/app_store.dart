@@ -108,12 +108,14 @@ class _AppStoreState extends State<AppStore> {
                           crossAxisCount: isDesktop ? 4 : 2,
                           crossAxisSpacing: 24,
                           mainAxisSpacing: 24,
-                          children: _availableApps.map((app) {
-                            return _AppCard(
-                              app: app,
-                              onToggleInstallation: () => _toggleAppInstallation(app),
-                            );
-                          }).toList(),
+                          children: _availableApps
+                            .where((app) => app.title != 'App Store') // Hide App Store from the list
+                            .map((app) {
+                              return _AppCard(
+                                app: app,
+                                onToggleInstallation: () => _toggleAppInstallation(app),
+                              );
+                            }).toList(),
                         ),
                       ),
                     ],
