@@ -268,12 +268,12 @@ class _LunaChatPageState extends State<LunaChatPage> {
       // text resolved above
       // Debug log
       print(
-        '[PDF] Extracted text length: ${text.length}. Preview: ${text.substring(0, 1000)}',
+        '[PDF] Extracted text length: ${text.length}. Preview: ${text.substring(0, 3000)}',
       );
       
       // Create a preview of the PDF content
       final String previewText = text.length > 300
-          ? '${text.substring(0, 1000)}...'
+          ? '${text.substring(0, 3000)}...'
           : text;
       
       setState(() {

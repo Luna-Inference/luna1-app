@@ -6,6 +6,7 @@ import 'package:v1/pages/network.dart';
 import 'package:v1/pages/setup/hardware_setup.dart';
 import 'package:v1/pages/setup/hotspot_page.dart';
 import 'package:v1/pages/setup/luna_scan.dart';
+import 'package:v1/pages/setup/wifi_page.dart';
 import 'package:v1/themes/theme.dart';
 import 'package:v1/themes/util.dart';
 import 'package:v1/pages/chat_page.dart';
@@ -73,6 +74,10 @@ final GoRouter _router = GoRouter(
     GoRoute(
         path:'/luna-scan',
         builder: (BuildContext context, GoRouterState state) => LunaScanPage()
+    ),
+    GoRoute(
+        path:'/wifi-setup',
+        builder: (BuildContext context, GoRouterState state) => const WifiPage()
     ),
     GoRoute(
         path:'/app-store',

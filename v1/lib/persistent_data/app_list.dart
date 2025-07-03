@@ -91,6 +91,12 @@ List<LunaApp> getDefaultApps() {
       routeName: '/agent',
       isExperimental: false,
     ),
+    LunaApp(
+      icon: Icons.wifi,
+      title: 'WiFi Setup',
+      routeName: '/wifi-setup',
+      isExperimental: false,
+    ),
     /*LunaApp(
       icon: Icons.network_check,
       title: 'Network',

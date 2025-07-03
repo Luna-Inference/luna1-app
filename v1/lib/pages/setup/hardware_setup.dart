@@ -23,6 +23,8 @@ class _HardwareSetupState extends State<HardwareSetup> {
   // List of additional IP addresses to scan
   final List<String> _additionalIpsToScan = [
     //'100.76.203.80',     // Known Luna backend server
+    'luna.local',
+    '10.10.0.1',
   ];
 
   @override
