@@ -61,12 +61,12 @@ class _SettingAppBarState extends State<SettingAppBar> {
               Icon(Icons.speed, size: 16, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 6),
               Text(
-                'Input: ${_serverHealth!.promptEvalSpeedWps} wps',
+                'Prefill: ${_serverHealth!.prefillSpeedTps} tps',
                 style: Theme.of(context).textTheme.labelSmall,
               ),
               const SizedBox(width: 12),
               Text(
-                'Output: ${_serverHealth!.generationSpeedWps} wps',
+                'Generate: ${_serverHealth!.generationSpeedTps} tps',
                 style: Theme.of(context).textTheme.labelSmall,
               ),
               const SizedBox(width: 12),

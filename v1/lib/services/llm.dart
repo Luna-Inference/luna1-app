@@ -8,22 +8,22 @@ import '../config.dart';
 class ServerHealth {
   final String status;
   final String generationStatus;
-  final String promptEvalSpeedWps;
-  final String generationSpeedWps;
+  final String prefillSpeedTps;
+  final String generationSpeedTps;
 
   ServerHealth({
     required this.status,
     required this.generationStatus,
-    required this.promptEvalSpeedWps,
-    required this.generationSpeedWps,
+    required this.prefillSpeedTps,
+    required this.generationSpeedTps,
   });
 
   factory ServerHealth.fromJson(Map<String, dynamic> json) {
     return ServerHealth(
       status: json['status'] ?? 'Unknown',
       generationStatus: json['generation_status'] ?? 'N/A',
-      promptEvalSpeedWps: json['prompt_eval_speed_wps']?.toString() ?? '-',
-      generationSpeedWps: json['generation_speed_wps']?.toString() ?? '-',
+      prefillSpeedTps: (json['prefill_speed_tps'] ?? json['prompt_eval_speed_wps'])?.toString() ?? '-',
+      generationSpeedTps: (json['generation_speed_tps'] ?? json['generation_speed_wps'])?.toString() ?? '-',
     );
   }
 
@@ -31,8 +31,8 @@ class ServerHealth {
       return ServerHealth(
           status: errorMessage,
           generationStatus: '',
-          promptEvalSpeedWps: '-',
-          generationSpeedWps: '-',
+          prefillSpeedTps: '-',
+          generationSpeedTps: '-',
       );
   }
 }
@@ -52,19 +52,40 @@ class LlmStreamEvent {
 class LlmService {
   final String _baseUrl = '${AppConfig.llmIp}';
 
+  // Throttling: cache the last health response and its timestamp so that
+  // multiple widgets calling [fetchServerHealth] within a short interval
+  // reuse the same result instead of hitting the backend every time.
+  static DateTime? _lastHealthFetch;
+  static ServerHealth? _cachedHealth;
+
   /// Fetches the health status of the server.
-  Future<ServerHealth> fetchServerHealth() async {
+  Future<ServerHealth> fetchServerHealth({Duration minInterval = const Duration(seconds: 10)}) async {
+    // If we fetched recently, return the cached result to throttle requests.
+    if (_lastHealthFetch != null &&
+        _cachedHealth != null &&
+        DateTime.now().difference(_lastHealthFetch!) < minInterval) {
+      return _cachedHealth!;
+    }
+
     final client = http.Client();
     try {
       final response = await client.get(Uri.parse('$_baseUrl/health'));
+      ServerHealth result;
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return ServerHealth.fromJson(data);
+        result = ServerHealth.fromJson(data);
       } else {
-        return ServerHealth.error('Error: ${response.statusCode}');
+        result = ServerHealth.error('Error: ${response.statusCode}');
       }
+      // Update cache and timestamp on every attempt (success or error)
+      _cachedHealth = result;
+      _lastHealthFetch = DateTime.now();
+      return result;
     } catch (e) {
-      return ServerHealth.error('Offline');
+      final errorResult = ServerHealth.error('Offline');
+      _cachedHealth = errorResult;
+      _lastHealthFetch = DateTime.now();
+      return errorResult;
     } finally {
       client.close();
     }
