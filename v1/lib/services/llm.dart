@@ -50,7 +50,7 @@ class LlmStreamEvent {
 
 /// A service class to handle all interactions with the LLM backend.
 class LlmService {
-  final String _baseUrl = 'http://${AppConfig.llmIp}:1306';
+  final String _baseUrl = '${AppConfig.llmIp}';
 
   /// Fetches the health status of the server.
   Future<ServerHealth> fetchServerHealth() async {
