@@ -67,12 +67,12 @@ class LunaApp {
 // Default apps available in the app store
 List<LunaApp> getDefaultApps() {
   return [
-    /*LunaApp(
+    LunaApp(
       icon: Icons.dashboard_outlined,
       title: 'Dashboard',
       routeName: '/dashboard',
       isExperimental: true,
-    ),*/
+    ),
     LunaApp(
       icon: Icons.chat_bubble_outline,
       title: 'Chat',

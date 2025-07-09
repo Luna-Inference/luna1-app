@@ -25,6 +25,8 @@ class _HardwareSetupState extends State<HardwareSetup> {
     //'100.76.203.80',     // Known Luna backend server
     'luna.local',
     '10.10.0.1',
+    '100.65.35.72',
+    '192.168.137.48'
   ];
 
   @override

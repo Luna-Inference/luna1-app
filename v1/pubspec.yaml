@@ -37,7 +37,6 @@ dependencies:
   dash_chat_2: ^0.0.20
   flutter_markdown: ^0.7.0
   google_fonts: ^6.2.1
-  go_router: ^15.2.0
   http: ^1.4.0
   flutter_dotenv: ^5.1.0
   mailer: ^6.4.1
@@ -57,6 +56,8 @@ dependencies:
   googleapis: ^14.0.0
   googleapis_auth: ^2.0.0
   url_launcher: ^6.2.5
+  enough_mail: ^2.1.6
+  go_router: ^16.0.0
 
 dev_dependencies:
   flutter_test:
@@ -102,6 +103,6 @@ msix_config:
   display_name: Luna AI Box
   publisher_display_name: BillulloNex
   identity_name: com.billullonex.luna
-  msix_version: 1.0.0.0
+  msix_version: 1.0.0.2
   logo_path: assets/images/luna.png
   capabilities: internetClient, microphone

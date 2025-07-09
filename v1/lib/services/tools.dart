@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
+import 'package:enough_mail/enough_mail.dart';
 
 /// Performs a web search and returns the top result as a string.
 ///
@@ -126,5 +127,53 @@ Future<String> addNote(String content) async {
     return 'Successfully added note to Notion.';
   } else {
     throw http.ClientException('Notion API error: ${response.statusCode} ${response.body}');
+  }
+}
+
+/// Reads the latest `count` email messages from the configured mailbox.
+///
+/// Environment variables required (in `.env`):
+///   IMAP_HOST          – e.g. "imap.gmail.com"
+///   IMAP_PORT          – e.g. "993" (default 993 for SSL, 143 for plain)
+///   IMAP_USERNAME      – login / full email
+///   IMAP_PASSWORD      – password or app-password
+///   IMAP_USE_SSL       – optional, "true" (default) / "false"
+///
+/// Returns a list of plain-text bodies (newest first).
+Future<List<String>> readLatestEmails({int count = 10}) async {
+  final host = dotenv.env['IMAP_HOST'] ?? '';
+  final portStr = dotenv.env['IMAP_PORT'] ?? '';
+  final username = dotenv.env['IMAP_USERNAME'] ?? '';
+  final password = dotenv.env['IMAP_PASSWORD'] ?? '';
+  final useSsl = (dotenv.env['IMAP_USE_SSL'] ?? 'true').toLowerCase() != 'false';
+
+  if (host.isEmpty || username.isEmpty || password.isEmpty) {
+    throw StateError('IMAP_HOST, IMAP_USERNAME or IMAP_PASSWORD not set in .env');
+  }
+
+  final port = int.tryParse(portStr.isEmpty ? (useSsl ? '993' : '143') : portStr) ?? (useSsl ? 993 : 143);
+
+  final client = ImapClient(isLogEnabled: false);
+  try {
+    await client.connectToServer(host, port, isSecure: useSsl);
+    await client.login(username, password);
+    await client.selectInbox();
+
+    final fetchResult = await client.fetchRecentMessages(
+      messageCount: count,
+      criteria: 'BODY.PEEK[]',
+    );
+
+    final bodies = <String>[];
+    for (final message in fetchResult.messages) {
+      final body = message.decodeTextPlainPart() ?? message.decodeTextHtmlPart() ?? '';
+      bodies.add(body);
+    }
+
+    return bodies;
+  } finally {
+    try {
+      await client.logout();
+    } catch (_) {}
   }
 }

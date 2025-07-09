@@ -3,6 +3,7 @@ import 'package:v1/services/tools.dart';
 import 'dart:async';
 import 'package:v1/widgets/setting_appbar.dart';
 import 'package:v1/services/hardware/bluetooth.dart' as bt;
+import 'package:v1/services/llm.dart';
 import 'package:v1/services/hardware/scan.dart' as net;
 
 class Dashboard extends StatefulWidget {
@@ -25,6 +26,7 @@ class _DashboardState extends State<Dashboard> {
   String _result = '';
   String _emailStatus = '';
   String _notionStatus = '';
+  String _emailSummary = ''; // New variable to store the email summary
   bool _loading = false;
   bool _sending = false;
   bool _isAddingNote = false;
@@ -33,6 +35,22 @@ class _DashboardState extends State<Dashboard> {
   // Network scan
   List<String> _lunaDevices = [];
   bool _networkScanning = false;
+  // Email reading
+  List<String> _emails = [];
+  bool _fetchingEmails = false;
+
+  void _showErrorSnack(String message) {
+    // Use debugPrint so errors are also visible in console for deeper inspection
+    debugPrint('Dashboard Error: $message');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   Future<void> _performSearch() async {
     final query = _controller.text.trim();
@@ -46,10 +64,12 @@ class _DashboardState extends State<Dashboard> {
       setState(() {
         _result = res;
       });
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('Search error: $e\n$stack');
       setState(() {
         _result = 'Error: $e';
       });
+      _showErrorSnack('Search failed: $e');
     } finally {
       setState(() {
         _loading = false;
@@ -83,6 +103,17 @@ class _DashboardState extends State<Dashboard> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: _buildEmailSection(),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _buildEmailReadSection(),
             ),
           ),
           const SizedBox(height: 24),
@@ -170,8 +201,10 @@ class _DashboardState extends State<Dashboard> {
         body: body,
       );
       setState(() => _emailStatus = 'Email sent!');
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('Send email error: $e\n$stack');
       setState(() => _emailStatus = 'Error: $e');
+      _showErrorSnack('Failed to send email: $e');
     } finally {
       setState(() => _sending = false);
     }
@@ -289,9 +322,9 @@ class _DashboardState extends State<Dashboard> {
     try {
       final devices = await bt.scanNearbyDeviceIds();
       setState(() { _bluetoothDevices = devices; });
-    } catch (e) {
-      // ignore: avoid_print
-      print('Bluetooth scan error: $e');
+    } catch (e, stack) {
+      debugPrint('Bluetooth scan error: $e\n$stack');
+      _showErrorSnack('Bluetooth scan failed: $e');
     } finally {
       setState(() { _scanning = false; });
     }
@@ -302,9 +335,9 @@ class _DashboardState extends State<Dashboard> {
     try {
       final devices = await net.scanForLunaDevices();
       setState(() { _lunaDevices = devices; });
-    } catch (e) {
-      // ignore: avoid_print
-      print('Network scan error: $e');
+    } catch (e, stack) {
+      debugPrint('Network scan error: $e\n$stack');
+      _showErrorSnack('Network scan failed: $e');
     } finally {
       setState(() { _networkScanning = false; });
     }
@@ -350,6 +383,95 @@ class _DashboardState extends State<Dashboard> {
         ),
         const SizedBox(height: 12),
         for (final id in _bluetoothDevices) Text(id),
+      ],
+    );
+  }
+
+  Future<void> _fetchEmails() async {
+    setState(() {
+      _fetchingEmails = true;
+      _emails = [];
+      _emailSummary = '';
+    });
+    try {
+      final latest = await readLatestEmails();
+      setState(() {
+        _emails = latest;
+      });
+      
+      // Generate summary using LLM service if emails were fetched successfully
+      if (latest.isNotEmpty) {
+        final LlmService llmService = LlmService();
+        final String emailContent = latest.join('\n\n---\n\n');
+        
+        final messages = [
+          {
+            'role': 'system',
+            'content': 'You are a helpful assistant that summarizes emails. Create a concise 2-paragraph summary of the provided emails. The first paragraph should cover the main topics and senders. The second paragraph should highlight any action items or important deadlines mentioned.'
+          },
+          {
+            'role': 'user',
+            'content': 'Please summarize these emails:\n\n$emailContent'
+          }
+        ];
+        
+        // Use the LLM service to generate the summary
+        String summary = '';
+        await for (final event in llmService.getAIResponse(messages)) {
+          if (event.type == LlmStreamEventType.fullResponse) {
+            summary = event.content;
+            break;
+          }
+        }
+        
+        setState(() {
+          _emailSummary = summary;
+        });
+      }
+    } catch (e, stack) {
+      debugPrint('Fetch emails error: $e\n$stack');
+      final errorMsg = 'Failed to fetch emails: $e';
+      setState(() {
+        _emails = ['Error: $e'];
+        _emailSummary = '';
+      });
+      _showErrorSnack(errorMsg);
+    } finally {
+      setState(() {
+        _fetchingEmails = false;
+      });
+    }
+  }
+
+  Widget _buildEmailReadSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Read Latest Emails', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          onPressed: _fetchingEmails ? null : _fetchEmails,
+          child: _fetchingEmails
+              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Text('Fetch 10 Latest Emails'),
+        ),
+        const SizedBox(height: 12),
+        if (_emails.isNotEmpty)
+          SizedBox(
+            height: 200,
+            child: ListView.builder(
+              itemCount: _emails.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Text(_emails[index]),
+                );
+              },
+            ),
+          ),
+        const SizedBox(height: 12),
+        if (_emailSummary.isNotEmpty)
+          Text('Summary:\n$_emailSummary'),
       ],
     );
   }
