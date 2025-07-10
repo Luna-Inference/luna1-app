@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:v1/services/tools.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'package:v1/widgets/setting_appbar.dart';
 import 'package:v1/services/hardware/bluetooth.dart' as bt;
 import 'package:v1/services/llm.dart';
@@ -38,6 +39,9 @@ class _DashboardState extends State<Dashboard> {
   // Email reading
   List<String> _emails = [];
   bool _fetchingEmails = false;
+
+  // Add a variable to store the parsed email summaries
+  List<EmailSummary> _emailSummaries = [];
 
   void _showErrorSnack(String message) {
     // Use debugPrint so errors are also visible in console for deeper inspection
@@ -392,6 +396,7 @@ class _DashboardState extends State<Dashboard> {
       _fetchingEmails = true;
       _emails = [];
       _emailSummary = '';
+      _emailSummaries = [];
     });
     try {
       final latest = await readLatestEmails();
@@ -407,7 +412,29 @@ class _DashboardState extends State<Dashboard> {
         final messages = [
           {
             'role': 'system',
-            'content': 'You are a helpful assistant that summarizes emails. Create a concise 2-paragraph summary of the provided emails. The first paragraph should cover the main topics and senders. The second paragraph should highlight any action items or important deadlines mentioned.'
+            'content': '''You are an email summarization assistant. Analyze the provided emails and create structured summaries.
+
+## Output Format
+You MUST respond with a valid JSON object in the following format:
+```json
+{
+  "summaries": [
+    {
+      "title": "Brief title describing the email",
+      "summary": "Concise summary of the email content, including key points and any action items",
+      "category": "important | advertising | not important"
+    }
+  ]
+}
+```
+
+## Guidelines
+- Each email should be categorized as "important", "advertising", or "not important"
+- Important emails include personal messages, work-related communications, or anything requiring action
+- Advertising emails are promotional content, marketing, or sales messages
+- Title should be brief (5-7 words) but descriptive
+- Summary should be 1-2 sentences highlighting the key information
+- /no_think'''
           },
           {
             'role': 'user',
@@ -424,9 +451,52 @@ class _DashboardState extends State<Dashboard> {
           }
         }
         
-        setState(() {
-          _emailSummary = summary;
-        });
+        // Clean up the JSON response by removing server log messages
+        try {
+          // Extract JSON content from potentially mixed output
+          // Look for the start of JSON object
+          final jsonStartIndex = summary.indexOf('{');
+          if (jsonStartIndex >= 0) {
+            // Find matching closing brace by counting braces
+            int openBraces = 0;
+            int closeBraces = 0;
+            int endIndex = summary.length - 1;
+            
+            for (int i = jsonStartIndex; i < summary.length; i++) {
+              if (summary[i] == '{') openBraces++;
+              if (summary[i] == '}') {
+                closeBraces++;
+                if (openBraces == closeBraces) {
+                  endIndex = i;
+                  break;
+                }
+              }
+            }
+            
+            // Extract the clean JSON string
+            String cleanJson = summary.substring(jsonStartIndex, endIndex + 1);
+            
+            // Remove any server log messages within the JSON content
+            cleanJson = cleanJson.replaceAll(RegExp(r'\d+\.\d+\.\d+\.\d+ - - \[\d+/\w+/\d+ \d+:\d+:\d+\] "[^"]*" \d+ -'), '');
+            
+            // Parse the cleaned JSON response
+            final jsonSummary = jsonDecode(cleanJson);
+            final summaries = jsonSummary['summaries'];
+            
+            // Create EmailSummary objects from the JSON data
+            final emailSummaries = summaries.map<EmailSummary>((summary) => EmailSummary.fromJson(summary)).toList();
+            
+            setState(() {
+              _emailSummaries = emailSummaries;
+            });
+          } else {
+            throw Exception("Could not find JSON content in response");
+          }
+        } catch (e) {
+          debugPrint('Error parsing email summary JSON: $e');
+          debugPrint('Raw response: $summary');
+          _showErrorSnack('Failed to parse email summary');
+        }
       }
     } catch (e, stack) {
       debugPrint('Fetch emails error: $e\n$stack');
@@ -453,27 +523,114 @@ class _DashboardState extends State<Dashboard> {
           onPressed: _fetchingEmails ? null : _fetchEmails,
           child: _fetchingEmails
               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Fetch 10 Latest Emails'),
+              : const Text('Fetch 3 Latest Emails'),
         ),
-        const SizedBox(height: 12),
-        if (_emails.isNotEmpty)
-          SizedBox(
-            height: 200,
-            child: ListView.builder(
-              itemCount: _emails.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(_emails[index]),
-                );
-              },
+        const SizedBox(height: 16),
+        if (_emailSummaries.isNotEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Email Summaries',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final summary in _emailSummaries) 
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _getCategoryColor(summary.category).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: _getCategoryColor(summary.category)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                summary.title, 
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: _getCategoryColor(summary.category),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                summary.category,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(summary.summary),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
-        const SizedBox(height: 12),
         if (_emailSummary.isNotEmpty)
-          Text('Summary:\n$_emailSummary'),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(_emailSummary),
+          ),
+        const SizedBox(height: 16),
+        if (_emails.isNotEmpty)
+          ExpansionTile(
+            title: const Text('View Raw Emails'),
+            children: [
+              SizedBox(
+                height: 200,
+                child: ListView.builder(
+                  itemCount: _emails.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Text(_emails[index]),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
       ],
     );
+  }
+
+  // Helper method to get color based on category
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'important':
+        return Colors.red;
+      case 'advertising':
+        return Colors.orange;
+      case 'not important':
+      default:
+        return Colors.blue;
+    }
   }
 
   @override
@@ -483,5 +640,22 @@ class _DashboardState extends State<Dashboard> {
     _emailBodyController.dispose();
     _notionNoteController.dispose();
     super.dispose();
+  }
+}
+
+// Add this class to represent the email summary
+class EmailSummary {
+  final String title;
+  final String summary;
+  final String category;
+
+  EmailSummary({required this.title, required this.summary, required this.category});
+
+  factory EmailSummary.fromJson(Map<String, dynamic> json) {
+    return EmailSummary(
+      title: json['title'] ?? 'No Title',
+      summary: json['summary'] ?? 'No Summary',
+      category: json['category'] ?? 'not important',
+    );
   }
 }

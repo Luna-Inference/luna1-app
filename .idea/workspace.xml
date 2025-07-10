@@ -6,15 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="69d8516e-759e-44e7-a717-25f6e84637b9" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Luna1-server" beforeDir="false" afterPath="$PROJECT_DIR$/Luna1-server" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/v1/.env.example" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/lib/pages/dashboard.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/dashboard.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/pages/setup/hardware_setup.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/setup/hardware_setup.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/persistent_data/app_list.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/persistent_data/app_list.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/services/tests/deep_research_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/services/hardware/scan.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/services/hardware/scan.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/lib/services/tools.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/services/tools.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/v1/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/v1/pubspec.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

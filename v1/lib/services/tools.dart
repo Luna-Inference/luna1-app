@@ -140,7 +140,7 @@ Future<String> addNote(String content) async {
 ///   IMAP_USE_SSL       – optional, "true" (default) / "false"
 ///
 /// Returns a list of plain-text bodies (newest first).
-Future<List<String>> readLatestEmails({int count = 10}) async {
+Future<List<String>> readLatestEmails({int count = 3}) async {
   final host = dotenv.env['IMAP_HOST'] ?? '';
   final portStr = dotenv.env['IMAP_PORT'] ?? '';
   final username = dotenv.env['IMAP_USERNAME'] ?? '';

@@ -46,7 +46,7 @@ class ScanResult {
 /// the existing [scanForLunaDevices] helper (which only returns Luna devices)
 /// intact for backwards-compatibility.
 Future<ScanResult> scanForLunaDevicesWithAllIps({
-  int port = 8080,
+  int port = 1306,
   Duration timeout = const Duration(seconds: 10),
 }) async {
   final Set<String> subnets = <String>{};
