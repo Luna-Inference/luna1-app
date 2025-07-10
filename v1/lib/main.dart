@@ -18,6 +18,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:v1/config.dart';
 
+import 'pages/email_page.dart';
+
 // Global RouteObserver for navigation monitoring
 final RouteObserver<ModalRoute<dynamic>> routeObserver = RouteObserver<ModalRoute<dynamic>>();
 
@@ -83,6 +85,10 @@ final GoRouter _router = GoRouter(
         path:'/app-store',
         builder: (BuildContext context, GoRouterState state) => AppStore()
     ),
+    GoRoute(
+      path: '/email',
+      builder: (BuildContext context, GoRouterState state) => const EmailPage(),
+    )
 
 
   ],

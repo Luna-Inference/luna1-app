@@ -5,9 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69d8516e-759e-44e7-a717-25f6e84637b9" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/v1/lib/pages/email_page.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/main.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/lib/pages/dashboard.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/pages/dashboard.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/v1/lib/services/hardware/scan.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/services/hardware/scan.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/persistent_data/app_list.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/persistent_data/app_list.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/v1/lib/services/llm.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/services/llm.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/v1/lib/services/tools.dart" beforeDir="false" afterPath="$PROJECT_DIR$/v1/lib/services/tools.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

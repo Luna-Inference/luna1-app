@@ -97,6 +97,12 @@ List<LunaApp> getDefaultApps() {
       routeName: '/wifi-setup',
       isExperimental: false,
     ),
+    LunaApp(
+      icon: Icons.email,
+      title: 'Email',
+      routeName: '/email',
+      isExperimental: true,
+    ),
     /*LunaApp(
       icon: Icons.network_check,
       title: 'Network',

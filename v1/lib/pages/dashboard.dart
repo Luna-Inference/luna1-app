@@ -429,8 +429,8 @@ You MUST respond with a valid JSON object in the following format:
 ```
 
 ## Guidelines
-- Each email should be categorized as "important", "advertising", or "not important"
-- Important emails include personal messages, work-related communications, or anything requiring action
+- Each email should be categorized as "action required", "advertising", or "not important"
+- Action required emails include personal messages, work-related communications, or anything requiring action
 - Advertising emails are promotional content, marketing, or sales messages
 - Title should be brief (5-7 words) but descriptive
 - Summary should be 1-2 sentences highlighting the key information
@@ -517,7 +517,19 @@ You MUST respond with a valid JSON object in the following format:
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Read Latest Emails', style: Theme.of(context).textTheme.titleMedium),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Read Latest Emails', style: Theme.of(context).textTheme.titleMedium),
+            TextButton.icon(
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Open Email Page'),
+              onPressed: () {
+                //GoRouter.of(context).push('/email');
+              },
+            ),
+          ],
+        ),
         const SizedBox(height: 12),
         ElevatedButton(
           onPressed: _fetchingEmails ? null : _fetchEmails,

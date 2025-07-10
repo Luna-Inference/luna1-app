@@ -50,7 +50,7 @@ class LlmStreamEvent {
 
 /// A service class to handle all interactions with the LLM backend.
 class LlmService {
-  final String _baseUrl = '${AppConfig.llmIp}';
+  final String _baseUrl = 'http://${AppConfig.llmIp}:1306';
 
   // Throttling: cache the last health response and its timestamp so that
   // multiple widgets calling [fetchServerHealth] within a short interval

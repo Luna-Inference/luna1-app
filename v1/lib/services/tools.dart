@@ -139,7 +139,7 @@ Future<String> addNote(String content) async {
 ///   IMAP_PASSWORD      – password or app-password
 ///   IMAP_USE_SSL       – optional, "true" (default) / "false"
 ///
-/// Returns a list of plain-text bodies (newest first).
+/// Returns a list of plain-text bodies (newest first) with URLs and images removed.
 Future<List<String>> readLatestEmails({int count = 3}) async {
   final host = dotenv.env['IMAP_HOST'] ?? '';
   final portStr = dotenv.env['IMAP_PORT'] ?? '';
@@ -166,10 +166,24 @@ Future<List<String>> readLatestEmails({int count = 3}) async {
 
     final bodies = <String>[];
     for (final message in fetchResult.messages) {
-      final body = message.decodeTextPlainPart() ?? message.decodeTextHtmlPart() ?? '';
+      var body = message.decodeTextPlainPart() ?? message.decodeTextHtmlPart() ?? '';
+      
+      // Remove URLs - match common URL patterns
+      body = body.replaceAll(RegExp(r'https?://\S+'), '[URL removed]');
+      body = body.replaceAll(RegExp(r'www\.\S+'), '[URL removed]');
+      
+      // Remove image references in HTML and markdown
+      body = body.replaceAll(RegExp(r'<img[^>]+>', caseSensitive: false), '[Image removed]');
+      body = body.replaceAll(RegExp(r'!\[.*?\]\(.*?\)'), '[Image removed]');
+      
+      // Remove HTML image tags with src attributes
+      body = body.replaceAll(RegExp(r'<img\s+[^>]*src="[^"]*"[^>]*>', caseSensitive: false), '[Image removed]');
+      
+      // Remove data URIs which might contain embedded images
+      body = body.replaceAll(RegExp(r'data:image/[^;]+;base64,[^"\s]+'), '[Image data removed]');
+      
       bodies.add(body);
     }
-
     return bodies;
   } finally {
     try {
