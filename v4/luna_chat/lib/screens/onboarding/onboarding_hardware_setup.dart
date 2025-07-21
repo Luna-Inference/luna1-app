@@ -20,8 +20,8 @@ class OnboardingHardwareSetupScreen extends StatefulWidget {
 
 class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupScreen>
     with SingleTickerProviderStateMixin {
-  late final Player player = Player();
-  late final VideoController controller = VideoController(player);
+  Player? player;
+  VideoController? controller;
   bool _isInitialized = false;
   bool _hasVideoError = false;
   bool _isPlaying = true;
@@ -33,21 +33,37 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   
-  // Timer for periodic scanning
   Timer? _scanTimer;
+  StreamSubscription? _bufferingSubscription;
+  StreamSubscription? _errorSubscription;
+  
+  // Debug timing
+  late DateTime _widgetInitTime;
 
   @override
   void initState() {
     super.initState();
+    _widgetInitTime = DateTime.now();
+    debugPrint('🎬 [VIDEO_DEBUG] Widget initState started');
+    
     _initializeAnimations();
-    _initializeVideo();
+    
+    // Initialize video loading asynchronously without blocking UI
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeVideoAsync();
+    });
+    
     _startDeviceScan();
+    debugPrint('🎬 [VIDEO_DEBUG] initState completed, video loading in background');
   }
   
   @override
   void dispose() {
+    debugPrint('🎬 [VIDEO_DEBUG] Disposing resources');
     _scanTimer?.cancel();
-    player.dispose();
+    _bufferingSubscription?.cancel();
+    _errorSubscription?.cancel();
+    player?.dispose();
     _animController.dispose();
     super.dispose();
   }
@@ -60,7 +76,6 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
       _statusMessage = 'Scanning for Luna device...';
     });
     
-    // Start periodic scanning
     _scanTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       if (_deviceFound) {
         timer.cancel();
@@ -74,7 +89,6 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
             _deviceFound = true;
             _statusMessage = 'Luna device found!';
           });
-          // Wait a moment to show the success message
           await Future.delayed(const Duration(seconds: 1));
           if (widget.onContinue != null) {
             widget.onContinue!();
@@ -119,21 +133,21 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
     _animController.forward();
   }
 
-  Future<void> _initializeVideo() async {
+  // NON-BLOCKING video initialization
+  Future<void> _initializeVideoAsync() async {
+    final videoInitStart = DateTime.now();
+    debugPrint('🎬 [VIDEO_DEBUG] Starting async video initialization');
+    
     try {
-      await player.open(Media('asset:///assets/onboarding/setup_mock.mp4'));
-      await player.setPlaylistMode(PlaylistMode.loop);
+      // Create player instance
+      player = Player();
+      controller = VideoController(player!);
       
-      player.stream.buffering.listen((buffering) {
-        if (!buffering && mounted && !_isInitialized) {
-          setState(() {
-            _isInitialized = true;
-          });
-        }
-      });
-
-      player.stream.error.listen((error) {
-        debugPrint('Video player error: $error');
+      debugPrint('🎬 [VIDEO_DEBUG] Player and controller created');
+      
+      // Set up error handling first
+      _errorSubscription = player!.stream.error.listen((error) {
+        debugPrint('🎬 [VIDEO_DEBUG] ❌ Video error: $error');
         if (mounted) {
           setState(() {
             _hasVideoError = true;
@@ -141,8 +155,38 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
         }
       });
       
+      // Set up buffering listener
+      _bufferingSubscription = player!.stream.buffering.listen((buffering) {
+        final now = DateTime.now();
+        debugPrint('🎬 [VIDEO_DEBUG] Buffering: $buffering at ${now.difference(videoInitStart).inMilliseconds}ms');
+        
+        if (!buffering && mounted && !_isInitialized) {
+          final totalTime = now.difference(videoInitStart);
+          debugPrint('🎬 [VIDEO_DEBUG] ✅ Video ready! Total time: ${totalTime.inMilliseconds}ms');
+          
+          setState(() {
+            _isInitialized = true;
+          });
+        }
+      });
+      
+      // Configure player
+      await player!.setPlaylistMode(PlaylistMode.loop);
+      debugPrint('🎬 [VIDEO_DEBUG] Player configured, opening media...');
+      
+      // Open media - this might take time but won't block UI
+      await player!.open(
+        Media('asset:///assets/onboarding/setup_480p.mp4'),
+        play: true,
+      );
+      
+      debugPrint('🎬 [VIDEO_DEBUG] Media open command completed');
+      
     } catch (e) {
-      debugPrint('Error initializing video: $e');
+      final errorTime = DateTime.now();
+      final totalErrorTime = errorTime.difference(videoInitStart);
+      debugPrint('🎬 [VIDEO_DEBUG] ❌ Error after ${totalErrorTime.inMilliseconds}ms: $e');
+      
       if (mounted) {
         setState(() {
           _hasVideoError = true;
@@ -151,11 +195,10 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -164,117 +207,53 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              whiteAccent,
-              buttonColor,
+              Colors.white,
+              Colors.grey[100]!,
             ],
           ),
         ),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(32.0),
-            child: Row(
-              children: [
-                // Left side - Content
-                Expanded(
-                  flex: 5,
-                  child: AnimatedBuilder(
-                    animation: _animController,
-                    builder: (context, child) {
-                      return FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Header Text
-                              Text(
-                                'Connect Your Luna',
-                                style: headingText.copyWith(
-                                  fontSize: 42,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              
-                              // Main Text
-                              Text(
-                                'To begin your journey with Luna, let\'s get her connected.\n\nSimply plug Luna into power and connect her to your laptop. The guide on the right will help you through each step.',
-                                style: headingText.copyWith(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w400,
-                                  height: 1.6,
-                                ),
-                              ),
-                              
-                              const SizedBox(height: 32),
-                              
-                              // Status indicator
-                              Row(
-                                children: [
-                                  _deviceFound
-                                      ? const Icon(Icons.check_circle, color: Colors.green, size: 20)
-                                      : _isScanning
-                                          ? SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                valueColor: AlwaysStoppedAnimation<Color>(buttonColor),
-                                              ),
-                                            )
-                                          : const Icon(Icons.error_outline, color: Colors.orange, size: 20),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    _statusMessage,
-                                    style: headingText.copyWith(
-                                      fontSize: 16,
-                                      color: _deviceFound ? Colors.green : Colors.grey[700],
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              
-                              if (_deviceFound) ...[
-                                const SizedBox(height: 24),
-                                ElevatedButton(
-                                  onPressed: widget.onContinue,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: buttonColor,
-                                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Continue',
-                                    style: headingText.copyWith(
-                                      fontSize: 16,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ]
-                            ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth < 800) {
+                  return Column(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: _buildContentSection(),
+                      ),
+                      const SizedBox(height: 24),
+                      Expanded(
+                        flex: 3,
+                        child: _buildVideoSection(),
+                      ),
+                    ],
+                  );
+                } else {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        flex: 5,
+                        child: _buildContentSection(),
+                      ),
+                      const SizedBox(width: 48),
+                      Expanded(
+                        flex: 4,
+                        child: Container(
+                          constraints: const BoxConstraints(
+                            maxHeight: 400,
+                            maxWidth: 600,
                           ),
+                          child: _buildVideoSection(),
                         ),
-                      );
-                    },
-                  ),
-                ),
-                
-                const SizedBox(width: 48),
-                
-                // Right side - Video Player
-                Expanded(
-                  flex: 4,
-                  child: _buildVideoSection(),
-                ),
-              ],
+                      ),
+                    ],
+                  );
+                }
+              },
             ),
           ),
         ),
@@ -282,14 +261,107 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
     );
   }
 
+  Widget _buildContentSection() {
+    return AnimatedBuilder(
+      animation: _animController,
+      builder: (context, child) {
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Connect Your Luna',
+                  style: TextStyle(
+                    fontSize: 42,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                Text(
+                  'To begin your journey with Luna, let\'s get her connected.\n\nSimply plug Luna into power and connect her to your laptop. The guide on the right will help you through each step.',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                    height: 1.6,
+                    color: Colors.black87,
+                  ),
+                ),
+                
+                const SizedBox(height: 32),
+                
+                Row(
+                  children: [
+                    _deviceFound
+                        ? const Icon(Icons.check_circle, color: Colors.green, size: 20)
+                        : _isScanning
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                ),
+                              )
+                            : const Icon(Icons.error_outline, color: Colors.orange, size: 20),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(
+                        _statusMessage,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: _deviceFound ? Colors.green : Colors.grey[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                if (_deviceFound) ...[
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: widget.onContinue,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Continue',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ]
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildVideoSection() {
     if (_hasVideoError) {
       return Container(
+        height: 300,
         decoration: BoxDecoration(
-          color: whiteAccent.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(24),
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: buttonColor.withOpacity(0.2),
+            color: Colors.grey[300]!,
             width: 1,
           ),
         ),
@@ -299,14 +371,60 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
             children: [
               Icon(
                 Icons.error_outline,
-                size: 64,
+                size: 48,
                 color: Colors.grey[400],
               ),
               const SizedBox(height: 16),
               Text(
                 'Unable to load video',
-                style: headingText.copyWith(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _hasVideoError = false;
+                    _isInitialized = false;
+                  });
+                  _initializeVideoAsync();
+                },
+                child: Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    if (!_isInitialized || controller == null) {
+      debugPrint('🎬 [VIDEO_DEBUG] Showing loading state');
+      
+      return Container(
+        height: 300,
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.grey[300]!,
+            width: 1,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                color: Colors.blue,
+                strokeWidth: 3,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Loading video...',
+                style: TextStyle(
+                  fontSize: 16,
                   color: Colors.grey[600],
                 ),
               ),
@@ -316,63 +434,35 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
       );
     }
     
-    if (!_isInitialized) {
-      return Container(
-        decoration: BoxDecoration(
-          color: whiteAccent.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: buttonColor.withOpacity(0.2),
-            width: 1,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(
-                color: buttonColor,
-                strokeWidth: 3,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Loading video...',
-                style: headingText.copyWith(
-                  fontSize: 16,
-                  color: buttonColor.withOpacity(0.7),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    
+    debugPrint('🎬 [VIDEO_DEBUG] ✅ Rendering video player');
     return _buildVideoPlayer();
   }
 
   Widget _buildVideoPlayer() {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         child: AspectRatio(
           aspectRatio: 16 / 9,
-          child: GestureDetector(
-            onTap: _togglePlayPause,
-            child: Video(
-              controller: controller,
-              controls: NoVideoControls,
-              fit: BoxFit.cover,
+          child: Container(
+            color: Colors.black,
+            child: GestureDetector(
+              onTap: _togglePlayPause,
+              child: Video(
+                controller: controller!,
+                controls: NoVideoControls,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -381,15 +471,27 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
   }
 
   Future<void> _togglePlayPause() async {
-    if (_isPlaying) {
-      await player.pause();
-    } else {
-      await player.play();
-    }
-    if (mounted) {
-      setState(() {
-        _isPlaying = !_isPlaying;
-      });
+    if (player == null) return;
+    
+    final toggleStart = DateTime.now();
+    debugPrint('🎬 [VIDEO_DEBUG] Toggle play/pause - current state: $_isPlaying');
+    
+    try {
+      if (_isPlaying) {
+        await player!.pause();
+      } else {
+        await player!.play();
+      }
+      if (mounted) {
+        setState(() {
+          _isPlaying = !_isPlaying;
+        });
+      }
+      
+      final toggleDuration = DateTime.now().difference(toggleStart);
+      debugPrint('🎬 [VIDEO_DEBUG] Toggle completed in: ${toggleDuration.inMilliseconds}ms');
+    } catch (e) {
+      debugPrint('🎬 [VIDEO_DEBUG] Error toggling playback: $e');
     }
   }
 }
