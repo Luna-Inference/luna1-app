@@ -1,0 +1,36 @@
+import 'package:flutter/material.dart';
+import 'package:dash_chat_2/dash_chat_2.dart';
+import 'package:luna_chat/applications/chat.dart';
+import 'package:luna_chat/screens/onboarding/onboarding_flow.dart';
+import 'package:luna_chat/screens/onboarding/onboarding_hardware_setup.dart';
+import 'package:luna_chat/screens/onboarding/onboarding_welcome.dart';
+import 'package:luna_chat/themes/typography.dart';
+import 'package:luna_chat/themes/color.dart';
+import 'package:media_kit/media_kit.dart';
+
+void main() {
+  // Initialize MediaKit before running the app
+  MediaKit.ensureInitialized();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Luna',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
+        textTheme: TextTheme(
+          bodyLarge: mainText,
+          headlineLarge: headingText,
+        ),
+      ),
+      home: OnboardingFlow()
+    );
+  }
+}

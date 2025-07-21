@@ -26,7 +26,8 @@ class _HardwareSetupState extends State<HardwareSetup> {
     'luna.local',
     '10.10.0.1',
     '100.65.35.72',
-    '192.168.137.48'
+    '192.168.137.48',
+    '100.65.35.72'
   ];
 
   @override

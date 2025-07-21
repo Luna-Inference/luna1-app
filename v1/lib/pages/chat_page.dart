@@ -40,6 +40,7 @@ class _LunaChatPageState extends State<LunaChatPage> {
         children: [
           Expanded(
             child: DashChat(
+
               inputOptions: InputOptions(
                 inputDecoration: InputDecoration(
                   filled: true,
