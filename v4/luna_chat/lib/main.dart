@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:luna_chat/applications/chat.dart';
+import 'package:luna_chat/functions/luna_scan.dart';
 import 'package:luna_chat/screens/onboarding/onboarding_flow.dart';
 import 'package:luna_chat/screens/onboarding/onboarding_hardware_setup.dart';
 import 'package:luna_chat/screens/onboarding/onboarding_welcome.dart';
@@ -31,6 +32,29 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: OnboardingFlow()
+    );
+  }
+}
+
+
+class TestScreen extends StatelessWidget {
+  const TestScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: TextButton(
+          child: Text('test'),
+          onPressed: () async{
+            final luna = await LunaScanner.findLuna();
+            if (luna != null) {
+              // Luna is connected and ready!
+              // Make API calls to http://169.254.100.10:1309/your-endpoints
+            }
+          }
+          ,
+          )),
     );
   }
 }

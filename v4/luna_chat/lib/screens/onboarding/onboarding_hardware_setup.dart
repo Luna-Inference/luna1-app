@@ -4,6 +4,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:luna_chat/themes/typography.dart';
 import 'package:luna_chat/themes/color.dart';
+import 'package:luna_chat/functions/luna_scan.dart';
 
 class OnboardingHardwareSetupScreen extends StatefulWidget {
   final VoidCallback? onContinue;
@@ -24,16 +25,73 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
   bool _isInitialized = false;
   bool _hasVideoError = false;
   bool _isPlaying = true;
+  bool _isScanning = false;
+  bool _deviceFound = false;
+  String _statusMessage = 'Initializing...';
   
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  
+  // Timer for periodic scanning
+  Timer? _scanTimer;
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _initializeVideo();
+    _startDeviceScan();
+  }
+  
+  @override
+  void dispose() {
+    _scanTimer?.cancel();
+    player.dispose();
+    _animController.dispose();
+    super.dispose();
+  }
+  
+  Future<void> _startDeviceScan() async {
+    if (_isScanning) return;
+    
+    setState(() {
+      _isScanning = true;
+      _statusMessage = 'Scanning for Luna device...';
+    });
+    
+    // Start periodic scanning
+    _scanTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      if (_deviceFound) {
+        timer.cancel();
+        return;
+      }
+      
+      try {
+        final luna = await LunaScanner.findLuna(timeoutSeconds: 2);
+        if (luna != null && mounted) {
+          setState(() {
+            _deviceFound = true;
+            _statusMessage = 'Luna device found!';
+          });
+          // Wait a moment to show the success message
+          await Future.delayed(const Duration(seconds: 1));
+          if (widget.onContinue != null) {
+            widget.onContinue!();
+          }
+        } else if (mounted) {
+          setState(() {
+            _statusMessage = 'Scanning for Luna device...';
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _statusMessage = 'Error scanning: ${e.toString()}';
+          });
+        }
+      }
+    });
   }
 
   void _initializeAnimations() {
@@ -93,12 +151,7 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
     }
   }
 
-  @override
-  void dispose() {
-    player.dispose();
-    _animController.dispose();
-    super.dispose();
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -156,7 +209,56 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
                                 ),
                               ),
                               
-                              // Removed continue button section
+                              const SizedBox(height: 32),
+                              
+                              // Status indicator
+                              Row(
+                                children: [
+                                  _deviceFound
+                                      ? const Icon(Icons.check_circle, color: Colors.green, size: 20)
+                                      : _isScanning
+                                          ? SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor: AlwaysStoppedAnimation<Color>(buttonColor),
+                                              ),
+                                            )
+                                          : const Icon(Icons.error_outline, color: Colors.orange, size: 20),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    _statusMessage,
+                                    style: headingText.copyWith(
+                                      fontSize: 16,
+                                      color: _deviceFound ? Colors.green : Colors.grey[700],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              
+                              if (_deviceFound) ...[
+                                const SizedBox(height: 24),
+                                ElevatedButton(
+                                  onPressed: widget.onContinue,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: buttonColor,
+                                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Continue',
+                                    style: headingText.copyWith(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ]
                             ],
                           ),
                         ),

@@ -52,14 +52,14 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         setState(() {
           _currentStep = 1;
         });
-        // After 10 seconds on the hardware setup screen, move to connected screen
-        _hardwareSetupTimer = Timer(const Duration(seconds: 10), () {
-          if (mounted) {
-            _onDeviceConnected();
-          }
-        });
       }
     });
+  }
+  
+  @override
+  void dispose() {
+    _hardwareSetupTimer?.cancel();
+    super.dispose();
   }
 
   void _onDeviceConnected() {
