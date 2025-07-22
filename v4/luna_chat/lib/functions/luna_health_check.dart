@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:luna_chat/config.dart';
 import 'package:luna_chat/data/luna_ip_address.dart';
 
 /// Checks the health status of the Luna device by making a request to its API.
 /// Returns `true` if the device is online and responding correctly, `false` otherwise.
 Future<bool> checkLunaHealth() async {
   try {
-    final url = Uri.parse('http://$lunaIpAddress:1309/luna');
+    final url = Uri.parse('http://$lunaIpAddress:${LunaPort.status}/luna');
     final response = await http
         .get(
           url,

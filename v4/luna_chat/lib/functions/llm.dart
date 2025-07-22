@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:luna_chat/config.dart';
 import 'package:luna_chat/data/luna_ip_address.dart';
 
 /// An enum to represent the different types of events in the LLM stream.
@@ -16,7 +17,7 @@ class LlmStreamEvent {
 
 /// A service class to handle all interactions with the LLM backend.
 class LlmService {
-  final String _baseUrl = 'http://$lunaIpAddress:1309';
+  final String _baseUrl = 'http://$lunaIpAddress:${LunaPort.llm}';
 
   /// Initiates a chat request and returns a stream of events.
   Stream<LlmStreamEvent> getAIResponse(List<Map<String, String>> messages) {
