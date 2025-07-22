@@ -485,139 +485,136 @@ class _LunaChatAppState extends State<LunaChatApp> {
   void _handleMessageSend(String text) {
     _sendMessage(text);
   }
-
   void _sendMessage(String text) async {
-    if (text.trim().isEmpty || _isWaitingForResponse) return;
+  if (text.trim().isEmpty || _isWaitingForResponse) return;
 
-    // Cancel any existing subscription
-    await _llmSubscription?.cancel();
+  // Cancel any existing subscription
+  await _llmSubscription?.cancel();
 
-    setState(() {
-      _isWaitingForResponse = true;
-    });
+  setState(() {
+    _isWaitingForResponse = true;
+  });
 
-    // Add user message
-    final userMessage = TextMessage(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      authorId: _currentUserId,
+  // Add user message
+  final userMessage = TextMessage(
+    id: DateTime.now().millisecondsSinceEpoch.toString(),
+    authorId: _currentUserId,
+    createdAt: DateTime.now(),
+    text: text,
+  );
+  _chatController.insertMessage(userMessage);
+
+  try {
+    // Build message context with system message and conversation history
+    final messages = await _buildMessageContext(text);
+
+    // Create initial AI message with empty content
+    final aiMessage = TextMessage(
+      id: 'ai-${DateTime.now().millisecondsSinceEpoch}',
+      authorId: _aiUserId,
       createdAt: DateTime.now(),
-      text: text,
+      text: '',
     );
-    _chatController.insertMessage(userMessage);
-
-    try {
-      // Build message context with system message and conversation history
-      final messages = await _buildMessageContext(text);
-
-      // Create initial AI message with empty content
-      final aiMessage = TextMessage(
-        id: 'ai-${DateTime.now().millisecondsSinceEpoch}',
-        authorId: _aiUserId,
-        createdAt: DateTime.now(),
-        text: '',
-      );
-      
-      _chatController.insertMessage(aiMessage);
-      
-      // Get the response stream from LLM service
-      final responseStream = _llmService.getAIResponse(messages);
-      
-      // Create a buffer to accumulate the response
-      final responseBuffer = StringBuffer();
-      
-      _llmSubscription = responseStream.listen(
-        (event) {
-          if (!mounted) return;
-          
-          switch (event.type) {
-            case LlmStreamEventType.thinking:
-              // Update the message with thinking content
-              final updatedMessage = aiMessage.copyWith(
-                text: 'Thinking: ${event.content}',
-                metadata: {'isThinking': true}
-              );
-              _chatController.updateMessage(aiMessage, updatedMessage);
-              break;
-              
-            case LlmStreamEventType.response:
-              // Update the message with the latest response
-              responseBuffer.write(event.content);
-              final updatedMessage = aiMessage.copyWith(
-                text: responseBuffer.toString(),
-                metadata: {'isThinking': false}
-              );
-              _chatController.updateMessage(aiMessage, updatedMessage);
-              break;
-              
-            case LlmStreamEventType.fullResponse:
-              // Final update with the complete response
-              responseBuffer.clear();
-              responseBuffer.write(event.content);
-              final finalResponse = responseBuffer.toString();
-              
-              final updatedMessage = aiMessage.copyWith(
-                text: finalResponse,
-                metadata: {'isThinking': false}
-              );
-              _chatController.updateMessage(aiMessage, updatedMessage);
-              
-              // Add the assistant response to conversation history
-              _addAssistantResponseToHistory(finalResponse);
-              break;
-              
-            case LlmStreamEventType.error:
-              final errorMessage = aiMessage.copyWith(
-                text: 'Error: ${event.content}',
-                metadata: {'isError': true}
-              );
-              _chatController.updateMessage(aiMessage, errorMessage);
-              break;
-          }
-        },
-        onError: (error) {
-          if (!mounted) return;
-          
-          final errorMessage = TextMessage(
-            id: 'error-${DateTime.now().millisecondsSinceEpoch}',
-            authorId: _aiUserId,
-            createdAt: DateTime.now(),
-            text: 'Connection error: ${error.toString()}',
-            metadata: {'isError': true}
-          );
-          _chatController.insertMessage(errorMessage);
-        },
-        onDone: () {
-          if (mounted) {
+    
+    _chatController.insertMessage(aiMessage);
+    
+    // Get the response stream from LLM service
+    final responseStream = _llmService.sendMessage(messages); // ✅ Changed from getAIResponse
+    
+    // Create a buffer to accumulate the response
+    final responseBuffer = StringBuffer();
+    
+    _llmSubscription = responseStream.listen(
+      (event) {
+        if (!mounted) return;
+        
+        switch (event.type) {
+          case LlmStreamEventType.token: // ✅ Changed from 'response'
+            // Update the message with each new token
+            responseBuffer.write(event.content);
+            final updatedMessage = aiMessage.copyWith(
+              text: responseBuffer.toString(),
+              metadata: {'streaming': true} // ✅ Better metadata key
+            );
+            _chatController.updateMessage(aiMessage, updatedMessage);
+            break;
+            
+          case LlmStreamEventType.done: // ✅ Changed from 'fullResponse'
+            // Final update with the complete response
+            final finalResponse = event.content.isNotEmpty 
+                ? event.content 
+                : responseBuffer.toString();
+            
+            final updatedMessage = aiMessage.copyWith(
+              text: finalResponse,
+              metadata: {} // ✅ Clear metadata when done
+            );
+            _chatController.updateMessage(aiMessage, updatedMessage);
+            
+            // Add the assistant response to conversation history
+            _addAssistantResponseToHistory(finalResponse);
+            
             setState(() {
               _isWaitingForResponse = false;
             });
-          }
-        },
-        cancelOnError: true,
-      );
-      
-      // Wait for the stream to complete
-      await _llmSubscription!.asFuture();
-      
-    } catch (e) {
-      if (!mounted) return;
-      
-      final errorMessage = TextMessage(
-        id: 'error-${DateTime.now().millisecondsSinceEpoch}',
-        authorId: _aiUserId,
-        createdAt: DateTime.now(),
-        text: 'Error: ${e.toString()}',
-        metadata: {'isError': true}
-      );
-      _chatController.insertMessage(errorMessage);
-      
-      if (mounted) {
+            break;
+            
+          case LlmStreamEventType.error:
+            final errorMessage = aiMessage.copyWith(
+              text: 'Error: ${event.content}',
+              metadata: {'isError': true}
+            );
+            _chatController.updateMessage(aiMessage, errorMessage);
+            
+            setState(() {
+              _isWaitingForResponse = false;
+            });
+            break;
+        }
+      },
+      onError: (error) {
+        if (!mounted) return;
+        
+        final errorMessage = aiMessage.copyWith(
+          text: 'Connection error: ${error.toString()}',
+          metadata: {'isError': true}
+        );
+        _chatController.updateMessage(aiMessage, errorMessage);
+        
         setState(() {
           _isWaitingForResponse = false;
         });
-      }
+      },
+      onDone: () {
+        // This might be called in addition to the done event
+        if (mounted && _isWaitingForResponse) {
+          setState(() {
+            _isWaitingForResponse = false;
+          });
+        }
+      },
+      cancelOnError: true,
+    );
+    
+  } catch (e) {
+    if (!mounted) return;
+    
+    final errorMessage = TextMessage(
+      id: 'error-${DateTime.now().millisecondsSinceEpoch}',
+      authorId: _aiUserId,
+      createdAt: DateTime.now(),
+      text: 'Error: ${e.toString()}',
+      metadata: {'isError': true}
+    );
+    _chatController.insertMessage(errorMessage);
+    
+    if (mounted) {
+      setState(() {
+        _isWaitingForResponse = false;
+      });
     }
   }
+}
 
   Future<User> _resolveUser(String userId) async {
     if (userId == _currentUserId) {
