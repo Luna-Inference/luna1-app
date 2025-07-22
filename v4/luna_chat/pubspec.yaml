@@ -23,6 +23,10 @@ dependencies:
   network_info_plus: ^6.1.4
   flutter_chat_ui: ^2.8.1
   flutter_chat_types: ^3.6.2
+  file_picker: ^10.2.0
+  syncfusion_flutter_pdf: ^30.1.41
+  printing: ^5.14.2
+  flutter_markdown: ^0.7.7+1
 
 dev_dependencies:
   flutter_test:

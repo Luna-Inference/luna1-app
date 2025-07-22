@@ -15,15 +15,6 @@ void main() {
   runApp(const MyApp());
 }
 
-// In main.dart or app initialization
-class AppInitializer {
-  static Future<void> preloadCriticalAssets() async {
-    // Preload video
-    final player = Player();
-    await player.open(Media('asset:///assets/onboarding/setup_480p.mp4'));
-    // Keep reference or dispose after preloading
-  }
-}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

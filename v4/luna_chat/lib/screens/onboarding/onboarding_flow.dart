@@ -6,6 +6,7 @@ import 'package:luna_chat/screens/onboarding/onboarding_hardware_setup.dart';
 import 'package:luna_chat/screens/onboarding/onboarding_device_connected.dart';
 import 'package:luna_chat/screens/onboarding/onboarding_user_name.dart';
 import 'package:luna_chat/applications/chat.dart';
+import 'package:media_kit/media_kit.dart';
 import 'onboarding_welcome.dart';
 
 class OnboardingFlow extends StatefulWidget {
@@ -25,6 +26,40 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   String? _userName;
 
   Timer? _hardwareSetupTimer;
+  Player? _preloadPlayer;
+
+@override
+void initState() {
+  super.initState();
+  // Preload video when onboarding flow starts
+  _preloadVideo();
+  
+  // Your existing timer code...
+  Future.delayed(const Duration(seconds: 3), () {
+    if (mounted) {
+      setState(() {
+        _currentStep = 1;
+      });
+    }
+  });
+}
+
+Future<void> _preloadVideo() async {
+  try {
+    _preloadPlayer = Player();
+    await _preloadPlayer!.open(Media('asset:///assets/onboarding/setup_480p.mp4'));
+    print('✅ Video preloaded for hardware setup');
+  } catch (e) {
+    print('❌ Video preload failed: $e');
+  }
+}
+
+@override
+void dispose() {
+  _hardwareSetupTimer?.cancel();
+  _preloadPlayer?.dispose(); // Don't forget to dispose
+  super.dispose();
+}
 
   void _navigateToChat() {
     if (widget.onComplete != null) {
@@ -36,25 +71,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         ),
       );
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    // After 3 seconds, switch to the hardware setup screen
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        setState(() {
-          _currentStep = 1;
-        });
-      }
-    });
-  }
-  
-  @override
-  void dispose() {
-    _hardwareSetupTimer?.cancel();
-    super.dispose();
   }
 
   void _onDeviceConnected() {
