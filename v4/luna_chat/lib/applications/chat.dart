@@ -275,6 +275,7 @@ class _LunaChatAppState extends State<LunaChatApp> {
       },
     );
   }
+
   Widget _buildCustomTextMessage(BuildContext context, TextMessage message, bool isSentByMe) {
   final isThinking = message.metadata?['isThinking'] == true;
   final isError = message.metadata?['isError'] == true;
@@ -284,8 +285,8 @@ class _LunaChatAppState extends State<LunaChatApp> {
     margin: EdgeInsets.only(
       left: isSentByMe ? 60 : 16,
       right: isSentByMe ? 16 : 60,
-      bottom: 8,
-      top: 4,
+      bottom: 4, // Reduced bottom margin
+      top: 0,    // Remove top margin completely
     ),
     child: Align(
       alignment: isSentByMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -293,117 +294,126 @@ class _LunaChatAppState extends State<LunaChatApp> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: _getMessageBackgroundColor(isSentByMe, isThinking, isError),
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(18),
-            topRight: const Radius.circular(18),
-            bottomLeft: Radius.circular(isSentByMe ? 18 : 4),
-            bottomRight: Radius.circular(isSentByMe ? 4 : 18),
-          ),
+          borderRadius: isSentByMe 
+            ? BorderRadius.only(
+                topLeft: const Radius.circular(18),
+                topRight: const Radius.circular(18),
+                bottomLeft: const Radius.circular(18),
+                bottomRight: const Radius.circular(4),
+              )
+            : isThinking || isError
+              ? BorderRadius.circular(12) // Keep some rounding for special states
+              : BorderRadius.zero, // ✅ Completely flat for normal AI messages
           border: isThinking ? Border.all(
             color: Colors.orange.withOpacity(0.5),
             width: 1,
           ) : null,
-          boxShadow: [
-            BoxShadow(
-              color: _getShadowColor(isSentByMe, isThinking, isError),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Thinking indicator
-            if (isThinking) ...[
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.psychology,
-                    size: 16,
-                    color: Colors.orange,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Thinking...',
-                    style: smallText.copyWith(
-                      color: Colors.orange,
-                      fontStyle: FontStyle.italic,
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-            
-            // Error indicator
-            if (isError) ...[
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 16,
-                    color: Colors.red,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Error',
-                    style: smallText.copyWith(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-            
-            // Message content
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Flexible(
-                  child: Text(
-                    message.text.isEmpty && isStreaming ? 'Luna is typing...' : message.text,
-                    style: mainText.copyWith(
-                      color: _getTextColor(isSentByMe, isThinking, isError),
-                      height: 1.4,
-                      fontStyle: isThinking ? FontStyle.italic : FontStyle.normal,
-                    ),
-                  ),
+          boxShadow: _getShadowColor(isSentByMe, isThinking, isError) == Colors.transparent 
+            ? null // ✅ No shadow array if transparent
+            : [
+                BoxShadow(
+                  color: _getShadowColor(isSentByMe, isThinking, isError),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
-                
-                // Streaming indicator
-                if (isStreaming && !isThinking) ...[
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 12,
-                    height: 12,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        isSentByMe ? whiteAccent.withOpacity(0.8) : textColor,
+              ],
+        ),
+        child: IntrinsicWidth(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Thinking indicator (only show if actually thinking)
+              if (isThinking) ...[
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.psychology,
+                      size: 16,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Thinking...',
+                      style: smallText.copyWith(
+                        color: Colors.orange,
+                        fontStyle: FontStyle.italic,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6), // Reduced spacing
+              ],
+              
+              // Error indicator (only show if there's an error)
+              if (isError) ...[
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 16,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Error',
+                      style: smallText.copyWith(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6), // Reduced spacing
+              ],
+              
+              // Message content
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Flexible(
+                    child: Text(
+                      message.text.isEmpty && isStreaming ? 'Luna is typing...' : message.text,
+                      style: mainText.copyWith(
+                        color: _getTextColor(isSentByMe, isThinking, isError),
+                        height: 1.4,
+                        fontStyle: isThinking ? FontStyle.italic : FontStyle.normal,
                       ),
                     ),
                   ),
+                  
+                  // Streaming indicator (only show if streaming and not thinking)
+                  if (isStreaming && !isThinking) ...[
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isSentByMe ? whiteAccent.withOpacity(0.8) : textColor,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
-            ),
-            
-            // Timestamp
-            const SizedBox(height: 4),
-            Text(
-              _formatTime(message.createdAt),
-              style: smallText.copyWith(
-                color: _getTimestampColor(isSentByMe, isThinking, isError),
               ),
-            ),
-          ],
+              
+              // Timestamp
+              const SizedBox(height: 2), // Reduced spacing
+              Text(
+                _formatTime(message.createdAt),
+                style: smallText.copyWith(
+                  color: _getTimestampColor(isSentByMe, isThinking, isError),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     ),
@@ -418,7 +428,7 @@ Color _getMessageBackgroundColor(bool isSentByMe, bool isThinking, bool isError)
   if (isThinking) {
     return Colors.orange.withOpacity(0.05);
   }
-  return isSentByMe ? buttonColor : const Color(0xFF2A2A2A);
+  return isSentByMe ? buttonColor : backgroundColor; // ✅ Changed from Color(0xFF2A2A2A) to backgroundColor
 }
 
 Color _getShadowColor(bool isSentByMe, bool isThinking, bool isError) {
@@ -428,9 +438,10 @@ Color _getShadowColor(bool isSentByMe, bool isThinking, bool isError) {
   if (isThinking) {
     return Colors.orange.withOpacity(0.3);
   }
+  // ✅ Only add shadow for sent messages, not AI messages
   return isSentByMe 
       ? buttonColor.withOpacity(0.3)
-      : Colors.black.withOpacity(0.2);
+      : Colors.transparent; // No shadow for AI messages
 }
 
 Color _getTextColor(bool isSentByMe, bool isThinking, bool isError) {
