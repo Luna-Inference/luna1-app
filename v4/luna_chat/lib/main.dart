@@ -42,8 +42,8 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: 
-      //LunaChatApp()
-      OnboardingFlow()
+      LunaChatApp()
+      // OnboardingFlow()
     );
   }
 }

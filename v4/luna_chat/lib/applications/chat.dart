@@ -52,22 +52,11 @@ class _LunaChatAppState extends State<LunaChatApp> {
   Future<void> _initializeSystemMessage() async {
     final userName = _cachedUserName ?? '';
     
-    // Build dynamic system prompt
-    String systemPrompt = 'You are Luna, a helpful AI assistant running locally on a Luna device. ';
+    // Simple, concise system prompt
+    String systemPrompt = 'You are Luna, a helpful AI assistant running on a Luna device.';
     
     if (userName.isNotEmpty) {
-      systemPrompt += 'You are chatting with $userName. ';
-    }
-    
-    systemPrompt += '''You should:
-- Be friendly, knowledgeable, and conversational
-- Keep responses concise but informative
-- Remember that you're running locally on their personal Luna device
-- Be helpful with questions, creative tasks, coding, analysis, and general assistance
-- Use a warm, approachable tone''';
-
-    if (userName.isNotEmpty) {
-      systemPrompt += '\n- Feel free to use their name ($userName) naturally in conversation when appropriate';
+      systemPrompt += ' The user you are interacting with is $userName.';
     }
 
     // Initialize conversation history with system message
@@ -88,9 +77,9 @@ class _LunaChatAppState extends State<LunaChatApp> {
     String welcomeText;
     
     if (userName.isNotEmpty) {
-      welcomeText = 'Hello $userName! 👋\n\nWelcome to Luna Chat. I\'m Claude, your AI assistant running locally on your Luna device. I\'m here to help with questions, creative tasks, coding, analysis, and more.\n\nHow can I assist you today?';
+      welcomeText = 'Hello $userName! 👋\n\nWelcome to Luna Chat. I\'m Luna, your AI assistant running locally on your Luna device. I\'m here to help with questions, creative tasks, coding, analysis, and more.\n\nHow can I assist you today?';
     } else {
-      welcomeText = 'Hello there! 👋\n\nWelcome to Luna Chat. I\'m Claude, your AI assistant running locally on your Luna device. I\'m here to help with questions, creative tasks, coding, analysis, and more.\n\nHow can I assist you today?';
+      welcomeText = 'Hello there! 👋\n\nWelcome to Luna Chat. I\'m Luna, your AI assistant running locally on your Luna device. I\'m here to help with questions, creative tasks, coding, analysis, and more.\n\nHow can I assist you today?';
     }
 
     final welcomeMessage = TextMessage(
@@ -640,7 +629,7 @@ class _LunaChatAppState extends State<LunaChatApp> {
     } else {
       return User(
         id: userId,
-        name: 'Claude',
+        name: 'Luna',
         imageSource: null,
       );
     }
