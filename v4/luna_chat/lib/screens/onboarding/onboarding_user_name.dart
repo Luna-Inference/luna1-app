@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:luna_chat/themes/typography.dart';
 import 'package:luna_chat/themes/color.dart';
+import 'package:luna_chat/data/user_name.dart';
 
 class OnboardingNameInputScreen extends StatefulWidget {
   final Function(String)? onNameSubmit;
@@ -89,10 +90,25 @@ class _OnboardingNameInputScreenState extends State<OnboardingNameInputScreen>
     });
   }
 
-  void _onSubmit() {
+  Future<void> _onSubmit() async {
     if (_isButtonEnabled) {
+      final name = _nameController.text.trim();
+      // Save the name to SharedPreferences
+      final saved = await saveUserName(name);
+      
+      if (!saved) {
+        // Handle the case where saving failed (optional: show an error message)
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to save name. Please try again.')),
+          );
+        }
+        return;
+      }
+      
+      // Call the original callbacks if they exist
       if (widget.onNameSubmit != null) {
-        widget.onNameSubmit!(_nameController.text.trim());
+        widget.onNameSubmit!(name);
       }
       if (widget.onTap != null) {
         widget.onTap!();
@@ -228,7 +244,11 @@ class _OnboardingNameInputScreenState extends State<OnboardingNameInputScreen>
                                   ),
                                 ),
                                 textCapitalization: TextCapitalization.words,
-                                onSubmitted: (_) => _onSubmit(),
+                                onSubmitted: (_) async {
+                                  if (_isButtonEnabled) {
+                                    await _onSubmit();
+                                  }
+                                },
                               ),
                             ),
                             const SizedBox(height: 64),
@@ -239,7 +259,11 @@ class _OnboardingNameInputScreenState extends State<OnboardingNameInputScreen>
                               width: 200,
                               height: 56,
                               child: ElevatedButton(
-                                onPressed: _isButtonEnabled ? _onSubmit : null,
+                                onPressed: _isButtonEnabled 
+                                    ? () async {
+                                        await _onSubmit();
+                                      }
+                                    : null,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: _isButtonEnabled 
                                       ? buttonColor 

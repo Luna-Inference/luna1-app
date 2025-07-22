@@ -5,6 +5,7 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:luna_chat/themes/color.dart';
 import 'package:luna_chat/themes/typography.dart';
+import 'package:luna_chat/data/user_name.dart';
 
 class LunaChatApp extends StatefulWidget {
   const LunaChatApp({super.key});
@@ -89,64 +90,72 @@ class _LunaChatAppState extends State<LunaChatApp> {
     return AppBar(
       backgroundColor: backgroundColor,
       elevation: 0,
-      title: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: buttonColor,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: buttonColor.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.smart_toy_outlined,
-              color: backgroundColor,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      title: FutureBuilder<String>(
+        future: getUserName(),
+        builder: (context, snapshot) {
+          final userName = snapshot.data ?? '';
+          final displayName = userName.isNotEmpty ? 'Luna & $userName' : 'Luna Assistant';
+          
+          return Row(
             children: [
-              Text(
-                'Luna Assistant',
-                style: headingText.copyWith(
-                  color: whiteAccent,
-                  fontSize: 16,
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: buttonColor,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: buttonColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.smart_toy_outlined,
+                  color: backgroundColor,
+                  size: 22,
                 ),
               ),
-              Text(
-                'Online',
-                style: smallText.copyWith(
-                  color: const Color(0xFF4ADE80),
-                ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    displayName,
+                    style: headingText.copyWith(
+                      color: whiteAccent,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    'Online',
+                    style: smallText.copyWith(
+                      color: const Color(0xFF4ADE80),
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-        ],
+          );
+        },
       ),
       actions: [
-        IconButton(
-          onPressed: () {},
-          icon: Icon(
-            Icons.videocam_outlined,
-            color: textColor,
-          ),
-        ),
-        IconButton(
-          onPressed: () {},
-          icon: Icon(
-            Icons.phone_outlined,
-            color: textColor,
-          ),
-        ),
+        // IconButton(
+        //   onPressed: () {},
+        //   icon: Icon(
+        //     Icons.videocam_outlined,
+        //     color: textColor,
+        //   ),
+        // ),
+        // IconButton(
+        //   onPressed: () {},
+        //   icon: Icon(
+        //     Icons.phone_outlined,
+        //     color: textColor,
+        //   ),
+        // ),
         IconButton(
           onPressed: () {},
           icon: Icon(

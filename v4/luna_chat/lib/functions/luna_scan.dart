@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:luna_chat/data/luna_ip_address.dart';
+
 class LunaDevice {
   final String ip;
 
@@ -9,7 +11,6 @@ class LunaDevice {
 }
 
 class LunaScanner {
-  static const String _lunaIP = '169.254.100.10';
   static const int _port = 1309;
   static const int _timeoutSeconds = 3;
 
@@ -17,12 +18,12 @@ class LunaScanner {
   static Future<LunaDevice?> findLuna({
     int timeoutSeconds = _timeoutSeconds,
   }) async {
-    print('Checking Luna at ${_lunaIP}:${_port}...');
+    print('Checking Luna at ${lunaIpAddress}:${_port}...');
     
     try {
       final response = await http
           .get(
-            Uri.parse('http://$_lunaIP:$_port/luna'),
+            Uri.parse('http://$lunaIpAddress:$_port/luna'),
             headers: {'Accept': 'application/json'},
           )
           .timeout(Duration(seconds: timeoutSeconds));
@@ -31,15 +32,15 @@ class LunaScanner {
         final data = json.decode(response.body) as Map<String, dynamic>;
         
         if (data['device'] == 'luna') {
-          print('Luna found at $_lunaIP');
-          return LunaDevice(ip: _lunaIP);
+          print('Luna found at $lunaIpAddress');
+          return LunaDevice(ip: lunaIpAddress);
         }
       }
     } catch (e) {
       print('Luna not reachable: $e');
     }
     
-    print('Luna not found at $_lunaIP');
+    print('Luna not found at $lunaIpAddress');
     return null;
   }
 
