@@ -69,39 +69,70 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
   }
   
   Future<void> _startDeviceScan() async {
-    if (_isScanning) return;
+    if (_isScanning) {
+      debugPrint('[LUNA_SCAN] Scan already in progress');
+      return;
+    }
     
+    debugPrint('[LUNA_SCAN] Starting device scan...');
     setState(() {
       _isScanning = true;
-      _statusMessage = 'Scanning for Luna device...';
+      _statusMessage = 'Initializing scanner...';
     });
+
+    // Add a small delay to ensure network is ready
+    await Future.delayed(const Duration(milliseconds: 500));
     
     _scanTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       if (_deviceFound) {
+        debugPrint('[LUNA_SCAN] Device already found, stopping scan');
+        timer.cancel();
+        return;
+      }
+      
+      if (!mounted) {
+        debugPrint('[LUNA_SCAN] Widget not mounted, stopping scan');
         timer.cancel();
         return;
       }
       
       try {
-        final luna = await LunaScanner.findLuna(timeoutSeconds: 2);
-        if (luna != null && mounted) {
-          setState(() {
-            _deviceFound = true;
-            _statusMessage = 'Luna device found!';
+        debugPrint('[LUNA_SCAN] Attempting to find Luna...');
+        final luna = await LunaScanner.findLuna(timeoutSeconds: 2)
+          .timeout(const Duration(seconds: 3), onTimeout: () {
+            debugPrint('[LUNA_SCAN] Scan timed out after 3 seconds');
+            return null;
           });
-          await Future.delayed(const Duration(seconds: 1));
-          if (widget.onContinue != null) {
-            widget.onContinue!();
+          
+        debugPrint('[LUNA_SCAN] Scan completed, result: ${luna != null ? 'Found' : 'Not found'}');
+        
+        if (luna != null) {
+          debugPrint('[LUNA_SCAN] Luna found at ${luna.ip}');
+          if (mounted) {
+            setState(() {
+              _deviceFound = true;
+              _statusMessage = 'Luna device found at ${luna.ip}!';
+            });
+            
+            // Small delay before continuing to show feedback
+            await Future.delayed(const Duration(seconds: 1));
+            
+            if (mounted && widget.onContinue != null) {
+              widget.onContinue!();
+            }
           }
         } else if (mounted) {
           setState(() {
-            _statusMessage = 'Scanning for Luna device...';
+            _statusMessage = 'Scanning for Luna device... (${DateTime.now().toIso8601String().substring(11, 19)})';
           });
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
+        debugPrint('[LUNA_SCAN] Error during scan: $e');
+        debugPrint('Stack trace: $stackTrace');
+        
         if (mounted) {
           setState(() {
-            _statusMessage = 'Error scanning: ${e.toString()}';
+            _statusMessage = 'Error: ${e.toString().split('\n').first}';
           });
         }
       }
@@ -325,26 +356,10 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
                   ],
                 ),
                 
-                if (_deviceFound) ...[
+                // Auto-continue when device is found
+                if (_deviceFound && widget.onContinue != null) ...[
                   const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: widget.onContinue,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      'Continue',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                  // Removed continue button as per request
                 ]
               ],
             ),
