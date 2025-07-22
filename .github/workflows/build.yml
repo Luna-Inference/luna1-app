@@ -87,8 +87,8 @@ jobs:
           $certBytes = $cert.Export('PFX', '')
           [System.IO.File]::WriteAllBytes("test_certificate.pfx", $certBytes)
           
-          # Run msix:create with --no-prompt to avoid interactive prompts
-          dart run msix:create --no-prompt
+          # Run msix:create
+          dart run msix:create
         shell: pwsh
         working-directory: ./v4/luna_chat
       - name: Get app info for MSIX
@@ -139,13 +139,12 @@ jobs:
             exit 1
           fi
           
-          # Get the absolute path to the app bundle
-          APP_PATH=$(pwd)/${APP_BUNDLE#./}
+          # Get the app name and version
           APP_NAME=$(basename "$APP_BUNDLE" .app)
           
           # Extract version from the app's Info.plist
-          if [ -f "${APP_PATH}/Contents/Info.plist" ]; then
-            APP_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "${APP_PATH}/Contents/Info.plist" || echo "1.0.0")
+          if [ -f "${APP_BUNDLE}/Contents/Info.plist" ]; then
+            APP_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "${APP_BUNDLE}/Contents/Info.plist" || echo "1.0.0")
           else
             # Fallback to pubspec version if Info.plist is not accessible
             cd ../..
@@ -155,10 +154,10 @@ jobs:
 
           echo "APP_NAME: $APP_NAME"
           echo "APP_VERSION: $APP_VERSION"
-          echo "APP_PATH: $APP_PATH"
+          echo "APP_BUNDLE: $APP_BUNDLE"
 
-          if [ ! -d "$APP_PATH" ]; then
-            echo "Error: App bundle not found at $APP_PATH"
+          if [ ! -d "$APP_BUNDLE" ]; then
+            echo "Error: App bundle not found at $APP_BUNDLE"
             exit 1
           fi
 
@@ -167,19 +166,66 @@ jobs:
           
           # Create a temporary directory for DMG creation
           mkdir -p dmg_temp
-          cp -R "${APP_PATH}" "dmg_temp/"
+          cp -R "download/macos-build/${APP_BUNDLE}" "dmg_temp/"
           
-          # Create the DMG with simplified parameters
-          create-dmg \
-            --volname "${APP_NAME} ${APP_VERSION}" \
-            --volicon "${APP_PATH}/Contents/Resources/AppIcon.icns" \
-            --window-size 600 400 \
-            --icon-size 100 \
-            --icon "${APP_NAME}.app" 150 200 \
-            --hide-extension "${APP_NAME}.app" \
-            --no-internet-enable \
-            "${APP_NAME}-${APP_VERSION}.dmg" \
-            "dmg_temp/"
+          # Create DMG using hdiutil (more reliable than create-dmg)
+          DMG_PATH="${APP_NAME}-${APP_VERSION}.dmg"
+          TEMP_DMG="temp_${DMG_PATH}"
+          
+          # Create a temporary DMG
+          hdiutil create -srcfolder "dmg_temp" -volname "${APP_NAME} ${APP_VERSION}" -fs HFS+ -fsargs "-c c=64,a=16,e=16" -format UDRW -size 200m "${TEMP_DMG}"
+          
+          # Mount the DMG
+          MOUNT_POINT=$(hdiutil attach -readwrite -noverify -noautoopen "${TEMP_DMG}" | grep 'Apple_HFS' | awk '{print $3}')
+          
+          # Wait for the volume to be mounted
+          sleep 5
+          
+          # Set the icon for the DMG
+          if [ -f "dmg_temp/${APP_BUNDLE}/Contents/Resources/AppIcon.icns" ]; then
+            # Create .VolumeIcon.icns
+            cp "dmg_temp/${APP_BUNDLE}/Contents/Resources/AppIcon.icns" "${MOUNT_POINT}/.VolumeIcon.icns"
+            
+            # Create .background directory and place background image if needed
+            mkdir -p "${MOUNT_POINT}/.background"
+            
+            # Set the icon for the DMG
+            SetFile -c icnC "${MOUNT_POINT}/.VolumeIcon.icns"
+            SetFile -a C "${MOUNT_POINT}"
+          fi
+          
+          # Set the window background and icon positions (this is optional)
+          echo '   tell application "Finder"
+             tell disk "'${APP_NAME} ${APP_VERSION}'"
+               open
+               set current view of container window to icon view
+               set toolbar visible of container window to false
+               set statusbar visible of container window to false
+               set the bounds of container window to {400, 100, 885, 430}
+               set theViewOptions to the icon view options of container window
+               set arrangement of theViewOptions to not arranged
+               set icon size of theViewOptions to 72
+               set background picture of theViewOptions to file ".background:background.png"
+               set position of item "'${APP_BUNDLE}'" of container window to {100, 100}
+               set position of item "Applications" of container window to {375, 100}
+               update without registering applications
+               delay 5
+               close
+             end tell
+           end tell' > "${MOUNT_POINT}/.DS_Store"
+          
+          # Set the window background and icon positions (this is optional)
+          chmod -Rf go-w "${MOUNT_POINT}"
+          
+          # Unmount the DMG
+          hdiutil detach "${MOUNT_POINT}"
+          
+          # Convert to compressed image
+          hdiutil convert "${TEMP_DMG}" -format UDZO -o "${DMG_PATH}"
+          
+          # Clean up
+          rm -f "${TEMP_DMG}"
+          rm -rf dmg_temp
         working-directory: .
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
