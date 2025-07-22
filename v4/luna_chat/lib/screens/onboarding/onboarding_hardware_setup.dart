@@ -172,7 +172,8 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
       
       // Configure player
       await player!.setPlaylistMode(PlaylistMode.loop);
-      debugPrint('🎬 [VIDEO_DEBUG] Player configured, opening media...');
+      await player!.setVolume(0.0);  // Mute the audio
+      debugPrint('🎬 [VIDEO_DEBUG] Player configured and muted, opening media...');
       
       // Open media - this might take time but won't block UI
       await player!.open(

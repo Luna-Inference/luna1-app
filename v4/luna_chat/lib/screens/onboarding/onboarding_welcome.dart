@@ -15,7 +15,7 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  Player? _preloadPlayer;
+  // Player? _preloadPlayer;  // Video preloading disabled
 
   @override
   void initState() {
@@ -46,24 +46,25 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen>
     // Start animation when screen loads
     _controller.forward();
     
-    // Preload the video for the hardware setup screen
-    _preloadVideo();
+    // Video preloading disabled
+    // _preloadVideo();
   }
 
-  Future<void> _preloadVideo() async {
-    try {
-      _preloadPlayer = Player();
-      await _preloadPlayer!.open(Media('asset:///assets/onboarding/setup_480p.mp4'));
-      debugPrint('✅ Video preloaded successfully');
-    } catch (e) {
-      debugPrint('❌ Video preload failed: $e');
-    }
-  }
+  // Video preloading disabled
+  // Future<void> _preloadVideo() async {
+  //   try {
+  //     _preloadPlayer = Player();
+  //     await _preloadPlayer!.open(Media('asset:///assets/onboarding/setup_480p.mp4'));
+  //     debugPrint('✅ Video preloaded successfully');
+  //   } catch (e) {
+  //     debugPrint('❌ Video preload failed: $e');
+  //   }
+  // }
 
   @override
   void dispose() {
     _controller.dispose();
-    _preloadPlayer?.dispose();
+    // _preloadPlayer?.dispose();  // Video preloading disabled
     super.dispose();
   }
 
