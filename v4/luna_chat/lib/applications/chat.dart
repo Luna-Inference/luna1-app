@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:luna_chat/themes/color.dart';
 import 'package:luna_chat/themes/typography.dart';
 import 'package:luna_chat/data/user_name.dart';
+import 'package:luna_chat/functions/luna_health_check.dart';
+import 'dart:async';
 
 class LunaChatApp extends StatefulWidget {
   const LunaChatApp({super.key});
@@ -18,11 +20,14 @@ class _LunaChatAppState extends State<LunaChatApp> {
   final _chatController = InMemoryChatController();
   final String _currentUserId = 'user1';
   final String _aiUserId = 'ai_assistant';
+  bool _isLunaOnline = false;
+  Timer? _healthCheckTimer;
 
   @override
   void initState() {
     super.initState();
     _addInitialMessages();
+    _startHealthCheck();
   }
 
   void _addInitialMessages() {
@@ -55,8 +60,29 @@ class _LunaChatAppState extends State<LunaChatApp> {
 
   @override
   void dispose() {
+    _healthCheckTimer?.cancel();
     _chatController.dispose();
     super.dispose();
+  }
+
+  Future<void> _startHealthCheck() async {
+    // Initial check
+    final isOnline = await checkLunaHealth();
+    if (mounted) {
+      setState(() {
+        _isLunaOnline = isOnline;
+      });
+    }
+
+    // Set up periodic check every 5 seconds
+    _healthCheckTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      final isOnline = await checkLunaHealth();
+      if (mounted && isOnline != _isLunaOnline) {
+        setState(() {
+          _isLunaOnline = isOnline;
+        });
+      }
+    });
   }
 
   @override
@@ -130,9 +156,11 @@ class _LunaChatAppState extends State<LunaChatApp> {
                     ),
                   ),
                   Text(
-                    'Online',
+                    _isLunaOnline ? 'Online' : 'Offline',
                     style: smallText.copyWith(
-                      color: const Color(0xFF4ADE80),
+                      color: _isLunaOnline 
+                          ? const Color(0xFF4ADE80) // Green for online
+                          : const Color(0xFFEF4444), // Red for offline
                     ),
                   ),
                 ],
