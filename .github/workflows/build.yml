@@ -88,13 +88,24 @@ jobs:
           [System.IO.File]::WriteAllBytes("test_certificate.pfx", $certBytes)
           
           # Import the certificate to the local machine store (non-interactive)
-          $pfx = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
-          $pfx.Import("test_certificate.pfx", $certPassword, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+          $pfx = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2(
+              "test_certificate.pfx",
+              $certPassword,
+              [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable -bor 
+              [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::PersistKeySet
+          )
           
-          $store = New-Object System.Security.Cryptography.X509Certificates.X509Store([System.Security.Cryptography.X509Certificates.StoreName]::TrustedPeople, [System.Security.Cryptography.X509Certificates.StoreLocation]::CurrentUser)
+          # Add certificate to the trusted people store
+          $store = New-Object System.Security.Cryptography.X509Certificates.X509Store(
+              [System.Security.Cryptography.X509Certificates.StoreName]::TrustedPeople,
+              [System.Security.Cryptography.X509Certificates.StoreLocation]::CurrentUser
+          )
           $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-          $store.Add($pfx)
-          $store.Close()
+          try {
+              $store.Add($pfx)
+          } finally {
+              $store.Close()
+          }
           
           # Run msix:create with environment variable to skip prompts
           $env:FLUTTER_ROOT = (Get-Command flutter).Source | Split-Path -Parent | Split-Path -Parent
@@ -184,11 +195,11 @@ jobs:
           SIZE=$(du -sm "download/macos-build/${APP_BUNDLE}" | cut -f1)
           SIZE=$((SIZE * 15 / 10))  # 50% overhead
           
-          # Create a sparse disk image
-          hdiutil create -size ${SIZE}m -fs HFS+ -volname "${APP_NAME} ${APP_VERSION}" -fsargs "-c c=64,a=16,e=16" -format UDRW "${TEMP_DMG}.sparseimage"
+          # Create a sparse disk image with the correct parameter order
+          hdiutil create -fs HFS+ -volname "${APP_NAME} ${APP_VERSION}" -fsargs "-c c=64,a=16,e=16" -size ${SIZE}m -format UDSP "${TEMP_DMG}"
           
           # Mount the sparse disk image
-          MOUNT_POINT=$(hdiutil attach -readwrite -noverify -noautoopen "${TEMP_DMG}.sparseimage" | grep 'Apple_HFS' | awk '{print $3}')
+          MOUNT_POINT=$(hdiutil attach -readwrite -noverify -noautoopen "${TEMP_DMG}" | grep 'Apple_HFS' | awk '{print $3}')
           
           # Wait for the volume to be mounted
           sleep 2
@@ -228,10 +239,10 @@ jobs:
           hdiutil detach "${MOUNT_POINT}"
           
           # Convert to compressed read-only DMG
-          hdiutil convert "${TEMP_DMG}.sparseimage" -format UDZO -o "${DMG_PATH}" -imagekey zlib-level=9
+          hdiutil convert "${TEMP_DMG}" -format UDZO -o "${DMG_PATH}" -imagekey zlib-level=9
           
           # Clean up
-          rm -f "${TEMP_DMG}.sparseimage"
+          rm -f "${TEMP_DMG}"
         working-directory: .
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
