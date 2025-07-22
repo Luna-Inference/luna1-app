@@ -23,16 +23,16 @@ jobs:
           echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> .env
           echo "API_URL=${{ secrets.API_URL }}" >> .env
           echo "API_KEY=${{ secrets.API_KEY }}" >> .env
-        working-directory: ./v1
+        working-directory: ./v4/luna_chat
       - run: flutter pub get
-        working-directory: ./v1
+        working-directory: ./v4/luna_chat
       - run: flutter build macos
-        working-directory: ./v1
+        working-directory: ./v4/luna_chat
       - name: Upload macOS Build
         uses: actions/upload-artifact@v4
         with:
           name: macos-build
-          path: v1/build/macos/Build/Products/Release/
+          path: v4/luna_chat/build/macos/Build/Products/Release/
           retention-days: 30
 
   build_windows:
@@ -50,14 +50,14 @@ jobs:
           echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> .env
           echo "API_URL=${{ secrets.API_URL }}" >> .env
           echo "API_KEY=${{ secrets.API_KEY }}" >> .env
-        working-directory: ./v1
+        working-directory: ./v4/luna_chat
       - run: flutter pub get
-        working-directory: ./v1
+        working-directory: ./v4/luna_chat
       - run: flutter build windows
-        working-directory: ./v1
+        working-directory: ./v4/luna_chat
       - name: Create MSIX Installer
         run: dart run msix:create
-        working-directory: ./v1
+        working-directory: ./v4/luna_chat
       - name: Get app info for MSIX
         id: app_info_msix
         shell: pwsh
@@ -67,12 +67,12 @@ jobs:
           $version = ($content | Select-String "^version:" | ForEach-Object { $_.ToString().Split(':')[1].Trim().Split('+')[0] })
           echo "APP_NAME=$name" >> $env:GITHUB_OUTPUT
           echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
-        working-directory: ./v1
+        working-directory: ./v4/luna_chat
       - name: Upload MSIX Installer
         uses: actions/upload-artifact@v4
         with:
           name: windows-msix-installer
-          path: v1/build/windows/runner/${{ steps.app_info_msix.outputs.APP_NAME }}_${{ steps.app_info_msix.outputs.APP_VERSION }}.msix
+          path: v4/luna_chat/build/windows/runner/Release/${{ steps.app_info_msix.outputs.APP_NAME }}_${{ steps.app_info_msix.outputs.APP_VERSION }}.msix
           retention-days: 30
 
   build_web:
