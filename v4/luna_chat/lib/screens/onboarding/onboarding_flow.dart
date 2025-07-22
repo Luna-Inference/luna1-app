@@ -35,7 +35,7 @@ void initState() {
   _preloadVideo();
   
   // Your existing timer code...
-  Future.delayed(const Duration(seconds: 3), () {
+  Future.delayed(const Duration(seconds: 5), () {
     if (mounted) {
       setState(() {
         _currentStep = 1;
