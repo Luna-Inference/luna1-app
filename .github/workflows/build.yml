@@ -182,67 +182,31 @@ jobs:
             exit 1
           fi
 
-          # Create DMG in the workflow's root directory
           cd ../..
           
           # Create DMG directly from the app bundle without a temporary directory
           DMG_PATH="${APP_NAME}-${APP_VERSION}.dmg"
           
-          # Create a temporary sparse disk image
-          TEMP_DMG="temp_${DMG_PATH}"
+          # Create a temporary directory for the DMG contents
+          mkdir -p dmg_build
           
-          # Calculate the size needed (in MB) - adding 50% overhead
-          SIZE=$(du -sm "download/macos-build/${APP_BUNDLE}" | cut -f1)
-          SIZE=$((SIZE * 15 / 10))  # 50% overhead
+          # Copy the app bundle to the DMG directory
+          cp -R "download/macos-build/${APP_BUNDLE}" "dmg_build/"
           
-          # Create a sparse disk image with the correct parameter order
-          hdiutil create -fs HFS+ -volname "${APP_NAME} ${APP_VERSION}" -fsargs "-c c=64,a=16,e=16" -size ${SIZE}m -format UDSP "${TEMP_DMG}"
+          # Create a link to the Applications folder
+          ln -s /Applications "dmg_build/Applications"
           
-          # Mount the sparse disk image
-          MOUNT_POINT=$(hdiutil attach -readwrite -noverify -noautoopen "${TEMP_DMG}" | grep 'Apple_HFS' | awk '{print $3}')
-          
-          # Wait for the volume to be mounted
-          sleep 2
-          
-          # Copy the app bundle
-          cp -R "download/macos-build/${APP_BUNDLE}" "${MOUNT_POINT}/"
-          
-          # Set the icon for the DMG if available
-          if [ -f "download/macos-build/${APP_BUNDLE}/Contents/Resources/AppIcon.icns" ]; then
-            cp "download/macos-build/${APP_BUNDLE}/Contents/Resources/AppIcon.icns" "${MOUNT_POINT}/.VolumeIcon.icns"
-            SetFile -c icnC "${MOUNT_POINT}/.VolumeIcon.icns"
-            SetFile -a C "${MOUNT_POINT}"
-          fi
-          
-          # Create a simple .DS_Store without background image to save space
-          echo '   tell application "Finder"
-             tell disk "'${APP_NAME} ${APP_VERSION}'"
-               open
-               set current view of container window to icon view
-               set toolbar visible of container window to false
-               set statusbar visible of container window to false
-               set the bounds of container window to {400, 100, 800, 400}
-               set theViewOptions to the icon view options of container window
-               set arrangement of theViewOptions to not arranged
-               set icon size of theViewOptions to 72
-               set position of item "'${APP_BUNDLE}'" of container window to {200, 100}
-               update without registering applications
-               delay 2
-               close
-             end tell
-           end tell' > "${MOUNT_POINT}/.DS_Store"
-          
-          # Set permissions
-          chmod -Rf go-w "${MOUNT_POINT}"
-          
-          # Eject the disk image
-          hdiutil detach "${MOUNT_POINT}"
-          
-          # Convert to compressed read-only DMG
-          hdiutil convert "${TEMP_DMG}" -format UDZO -o "${DMG_PATH}" -imagekey zlib-level=9
+          # Create the DMG
+          DMG_PATH="${APP_NAME}-${APP_VERSION}.dmg"
+          hdiutil create -srcfolder dmg_build \
+            -volname "${APP_NAME} ${APP_VERSION}" \
+            -fs HFS+ \
+            -format UDZO \
+            -ov \
+            "${DMG_PATH}"
           
           # Clean up
-          rm -f "${TEMP_DMG}"
+          rm -rf dmg_build
         working-directory: .
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
