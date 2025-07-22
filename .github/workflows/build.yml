@@ -55,6 +55,9 @@ jobs:
         working-directory: ./v4/luna_chat
       - run: flutter build windows
         working-directory: ./v4/luna_chat
+      - name: Install MSIX package
+        run: dart pub add msix
+        working-directory: ./v4/luna_chat
       - name: Create MSIX Installer
         run: dart run msix:create
         working-directory: ./v4/luna_chat
@@ -75,32 +78,6 @@ jobs:
           path: v4/luna_chat/build/windows/runner/Release/${{ steps.app_info_msix.outputs.APP_NAME }}_${{ steps.app_info_msix.outputs.APP_VERSION }}.msix
           retention-days: 30
 
-  build_web:
-    name: Build Flutter (Web)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - name: Create .env file
-        run: |
-          echo "TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }}" > .env
-          echo "SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}" >> .env
-          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> .env
-          echo "API_URL=${{ secrets.API_URL }}" >> .env
-          echo "API_KEY=${{ secrets.API_KEY }}" >> .env
-        working-directory: ./v1
-      - run: flutter pub get
-        working-directory: ./v1
-      - run: flutter build web
-        working-directory: ./v1
-      - name: Upload Web Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-build
-          path: v1/build/web/
-          retention-days: 30
 
   create_macos_dmg:
     name: Create macOS DMG
@@ -112,20 +89,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: macos-build
-          path: v1/build/macos/Build/Products/Release/
+          path: download/macos-build/
       - name: Install create-dmg
         run: npm install --global create-dmg
       - name: Create DMG
         run: |
           # List all .app bundles for debugging
-          ls -l v1/build/macos/Build/Products/Release/*.app || true
+          ls -l download/macos-build/*.app || true
 
           # Use the first .app bundle found as the app name
-          APP_PATH=$(ls v1/build/macos/Build/Products/Release/*.app | head -n1)
+          APP_PATH=$(ls download/macos-build/*.app | head -n1)
           APP_NAME=$(basename "$APP_PATH" .app)
 
           # Extract version from pubspec.yaml (robust to indentation)
-          APP_VERSION=$(grep '^[[:space:]]*version:' v1/pubspec.yaml | head -n1 | awk '{print $2}' | cut -d '+' -f 1)
+          APP_VERSION=$(grep '^[[:space:]]*version:' v4/luna_chat/pubspec.yaml | head -n1 | awk '{print $2}' | cut -d '+' -f 1)
 
           echo "APP_NAME: $APP_NAME"
           echo "APP_VERSION: $APP_VERSION"
