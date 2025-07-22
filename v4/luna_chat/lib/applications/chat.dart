@@ -275,60 +275,183 @@ class _LunaChatAppState extends State<LunaChatApp> {
       },
     );
   }
-
   Widget _buildCustomTextMessage(BuildContext context, TextMessage message, bool isSentByMe) {
-    return Container(
-      margin: EdgeInsets.only(
-        left: isSentByMe ? 60 : 16,
-        right: isSentByMe ? 16 : 60,
-        bottom: 8,
-        top: 4,
-      ),
-      child: Align(
-        alignment: isSentByMe ? Alignment.centerRight : Alignment.centerLeft,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: isSentByMe ? buttonColor : const Color(0xFF2A2A2A),
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(18),
-              topRight: const Radius.circular(18),
-              bottomLeft: Radius.circular(isSentByMe ? 18 : 4),
-              bottomRight: Radius.circular(isSentByMe ? 4 : 18),
+  final isThinking = message.metadata?['isThinking'] == true;
+  final isError = message.metadata?['isError'] == true;
+  final isStreaming = message.metadata?['streaming'] == true;
+  
+  return Container(
+    margin: EdgeInsets.only(
+      left: isSentByMe ? 60 : 16,
+      right: isSentByMe ? 16 : 60,
+      bottom: 8,
+      top: 4,
+    ),
+    child: Align(
+      alignment: isSentByMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: _getMessageBackgroundColor(isSentByMe, isThinking, isError),
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(18),
+            topRight: const Radius.circular(18),
+            bottomLeft: Radius.circular(isSentByMe ? 18 : 4),
+            bottomRight: Radius.circular(isSentByMe ? 4 : 18),
+          ),
+          border: isThinking ? Border.all(
+            color: Colors.orange.withOpacity(0.5),
+            width: 1,
+          ) : null,
+          boxShadow: [
+            BoxShadow(
+              color: _getShadowColor(isSentByMe, isThinking, isError),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: isSentByMe 
-                    ? buttonColor.withOpacity(0.3)
-                    : Colors.black.withOpacity(0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Thinking indicator
+            if (isThinking) ...[
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.psychology,
+                    size: 16,
+                    color: Colors.orange,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Thinking...',
+                    style: smallText.copyWith(
+                      color: Colors.orange,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 8),
             ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                message.text,
-                style: mainText.copyWith(
-                  color: isSentByMe ? backgroundColor : whiteAccent,
-                  height: 1.4,
-                ),
+            
+            // Error indicator
+            if (isError) ...[
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 16,
+                    color: Colors.red,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Error',
+                    style: smallText.copyWith(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                _formatTime(message.createdAt),
-                style: smallText.copyWith(
-                  color: isSentByMe ? whiteAccent.withOpacity(0.8) : textColor,
-                ),
-              ),
+              const SizedBox(height: 8),
             ],
-          ),
+            
+            // Message content
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Flexible(
+                  child: Text(
+                    message.text.isEmpty && isStreaming ? 'Luna is typing...' : message.text,
+                    style: mainText.copyWith(
+                      color: _getTextColor(isSentByMe, isThinking, isError),
+                      height: 1.4,
+                      fontStyle: isThinking ? FontStyle.italic : FontStyle.normal,
+                    ),
+                  ),
+                ),
+                
+                // Streaming indicator
+                if (isStreaming && !isThinking) ...[
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isSentByMe ? whiteAccent.withOpacity(0.8) : textColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            
+            // Timestamp
+            const SizedBox(height: 4),
+            Text(
+              _formatTime(message.createdAt),
+              style: smallText.copyWith(
+                color: _getTimestampColor(isSentByMe, isThinking, isError),
+              ),
+            ),
+          ],
         ),
       ),
-    );
+    ),
+  );
+}
+
+// Helper methods for styling
+Color _getMessageBackgroundColor(bool isSentByMe, bool isThinking, bool isError) {
+  if (isError) {
+    return Colors.red.withOpacity(0.1);
   }
+  if (isThinking) {
+    return Colors.orange.withOpacity(0.05);
+  }
+  return isSentByMe ? buttonColor : const Color(0xFF2A2A2A);
+}
+
+Color _getShadowColor(bool isSentByMe, bool isThinking, bool isError) {
+  if (isError) {
+    return Colors.red.withOpacity(0.3);
+  }
+  if (isThinking) {
+    return Colors.orange.withOpacity(0.3);
+  }
+  return isSentByMe 
+      ? buttonColor.withOpacity(0.3)
+      : Colors.black.withOpacity(0.2);
+}
+
+Color _getTextColor(bool isSentByMe, bool isThinking, bool isError) {
+  if (isError) {
+    return Colors.red[300]!;
+  }
+  if (isThinking) {
+    return Colors.orange[200]!;
+  }
+  return isSentByMe ? backgroundColor : whiteAccent;
+}
+
+Color _getTimestampColor(bool isSentByMe, bool isThinking, bool isError) {
+  if (isError) {
+    return Colors.red.withOpacity(0.7);
+  }
+  if (isThinking) {
+    return Colors.orange.withOpacity(0.7);
+  }
+  return isSentByMe ? whiteAccent.withOpacity(0.8) : textColor;
+}
 
   Widget _buildCustomComposer(BuildContext context) {
     final TextEditingController controller = TextEditingController();
@@ -508,7 +631,7 @@ class _LunaChatAppState extends State<LunaChatApp> {
     // Build message context with system message and conversation history
     final messages = await _buildMessageContext(text);
 
-    // Create initial AI message with empty content
+    // Create initial AI response message with empty content
     final aiMessage = TextMessage(
       id: 'ai-${DateTime.now().millisecondsSinceEpoch}',
       authorId: _aiUserId,
@@ -518,38 +641,68 @@ class _LunaChatAppState extends State<LunaChatApp> {
     
     _chatController.insertMessage(aiMessage);
     
-    // Get the response stream from LLM service
-    final responseStream = _llmService.sendMessage(messages); // ✅ Changed from getAIResponse
-    
-    // Create a buffer to accumulate the response
+    // Track thinking and response messages separately
+    TextMessage? currentThinkingMessage;
     final responseBuffer = StringBuffer();
+    
+    // Get the response stream from LLM service
+    final responseStream = _llmService.sendMessage(messages);
     
     _llmSubscription = responseStream.listen(
       (event) {
         if (!mounted) return;
         
         switch (event.type) {
-          case LlmStreamEventType.token: // ✅ Changed from 'response'
-            // Update the message with each new token
+          case LlmStreamEventType.thinking:
+            // Create or update thinking bubble
+            if (currentThinkingMessage == null) {
+              // Create new thinking bubble
+              currentThinkingMessage = TextMessage(
+                id: 'thinking-${DateTime.now().millisecondsSinceEpoch}',
+                authorId: _aiUserId,
+                createdAt: DateTime.now(),
+                text: event.content,
+                metadata: {'isThinking': true},
+              );
+              _chatController.insertMessage(currentThinkingMessage!);
+            } else {
+              // Update existing thinking bubble
+              final updatedThinking = currentThinkingMessage!.copyWith(
+                text: event.content,
+                metadata: {'isThinking': true},
+              );
+              _chatController.updateMessage(currentThinkingMessage!, updatedThinking);
+              currentThinkingMessage = updatedThinking;
+            }
+            break;
+            
+          case LlmStreamEventType.token:
+            // Update the main response message with each new token
             responseBuffer.write(event.content);
             final updatedMessage = aiMessage.copyWith(
               text: responseBuffer.toString(),
-              metadata: {'streaming': true} // ✅ Better metadata key
+              metadata: {'streaming': true},
             );
             _chatController.updateMessage(aiMessage, updatedMessage);
             break;
             
-          case LlmStreamEventType.done: // ✅ Changed from 'fullResponse'
+          case LlmStreamEventType.done:
             // Final update with the complete response
             final finalResponse = event.content.isNotEmpty 
                 ? event.content 
                 : responseBuffer.toString();
             
-            final updatedMessage = aiMessage.copyWith(
+            final finalMessage = aiMessage.copyWith(
               text: finalResponse,
-              metadata: {} // ✅ Clear metadata when done
+              metadata: {}, // Clear streaming flag
             );
-            _chatController.updateMessage(aiMessage, updatedMessage);
+            _chatController.updateMessage(aiMessage, finalMessage);
+            
+            // Remove thinking bubble when response is complete
+            if (currentThinkingMessage != null) {
+              _chatController.removeMessage(currentThinkingMessage!);
+              currentThinkingMessage = null;
+            }
             
             // Add the assistant response to conversation history
             _addAssistantResponseToHistory(finalResponse);
@@ -560,9 +713,15 @@ class _LunaChatAppState extends State<LunaChatApp> {
             break;
             
           case LlmStreamEventType.error:
+            // Remove thinking bubble on error
+            if (currentThinkingMessage != null) {
+              _chatController.removeMessage(currentThinkingMessage!);
+              currentThinkingMessage = null;
+            }
+            
             final errorMessage = aiMessage.copyWith(
               text: 'Error: ${event.content}',
-              metadata: {'isError': true}
+              metadata: {'isError': true},
             );
             _chatController.updateMessage(aiMessage, errorMessage);
             
@@ -575,9 +734,15 @@ class _LunaChatAppState extends State<LunaChatApp> {
       onError: (error) {
         if (!mounted) return;
         
+        // Remove thinking bubble on error
+        if (currentThinkingMessage != null) {
+          _chatController.removeMessage(currentThinkingMessage!);
+          currentThinkingMessage = null;
+        }
+        
         final errorMessage = aiMessage.copyWith(
           text: 'Connection error: ${error.toString()}',
-          metadata: {'isError': true}
+          metadata: {'isError': true},
         );
         _chatController.updateMessage(aiMessage, errorMessage);
         
@@ -604,7 +769,7 @@ class _LunaChatAppState extends State<LunaChatApp> {
       authorId: _aiUserId,
       createdAt: DateTime.now(),
       text: 'Error: ${e.toString()}',
-      metadata: {'isError': true}
+      metadata: {'isError': true},
     );
     _chatController.insertMessage(errorMessage);
     

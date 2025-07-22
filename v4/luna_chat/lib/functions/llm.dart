@@ -6,7 +6,8 @@ import 'package:luna_chat/data/luna_ip_address.dart';
 
 /// An enum to represent the different types of events in the LLM stream.
 enum LlmStreamEventType { 
-  token,        // Each streaming token/chunk
+  thinking,     // Content inside <think> tags
+  token,        // Each streaming token/chunk of visible response
   done,         // Stream completed successfully
   error         // Error occurred
 }
@@ -57,8 +58,8 @@ class LlmService {
 
     StringBuffer responseBuffer = StringBuffer();
     StringBuffer streamBuffer = StringBuffer();
-    bool inThinkBlock = false;
     StringBuffer thinkBuffer = StringBuffer();
+    bool inThinkBlock = false;
 
     client.send(request).then((streamedResponse) {
       if (streamedResponse.statusCode != 200) {
@@ -113,23 +114,17 @@ class LlmService {
                 if (deltaContent == null || deltaContent.isEmpty) continue;
 
                 // Process content, handling thinking blocks
-                String processedContent = _processThinkingBlocks(
+                _processContent(
                   deltaContent, 
                   inThinkBlock, 
-                  thinkBuffer
+                  thinkBuffer, 
+                  responseBuffer, 
+                  controller,
+                  (newInThinkState) => inThinkBlock = newInThinkState
                 );
-                
-                if (processedContent.isNotEmpty) {
-                  responseBuffer.write(processedContent);
-                  controller.add(LlmStreamEvent(
-                    type: LlmStreamEventType.token, 
-                    content: processedContent
-                  ));
-                }
 
               } catch (e) {
                 // Ignore JSON parse errors for incomplete lines
-                // This is normal with streaming responses
                 continue;
               }
             }
@@ -141,6 +136,8 @@ class LlmService {
           }
         },
         onDone: () {
+          // No need to emit remaining thinking content since we stream it incrementally
+          
           // Ensure we emit done event if not already emitted
           if (!controller.isClosed) {
             controller.add(LlmStreamEvent(
@@ -175,29 +172,43 @@ class LlmService {
     return controller.stream;
   }
 
-  /// Process thinking blocks and return only the visible content
-  String _processThinkingBlocks(
-    String deltaContent, 
-    bool inThinkBlock, 
-    StringBuffer thinkBuffer
+  /// Process thinking blocks and emit appropriate events
+  void _processContent(
+    String deltaContent,
+    bool inThinkBlock,
+    StringBuffer thinkBuffer,
+    StringBuffer responseBuffer,
+    StreamController<LlmStreamEvent> controller,
+    Function(bool) setInThinkState,
   ) {
     String remainingContent = deltaContent;
-    String visibleContent = '';
     
     while (remainingContent.isNotEmpty) {
       if (inThinkBlock) {
         // We're inside a thinking block, look for closing tag
         int endTagIndex = remainingContent.indexOf('</think>');
         if (endTagIndex != -1) {
-          // Found end of thinking block
-          thinkBuffer.write(remainingContent.substring(0, endTagIndex));
+          // Found end of thinking block - process content up to the closing tag
+          String thinkContent = remainingContent.substring(0, endTagIndex);
+          if (thinkContent.isNotEmpty) {
+            thinkBuffer.write(thinkContent);
+            // Emit the incremental thinking content
+            controller.add(LlmStreamEvent(
+              type: LlmStreamEventType.thinking, 
+              content: thinkBuffer.toString()
+            ));
+          }
+          
           remainingContent = remainingContent.substring(endTagIndex + '</think>'.length);
-          inThinkBlock = false;
-          // Could log thinking content if needed: thinkBuffer.toString()
-          thinkBuffer.clear();
+          setInThinkState(false);
+          // Don't clear thinkBuffer yet - we'll clear it when we start the next thinking block
         } else {
-          // Still in thinking block, consume all content
+          // Still in thinking block, stream the content incrementally
           thinkBuffer.write(remainingContent);
+          controller.add(LlmStreamEvent(
+            type: LlmStreamEventType.thinking, 
+            content: thinkBuffer.toString()
+          ));
           remainingContent = '';
         }
       } else {
@@ -207,19 +218,27 @@ class LlmService {
           // Found start of thinking block
           String textBeforeThink = remainingContent.substring(0, startTagIndex);
           if (textBeforeThink.isNotEmpty) {
-            visibleContent += textBeforeThink;
+            responseBuffer.write(textBeforeThink);
+            controller.add(LlmStreamEvent(
+              type: LlmStreamEventType.token, 
+              content: textBeforeThink
+            ));
           }
           remainingContent = remainingContent.substring(startTagIndex + '<think>'.length);
-          inThinkBlock = true;
+          setInThinkState(true);
+          // Clear thinking buffer when starting new thinking block
+          thinkBuffer.clear();
         } else {
           // No thinking block, all content is visible
-          visibleContent += remainingContent;
+          responseBuffer.write(remainingContent);
+          controller.add(LlmStreamEvent(
+            type: LlmStreamEventType.token, 
+            content: remainingContent
+          ));
           remainingContent = '';
         }
       }
     }
-    
-    return visibleContent;
   }
 
   /// Cancel any ongoing request
