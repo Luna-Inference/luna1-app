@@ -22,43 +22,111 @@ class _LunaChatAppState extends State<LunaChatApp> {
   final String _aiUserId = 'ai_assistant';
   bool _isLunaOnline = false;
   bool _isWaitingForResponse = false;
+  bool _hasShownWelcome = false;
   Timer? _healthCheckTimer;
   final LlmService _llmService = LlmService();
   StreamSubscription<LlmStreamEvent>? _llmSubscription;
 
+  // Store conversation history for multi-turn conversations
+  List<Map<String, String>> _conversationHistory = [];
+  String? _cachedUserName;
+
   @override
   void initState() {
     super.initState();
-    _addInitialMessages();
+    _initializeChat();
     _startHealthCheck();
   }
 
-  void _addInitialMessages() {
-    // Add some initial messages to showcase the chat
-    final messages = [
-      TextMessage(
-        id: 'welcome',
-        authorId: _aiUserId,
-        createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
-        text: 'Hello! 👋 I\'m Claude, your AI assistant. How can I help you today?',
-      ),
-      TextMessage(
-        id: 'user_intro',
-        authorId: _currentUserId,
-        createdAt: DateTime.now().subtract(const Duration(minutes: 4)),
-        text: 'Hey there! This chat app looks amazing!',
-      ),
-      TextMessage(
-        id: 'ai_response',
-        authorId: _aiUserId,
-        createdAt: DateTime.now().subtract(const Duration(minutes: 3)),
-        text: 'Thank you! This is built with flutter_chat_ui. What would you like to chat about? ✨',
-      ),
-    ];
+  Future<void> _initializeChat() async {
+    // Cache the user name
+    _cachedUserName = await getUserName();
+    
+    // Initialize conversation history with dynamic system message
+    await _initializeSystemMessage();
+    
+    // Show welcome message
+    await _showWelcomeMessage();
+  }
 
-    for (final message in messages.reversed) {
-      _chatController.insertMessage(message);
+  Future<void> _initializeSystemMessage() async {
+    final userName = _cachedUserName ?? '';
+    
+    // Build dynamic system prompt
+    String systemPrompt = 'You are Luna, a helpful AI assistant running locally on a Luna device. ';
+    
+    if (userName.isNotEmpty) {
+      systemPrompt += 'You are chatting with $userName. ';
     }
+    
+    systemPrompt += '''You should:
+- Be friendly, knowledgeable, and conversational
+- Keep responses concise but informative
+- Remember that you're running locally on their personal Luna device
+- Be helpful with questions, creative tasks, coding, analysis, and general assistance
+- Use a warm, approachable tone''';
+
+    if (userName.isNotEmpty) {
+      systemPrompt += '\n- Feel free to use their name ($userName) naturally in conversation when appropriate';
+    }
+
+    // Initialize conversation history with system message
+    _conversationHistory = [
+      {'role': 'system', 'content': systemPrompt}
+    ];
+  }
+
+  Future<void> _showWelcomeMessage() async {
+    if (_hasShownWelcome) return;
+    
+    // Wait a moment to ensure the chat UI is ready
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    if (!mounted) return;
+    
+    final userName = _cachedUserName ?? '';
+    String welcomeText;
+    
+    if (userName.isNotEmpty) {
+      welcomeText = 'Hello $userName! 👋\n\nWelcome to Luna Chat. I\'m Claude, your AI assistant running locally on your Luna device. I\'m here to help with questions, creative tasks, coding, analysis, and more.\n\nHow can I assist you today?';
+    } else {
+      welcomeText = 'Hello there! 👋\n\nWelcome to Luna Chat. I\'m Claude, your AI assistant running locally on your Luna device. I\'m here to help with questions, creative tasks, coding, analysis, and more.\n\nHow can I assist you today?';
+    }
+
+    final welcomeMessage = TextMessage(
+      id: 'welcome-${DateTime.now().millisecondsSinceEpoch}',
+      authorId: _aiUserId,
+      createdAt: DateTime.now(),
+      text: welcomeText,
+    );
+    
+    if (mounted) {
+      _chatController.insertMessage(welcomeMessage);
+      _hasShownWelcome = true;
+    }
+  }
+
+  Future<List<Map<String, String>>> _buildMessageContext(String userText) async {
+    // Add user message to conversation history
+    _conversationHistory.add({'role': 'user', 'content': userText});
+    
+    // Manage conversation history length to prevent context overflow
+    // Keep system message + last 10 exchanges (20 messages)
+    const maxMessages = 21; // 1 system + 20 conversation messages
+    
+    if (_conversationHistory.length > maxMessages) {
+      _conversationHistory = [
+        _conversationHistory.first, // Always keep system message
+        ..._conversationHistory.skip(_conversationHistory.length - (maxMessages - 1))
+      ];
+    }
+    
+    return List<Map<String, String>>.from(_conversationHistory);
+  }
+
+  void _addAssistantResponseToHistory(String response) {
+    // Add assistant response to conversation history
+    _conversationHistory.add({'role': 'assistant', 'content': response});
   }
 
   @override
@@ -174,20 +242,6 @@ class _LunaChatAppState extends State<LunaChatApp> {
         },
       ),
       actions: [
-        // IconButton(
-        //   onPressed: () {},
-        //   icon: Icon(
-        //     Icons.videocam_outlined,
-        //     color: textColor,
-        //   ),
-        // ),
-        // IconButton(
-        //   onPressed: () {},
-        //   icon: Icon(
-        //     Icons.phone_outlined,
-        //     color: textColor,
-        //   ),
-        // ),
         IconButton(
           onPressed: () {},
           icon: Icon(
@@ -198,8 +252,6 @@ class _LunaChatAppState extends State<LunaChatApp> {
       ],
     );
   }
-
-
 
   ChatTheme _buildChatTheme() {
     return ChatTheme(
@@ -464,12 +516,10 @@ class _LunaChatAppState extends State<LunaChatApp> {
     );
     _chatController.insertMessage(userMessage);
 
-    // Create a list of messages for the LLM context
-    final messages = [
-      {'role': 'user', 'content': text}
-    ];
-
     try {
+      // Build message context with system message and conversation history
+      final messages = await _buildMessageContext(text);
+
       // Create initial AI message with empty content
       final aiMessage = TextMessage(
         id: 'ai-${DateTime.now().millisecondsSinceEpoch}',
@@ -514,11 +564,16 @@ class _LunaChatAppState extends State<LunaChatApp> {
               // Final update with the complete response
               responseBuffer.clear();
               responseBuffer.write(event.content);
+              final finalResponse = responseBuffer.toString();
+              
               final updatedMessage = aiMessage.copyWith(
-                text: responseBuffer.toString(),
+                text: finalResponse,
                 metadata: {'isThinking': false}
               );
               _chatController.updateMessage(aiMessage, updatedMessage);
+              
+              // Add the assistant response to conversation history
+              _addAssistantResponseToHistory(finalResponse);
               break;
               
             case LlmStreamEventType.error:
