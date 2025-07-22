@@ -41,11 +41,12 @@ class MyApp extends StatelessWidget {
           headlineLarge: headingText,
         ),
       ),
-      home: OnboardingFlow()
+      home: LunaChatApp(
+        
+)
     );
   }
 }
-
 
 class TestScreen extends StatelessWidget {
   const TestScreen({super.key});

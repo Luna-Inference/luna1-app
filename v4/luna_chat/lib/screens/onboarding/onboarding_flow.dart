@@ -32,12 +32,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     } else {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => LunaChatApp(
-            chatTitle: 'Luna',
-            showAppBar: true,
-            currentUser: ChatUser(id: '1', firstName: 'User'),
-            initialMessages: [],
-          ),
+          builder: (context) => LunaChatApp(),
         ),
       );
     }

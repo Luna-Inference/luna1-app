@@ -19,6 +19,8 @@ dependencies:
   dash_chat_2: ^0.0.21
   flutter_launcher_icons: ^0.14.4
   network_info_plus: ^6.1.4
+  flutter_chat_ui: ^2.8.1
+  flutter_chat_types: ^3.6.2
 
 dev_dependencies:
   flutter_test:

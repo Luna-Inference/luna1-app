@@ -1,507 +1,460 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:dash_chat_2/dash_chat_2.dart';
-import 'package:luna_chat/themes/typography.dart';
+import 'package:flutter_chat_core/flutter_chat_core.dart';
+import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:luna_chat/themes/color.dart';
+import 'package:luna_chat/themes/typography.dart';
 
 class LunaChatApp extends StatefulWidget {
-  // Chat Configuration
-  final String chatTitle;
-  final bool showAppBar;
-  final List<Widget>? appBarActions;
-  
-  // User Configuration
-  final ChatUser currentUser;
-  final ChatUser? otherUser;
-  
-  // Message Configuration
-  final List<ChatMessage> initialMessages;
-  final Function(ChatMessage)? onSend;
-  final Function(ChatMessage)? onMessageTap;
-  final Function(ChatMessage)? onMessageLongPress;
-  
-  // Input Configuration
-  final String inputHint;
-  final bool showSendButton;
-  final bool showAttachmentButton;
-  final bool showMicrophoneButton;
-  final int? maxInputLength;
-  final TextInputType inputType;
-  final bool autocorrect;
-  final bool enableSuggestions;
-  
-  // Appearance Configuration
-  final Color? primaryColor;
-  final Color? secondaryColor;
-  final Color? backgroundColor;
-  final Color? messageBackgroundColor;
-  final Color? textColor;
-  final double? messageRadius;
-  final double? inputRadius;
-  final EdgeInsets? messagePadding;
-  final EdgeInsets? inputPadding;
-  
-  // Typography Configuration
-  final TextStyle? messageTextStyle;
-  final TextStyle? inputTextStyle;
-  final TextStyle? timeTextStyle;
-  
-  // Bubble Configuration
-  final bool showUserAvatar;
-  final bool showOtherUsersAvatar;
-  final bool showCurrentUserAvatar;
-  final double? avatarSize;
-  final bool showUserName;
-  final bool showMessageTime;
-  final bool showMessageStatus;
-  final MessageListOptions? messageListOptions;
-  final QuickReplyOptions? quickReplyOptions;
-  
-  // Advanced Features
-  final bool enableSwipeToReply;
-  final bool enableTypingIndicator;
-  final bool enableReadReceipts;
-  final bool enableMessageReactions;
-  final bool scrollToBottomOnSend;
-  final Duration? typingIndicatorDelay;
-
-  const LunaChatApp({
-    Key? key,
-    this.chatTitle = 'Chat',
-    this.showAppBar = true,
-    this.appBarActions,
-    required this.currentUser,
-    this.otherUser,
-    this.initialMessages = const [],
-    this.onSend,
-    this.onMessageTap,
-    this.onMessageLongPress,
-    this.inputHint = 'Type a message...',
-    this.showSendButton = true,
-    this.showAttachmentButton = false,
-    this.showMicrophoneButton = false,
-    this.maxInputLength,
-    this.inputType = TextInputType.multiline,
-    this.autocorrect = true,
-    this.enableSuggestions = true,
-    this.primaryColor,
-    this.secondaryColor,
-    this.backgroundColor,
-    this.messageBackgroundColor,
-    this.textColor,
-    this.messageRadius,
-    this.inputRadius,
-    this.messagePadding,
-    this.inputPadding,
-    this.messageTextStyle,
-    this.inputTextStyle,
-    this.timeTextStyle,
-    this.showUserAvatar = true,
-    this.showOtherUsersAvatar = true,
-    this.showCurrentUserAvatar = false,
-    this.avatarSize,
-    this.showUserName = true,
-    this.showMessageTime = true,
-    this.showMessageStatus = true,
-    this.messageListOptions,
-    this.quickReplyOptions,
-    this.enableSwipeToReply = false,
-    this.enableTypingIndicator = false,
-    this.enableReadReceipts = false,
-    this.enableMessageReactions = false,
-    this.scrollToBottomOnSend = true,
-    this.typingIndicatorDelay,
-  }) : super(key: key);
+  const LunaChatApp({super.key});
 
   @override
   State<LunaChatApp> createState() => _LunaChatAppState();
 }
 
 class _LunaChatAppState extends State<LunaChatApp> {
-  List<ChatMessage> messages = [];
-  List<ChatUser> typingUsers = [];
-  
+  final _chatController = InMemoryChatController();
+  final String _currentUserId = 'user1';
+  final String _aiUserId = 'ai_assistant';
+
   @override
   void initState() {
     super.initState();
-    messages = [...widget.initialMessages];
+    _addInitialMessages();
   }
 
-  void onSend(ChatMessage message) {
-    setState(() {
-      messages.insert(0, message);
-    });
-    
-    if (widget.onSend != null) {
-      widget.onSend!(message);
-    }
-    
-    // Simulate typing indicator for demo
-    if (widget.enableTypingIndicator && widget.otherUser != null) {
-      _simulateTypingResponse(message);
-    }
-  }
-
-  void _simulateTypingResponse(ChatMessage userMessage) {
-    setState(() {
-      typingUsers.add(widget.otherUser!);
-    });
-
-    Future.delayed(widget.typingIndicatorDelay ?? const Duration(seconds: 2), () {
-      setState(() {
-        typingUsers.clear();
-        // Add a response message
-        messages.insert(0, ChatMessage(
-          text: _generateResponse(userMessage.text),
-          user: widget.otherUser!,
-          createdAt: DateTime.now(),
-        ));
-      });
-    });
-  }
-
-  String _generateResponse(String userText) {
-    // Simple response generation for demo
-    final responses = [
-      "That's interesting! Tell me more.",
-      "I understand what you mean.",
-      "Thanks for sharing that with me.",
-      "How do you feel about that?",
-      "That sounds great!",
+  void _addInitialMessages() {
+    // Add some initial messages to showcase the chat
+    final messages = [
+      TextMessage(
+        id: 'welcome',
+        authorId: _aiUserId,
+        createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
+        text: 'Hello! 👋 I\'m Claude, your AI assistant. How can I help you today?',
+      ),
+      TextMessage(
+        id: 'user_intro',
+        authorId: _currentUserId,
+        createdAt: DateTime.now().subtract(const Duration(minutes: 4)),
+        text: 'Hey there! This chat app looks amazing!',
+      ),
+      TextMessage(
+        id: 'ai_response',
+        authorId: _aiUserId,
+        createdAt: DateTime.now().subtract(const Duration(minutes: 3)),
+        text: 'Thank you! This is built with flutter_chat_ui. What would you like to chat about? ✨',
+      ),
     ];
-    return responses[DateTime.now().millisecond % responses.length];
+
+    for (final message in messages.reversed) {
+      _chatController.insertMessage(message);
+    }
+  }
+
+  @override
+  void dispose() {
+    _chatController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: widget.backgroundColor ?? whiteAccent,
-      appBar: widget.showAppBar ? AppBar(
-        title: Text(
-          widget.chatTitle,
-          style: headingText.copyWith(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+    return MaterialApp(
+      title: 'Luna Chat',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: backgroundColor,
+        textTheme: GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme),
+      ),
+      home: Scaffold(
+        backgroundColor: backgroundColor,
+        appBar: _buildAppBar(),
+        body: Container(
+          color: backgroundColor,
+          child: Chat(
+            chatController: _chatController,
+            currentUserId: _currentUserId,
+            theme: _buildChatTheme(),
+            onMessageSend: _handleMessageSend,
+            resolveUser: _resolveUser,
+            builders: _buildCustomBuilders(),
           ),
-        ),
-        backgroundColor: widget.primaryColor ?? buttonColor,
-        foregroundColor: widget.textColor ?? whiteAccent,
-        elevation: 0,
-        actions: widget.appBarActions,
-      ) : null,
-      body: DashChat(
-        currentUser: widget.currentUser,
-        onSend: onSend,
-        messages: messages,
-        typingUsers: widget.enableTypingIndicator ? typingUsers : [],
-        
-        // Message Configuration
-        messageOptions: MessageOptions(
-          showCurrentUserAvatar: widget.showCurrentUserAvatar,
-          showOtherUsersAvatar: widget.showOtherUsersAvatar,
-          showTime: widget.showMessageTime,
-          showOtherUsersName: widget.showUserName,
-          avatarBuilder: _customAvatarBuilder,
-          messageDecorationBuilder: _messageDecorationBuilder,
-          messageTextBuilder: _messageTextBuilder,
-          currentUserContainerColor: widget.messageBackgroundColor ?? buttonColor,
-          containerColor: widget.messageBackgroundColor?.withOpacity(0.1) ?? 
-                         buttonColor.withOpacity(0.1),
-          textColor: widget.textColor ?? Colors.black87,
-          currentUserTextColor: widget.textColor ?? whiteAccent,
-          messagePadding: widget.messagePadding ?? const EdgeInsets.all(12),
-          maxWidth: MediaQuery.of(context).size.width * 0.7,
-        ),
-        
-        // Input Configuration
-        inputOptions: InputOptions(
-          inputDecoration: InputDecoration(
-            hintText: widget.inputHint,
-            hintStyle: widget.inputTextStyle ?? headingText.copyWith(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(widget.inputRadius ?? 24),
-              borderSide: BorderSide.none,
-            ),
-            filled: true,
-            fillColor: widget.secondaryColor?.withOpacity(0.1) ?? 
-                      buttonColor.withOpacity(0.05),
-            contentPadding: widget.inputPadding ?? 
-                           const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          inputTextStyle: widget.inputTextStyle ?? headingText.copyWith(
-            fontSize: 14,
-          ),
-          maxInputLength: widget.maxInputLength,
-          autocorrect: widget.autocorrect,
-          sendButtonBuilder: widget.showSendButton ? _sendButtonBuilder : null,
-          leading: widget.showAttachmentButton ? [
-            IconButton(
-              icon: Icon(
-                Icons.attach_file,
-                color: widget.primaryColor ?? buttonColor,
-              ),
-              onPressed: _onAttachmentPressed,
-            ),
-          ] : null,
-          trailing: widget.showMicrophoneButton ? [
-            IconButton(
-              icon: Icon(
-                Icons.mic,
-                color: widget.primaryColor ?? buttonColor,
-              ),
-              onPressed: _onMicrophonePressed,
-            ),
-          ] : null,
-        ),
-        
-        // Message List Configuration
-        messageListOptions: widget.messageListOptions ?? MessageListOptions(
-          scrollPhysics: const BouncingScrollPhysics(),
-        ),
-        
-        // Quick Reply Configuration
-        quickReplyOptions: widget.quickReplyOptions ?? QuickReplyOptions(
-          quickReplyBuilder: _quickReplyBuilder,
-          quickReplyStyle: BoxDecoration()
-        ),
-        
-        
-        // Scroll to bottom configuration
-        scrollToBottomOptions: ScrollToBottomOptions(
-          disabled: !widget.scrollToBottomOnSend,
         ),
       ),
     );
   }
 
-  // Custom Builders
-  Widget _customAvatarBuilder(ChatUser user, Function? onAvatarTap, Function? onAvatarLongPress) {
-    return GestureDetector(
-      onTap: onAvatarTap != null ? () => onAvatarTap(user) : null,
-      onLongPress: onAvatarLongPress != null ? () => onAvatarLongPress(user) : null,
-      child: Container(
-        width: widget.avatarSize ?? 36,
-        height: widget.avatarSize ?? 36,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: widget.primaryColor ?? buttonColor,
-          image: user.profileImage != null 
-              ? DecorationImage(
-                  image: NetworkImage(user.profileImage!),
-                  fit: BoxFit.cover,
-                )
-              : null,
-        ),
-        child: user.profileImage == null
-            ? Center(
-                child: Text(
-                  user.firstName?.substring(0, 1).toUpperCase() ?? 
-                  user.id.substring(0, 1).toUpperCase(),
-                  style: TextStyle(
-                    color: widget.textColor ?? whiteAccent,
-                    fontWeight: FontWeight.bold,
-                    fontSize: (widget.avatarSize ?? 36) * 0.4,
-                  ),
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: backgroundColor,
+      elevation: 0,
+      title: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: buttonColor,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: buttonColor.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
-              )
-            : null,
+              ],
+            ),
+            child: Icon(
+              Icons.smart_toy_outlined,
+              color: backgroundColor,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Luna Assistant',
+                style: headingText.copyWith(
+                  color: whiteAccent,
+                  fontSize: 16,
+                ),
+              ),
+              Text(
+                'Online',
+                style: smallText.copyWith(
+                  color: const Color(0xFF4ADE80),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
-    );
-  }
-
-  BoxDecoration _messageDecorationBuilder(ChatMessage message, ChatMessage? previousMessage, ChatMessage? nextMessage) {
-    bool isUser = message.user.id == widget.currentUser.id;
-    
-    return BoxDecoration(
-      color: isUser 
-          ? (widget.messageBackgroundColor ?? buttonColor)
-          : (widget.messageBackgroundColor?.withOpacity(0.1) ?? buttonColor.withOpacity(0.1)),
-      borderRadius: BorderRadius.circular(widget.messageRadius ?? 16),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 4,
-          offset: const Offset(0, 2),
+      actions: [
+        IconButton(
+          onPressed: () {},
+          icon: Icon(
+            Icons.videocam_outlined,
+            color: textColor,
+          ),
+        ),
+        IconButton(
+          onPressed: () {},
+          icon: Icon(
+            Icons.phone_outlined,
+            color: textColor,
+          ),
+        ),
+        IconButton(
+          onPressed: () {},
+          icon: Icon(
+            Icons.more_vert,
+            color: textColor,
+          ),
         ),
       ],
     );
   }
 
-  Widget _messageTextBuilder(ChatMessage message, ChatMessage? previousMessage, ChatMessage? nextMessage) {
-    bool isUser = message.user.id == widget.currentUser.id;
-    
-    return Text(
-      message.text,
-      style: widget.messageTextStyle ?? headingText.copyWith(
-        fontSize: 14,
-        color: isUser 
-            ? (widget.textColor ?? whiteAccent)
-            : (widget.textColor ?? Colors.black87),
-        height: 1.4,
-      ),
-    );
-  }
 
-  Widget _timeTextBuilder(ChatMessage message, ChatMessage? previousMessage, ChatMessage? nextMessage) {
-    return Text(
-      "${message.createdAt.hour}:${message.createdAt.minute.toString().padLeft(2, '0')}",
-      style: widget.timeTextStyle ?? headingText.copyWith(
-        fontSize: 10,
-        color: Colors.grey[600],
-      ),
-    );
-  }
 
-  Widget _sendButtonBuilder(Function() onSend) {
-    return Container(
-      margin: const EdgeInsets.only(left: 8),
-      child: CircleAvatar(
-        backgroundColor: widget.primaryColor ?? buttonColor,
-        radius: 20,
-        child: IconButton(
-          icon: Icon(
-            Icons.send,
-            color: widget.textColor ?? whiteAccent,
-            size: 18,
-          ),
-          onPressed: onSend,
+  ChatTheme _buildChatTheme() {
+    return ChatTheme(
+      colors: ChatColors(
+        primary: buttonColor,
+        onPrimary: backgroundColor,
+        surface: backgroundColor,
+        onSurface: whiteAccent,
+        surfaceContainer: const Color(0xFF2A2A2A),
+        surfaceContainerLow: const Color(0xFF1F1F1F),
+        surfaceContainerHigh: const Color(0xFF333333),
+      ),
+      typography: ChatTypography.standard(
+        fontFamily: 'Roboto',
+      ).copyWith(
+        bodyMedium: mainText.copyWith(
+          color: whiteAccent,
+          height: 1.4,
+        ),
+        bodySmall: smallText.copyWith(
+          color: textColor,
         ),
       ),
+      shape: const BorderRadius.all(Radius.circular(18)),
     );
   }
 
-  Widget _quickReplyBuilder(QuickReply quickReply) {
+  Builders _buildCustomBuilders() {
+    return Builders(
+      textMessageBuilder: (context, message, index, {required isSentByMe, groupStatus}) {
+        return _buildCustomTextMessage(context, message as TextMessage, isSentByMe);
+      },
+    );
+  }
+
+  Widget _buildCustomTextMessage(BuildContext context, TextMessage message, bool isSentByMe) {
     return Container(
-      margin: const EdgeInsets.only(right: 8, bottom: 4),
-      child: ElevatedButton(
-        onPressed: () {
-          onSend(ChatMessage(
-            text: quickReply.title,
-            user: widget.currentUser,
-            createdAt: DateTime.now(),
-          ));
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: widget.primaryColor ?? buttonColor,
-          foregroundColor: widget.textColor ?? whiteAccent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(widget.messageRadius ?? 16),
-          ),
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        ),
-        child: Text(
-          quickReply.title,
-          style: headingText.copyWith(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+      margin: EdgeInsets.only(
+        left: isSentByMe ? 60 : 16,
+        right: isSentByMe ? 16 : 60,
+        bottom: 8,
+        top: 4,
       ),
-    );
-  }
-
-  Widget _typingIndicatorBuilder(List<ChatUser> users) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          if (widget.showOtherUsersAvatar && users.isNotEmpty)
-            _customAvatarBuilder(users.first, null, null),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: widget.messageBackgroundColor?.withOpacity(0.1) ?? 
-                     buttonColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(widget.messageRadius ?? 16),
+      child: Align(
+        alignment: isSentByMe ? Alignment.centerRight : Alignment.centerLeft,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isSentByMe ? buttonColor : const Color(0xFF2A2A2A),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(18),
+              topRight: const Radius.circular(18),
+              bottomLeft: Radius.circular(isSentByMe ? 18 : 4),
+              bottomRight: Radius.circular(isSentByMe ? 4 : 18),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${users.map((u) => u.firstName ?? u.id).join(', ')} ${users.length == 1 ? 'is' : 'are'} typing',
-                  style: headingText.copyWith(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    fontStyle: FontStyle.italic,
-                  ),
+            boxShadow: [
+              BoxShadow(
+                color: isSentByMe 
+                    ? buttonColor.withOpacity(0.3)
+                    : Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                message.text,
+                style: mainText.copyWith(
+                  color: isSentByMe ? backgroundColor : whiteAccent,
+                  height: 1.4,
                 ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation(widget.primaryColor ?? buttonColor),
-                  ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _formatTime(message.createdAt),
+                style: smallText.copyWith(
+                  color: isSentByMe ? whiteAccent.withOpacity(0.8) : textColor,
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomComposer(BuildContext context) {
+    final TextEditingController controller = TextEditingController();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _scrollToBottomBuilder(Function() scrollToBottom) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      child: FloatingActionButton.small(
-        onPressed: scrollToBottom,
-        backgroundColor: widget.primaryColor ?? buttonColor,
-        child: Icon(
-          Icons.keyboard_arrow_down,
-          color: widget.textColor ?? whiteAccent,
-        ),
-      ),
-    );
-  }
-
-  void _onAttachmentPressed() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      child: SafeArea(
+        child: Row(
           children: [
-            ListTile(
-              leading: Icon(Icons.photo, color: widget.primaryColor ?? buttonColor),
-              title: const Text('Photo'),
-              onTap: () {
-                Navigator.pop(context);
-                // Handle photo selection
-              },
+            _buildAttachmentButton(),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2A2A2A),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: const Color(0xFF404040),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: controller,
+                        maxLines: 5,
+                        minLines: 1,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                        decoration: const InputDecoration(
+                          hintText: 'Type a message...',
+                          hintStyle: TextStyle(
+                            color: Colors.white54,
+                            fontSize: 16,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                        ),
+                        onSubmitted: (text) {
+                          if (text.trim().isNotEmpty) {
+                            _sendMessage(text.trim());
+                            controller.clear();
+                          }
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(
+                        Icons.emoji_emotions_outlined,
+                        color: Colors.white54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            ListTile(
-              leading: Icon(Icons.camera_alt, color: widget.primaryColor ?? buttonColor),
-              title: const Text('Camera'),
-              onTap: () {
-                Navigator.pop(context);
-                // Handle camera
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.insert_drive_file, color: widget.primaryColor ?? buttonColor),
-              title: const Text('Document'),
-              onTap: () {
-                Navigator.pop(context);
-                // Handle document selection
-              },
-            ),
+            const SizedBox(width: 12),
+            _buildSendButton(controller),
           ],
         ),
       ),
     );
   }
 
-  void _onMicrophonePressed() {
-    // Handle voice recording
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Voice recording feature')),
+  Widget _buildAttachmentButton() {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A2A2A),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: const Color(0xFF404040),
+          width: 1,
+        ),
+      ),
+      child: IconButton(
+        onPressed: () {},
+        icon: const Icon(
+          Icons.add,
+          color: Colors.white70,
+        ),
+      ),
     );
+  }
+
+  Widget _buildSendButton(TextEditingController controller) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF667EEA).withOpacity(0.4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: IconButton(
+        onPressed: () {
+          final text = controller.text.trim();
+          if (text.isNotEmpty) {
+            _sendMessage(text);
+            controller.clear();
+          }
+        },
+        icon: const Icon(
+          Icons.send_rounded,
+          color: Colors.white,
+          size: 20,
+        ),
+      ),
+    );
+  }
+
+  void _handleMessageSend(String text) {
+    _sendMessage(text);
+  }
+
+  void _sendMessage(String text) {
+    if (text.trim().isEmpty) return;
+
+    // Add user message
+    final userMessage = TextMessage(
+      id: '${Random().nextInt(10000)}',
+      authorId: _currentUserId,
+      createdAt: DateTime.now(),
+      text: text,
+    );
+    _chatController.insertMessage(userMessage);
+
+    // Simulate AI response after a delay
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      final responses = [
+        'That\'s an interesting point! Tell me more about it.',
+        'I understand what you mean. How can I help you with that?',
+        'Thanks for sharing! What would you like to explore next?',
+        'Great question! Let me think about that for a moment.',
+        'I appreciate you chatting with me! What else can I assist you with?',
+        'That\'s fascinating! I\'d love to hear your thoughts on this.',
+      ];
+
+      final randomResponse = responses[Random().nextInt(responses.length)];
+
+      final aiMessage = TextMessage(
+        id: '${Random().nextInt(10000)}',
+        authorId: _aiUserId,
+        createdAt: DateTime.now(),
+        text: randomResponse,
+      );
+      _chatController.insertMessage(aiMessage);
+    });
+  }
+
+  Future<User> _resolveUser(String userId) async {
+    if (userId == _currentUserId) {
+      return User(
+        id: userId,
+        name: 'You',
+        imageSource: null,
+      );
+    } else {
+      return User(
+        id: userId,
+        name: 'Claude',
+        imageSource: null,
+      );
+    }
+  }
+
+  String _formatTime(DateTime? dateTime) {
+    if (dateTime == null) return '';
+    
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 1) {
+      return 'now';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inDays < 1) {
+      return '${difference.inHours}h ago';
+    } else {
+      return '${difference.inDays}d ago';
+    }
   }
 }
