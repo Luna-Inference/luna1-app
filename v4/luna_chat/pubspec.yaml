@@ -28,6 +28,7 @@ dependencies:
   printing: ^5.14.2
   flutter_markdown: ^0.7.7+1
   media_kit_libs_macos_video: ^1.1.4
+  msix: ^3.16.9
 
 dev_dependencies:
   flutter_test:
