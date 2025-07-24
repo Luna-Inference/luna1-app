@@ -24,7 +24,31 @@
                     </div>
                 </div>
 
-                <button class="primary-btn get-started-btn" onclick="nextScreen('setup-step1')">Get Started</button>
+                <button class="primary-btn get-started-btn" onclick="nextScreen('hardware-check')">Get Started</button>
+            </div>
+        </div>
+
+        <!-- Hardware Check Chat Interface -->
+        <div id="hardware-check" class="screen">
+            <div class="content setup-content">
+                <div class="step-header">
+                    <h2>Quick Hardware Check</h2>
+                </div>
+                
+                <div class="hardware-check-chat">
+                    <div class="luna-avatar">
+                        <img src="assets/luna-intro.png" alt="Luna" class="avatar-image">
+                    </div>
+                    
+                    <div class="chat-bubble luna-bubble">
+                        <div class="typing-text">Before we begin, I need to know: Have you already set up your Luna hardware following the paper instruction manual that came in the box?</div>
+                    </div>
+                    
+                    <div class="hardware-response-buttons">
+                        <button class="response-btn yes-btn" onclick="handleHardwareResponse('yes')">Yes, it's already set up</button>
+                        <button class="response-btn no-btn" onclick="handleHardwareResponse('no')">No, I need help setting it up</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -74,7 +98,7 @@
                     <!-- Step 3: Final instructions and button -->
                     <div class="setup-step-block">
                         <div class="detailed-instructions">
-                            <p>Look for a small red light on Luna - if you see it, you're doing great! No light? Just push both plugs in a little harder until they feel snug.</p>
+                            <p>Look for a small <span class="red-text">red light</span> on Luna that also turns <span class="green-text">green</span> - if you see it, you're doing great! No light? Just push both plugs in a little harder until they feel snug.</p>
                         </div>
                         <button class="primary-btn" onclick="nextScreen('setup-step2')">Next: Connect Device</button>
                     </div>
@@ -335,8 +359,8 @@
                         <p>Upload files to create topic experts</p>
                     </div>
                     <div class="app-tile">
-                        <div class="app-icon">❤️</div>
-                        <h3>Emotional Support</h3>
+                        <div class="app-icon">🧘</div>
+                        <h3>Mindful Chat</h3>
                         <p>Personal conversations and support</p>
                     </div>
                     <div class="app-tile">

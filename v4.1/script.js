@@ -22,6 +22,8 @@ function showScreen(screenId) {
         // Trigger screen-specific animations
         if (screenId === 'welcome-screen') {
             animateWelcomeScreen();
+        } else if (screenId === 'hardware-check') {
+            animateHardwareCheckScreen();
         } else if (screenId === 'setup-step1') {
             animateSetupStep1();
         } else if (screenId === 'setup-step2') {
@@ -45,6 +47,17 @@ function nextScreen(screenId) {
         }, 30000); // 30-second wait
     } else if (screenId === 'device-scanning') {
         startDeviceScanning();
+    }
+}
+
+// Hardware Check Logic
+function handleHardwareResponse(response) {
+    if (response === 'yes') {
+        // Skip straight to scanning phase
+        nextScreen('device-scanning');
+    } else {
+        // Go through normal setup flow
+        nextScreen('setup-step1');
     }
 }
 
@@ -464,6 +477,67 @@ function startTypingAnimation() {
                     }
                 }, 1000);
             }, 1000);
+        }
+    }
+    
+    typeNextCharacter();
+}
+
+// Hardware Check Screen Animation
+function animateHardwareCheckScreen() {
+    const elements = [
+        { selector: '#hardware-check .step-header', delay: 0 },
+        { selector: '#hardware-check .luna-avatar', delay: 600 },
+        { selector: '#hardware-check .chat-bubble', delay: 1200 }
+    ];
+    
+    elements.forEach(({ selector, delay }) => {
+        setTimeout(() => {
+            const element = document.querySelector(selector);
+            if (element) {
+                element.classList.add('show');
+            }
+        }, delay);
+    });
+    
+    // Start typing animation after chat bubble appears
+    setTimeout(() => {
+        const typingElement = document.querySelector('#hardware-check .chat-bubble .typing-text');
+        if (typingElement) {
+            startHardwareCheckTypingAnimation(typingElement);
+        }
+    }, 1800);
+}
+
+// Hardware Check Typing Animation
+function startHardwareCheckTypingAnimation(element) {
+    if (!element) return;
+    
+    const fullText = element.textContent;
+    element.textContent = '';
+    element.classList.add('typing');
+    
+    let currentIndex = 0;
+    const typingSpeed = 40;
+    
+    function typeNextCharacter() {
+        if (currentIndex < fullText.length) {
+            element.textContent += fullText[currentIndex];
+            currentIndex++;
+            setTimeout(typeNextCharacter, typingSpeed);
+        } else {
+            setTimeout(() => {
+                element.classList.remove('typing');
+                element.classList.add('typing-complete');
+                
+                // Show response buttons after typing completes
+                setTimeout(() => {
+                    const buttons = document.querySelector('#hardware-check .hardware-response-buttons');
+                    if (buttons) {
+                        buttons.classList.add('show');
+                    }
+                }, 500);
+            }, 500);
         }
     }
     
