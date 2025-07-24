@@ -46,8 +46,8 @@ void initState() {
 
 Future<void> _preloadVideo() async {
   try {
-    _preloadPlayer = Player();
-    await _preloadPlayer!.open(Media('asset:///assets/onboarding/setup_480p.mp4'));
+    //_preloadPlayer = Player();
+    //await _preloadPlayer!.open(Media('asset:///assets/onboarding/setup_480p.mp4'));
     print('✅ Video preloaded for hardware setup');
   } catch (e) {
     print('❌ Video preload failed: $e');
