@@ -3,1455 +3,312 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luna - Customer Journey</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 800px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-            min-height: 600px;
-            position: relative;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .luna-logo {
-            font-size: 2.5em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .content {
-            padding: 30px;
-            text-align: center;
-            min-height: 400px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .phase-title {
-            font-size: 1.8em;
-            color: #333;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-
-        .description {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
-
-        .device-visual {
-            width: 200px;
-            height: 150px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            margin: 20px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.2em;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .device-face {
-            font-size: 3em;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #f0f0f0;
-            border-radius: 4px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4facfe, #00f2fe);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
-
-        .button {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-            margin: 10px;
-        }
-
-        .button:hover {
-            transform: translateY(-2px);
-        }
-
-        .button.secondary {
-            background: #f8f9fa;
-            color: #666;
-            border: 2px solid #e9ecef;
-        }
-
-        .input-group {
-            margin: 20px 0;
-        }
-
-        .input-field {
-            width: 100%;
-            max-width: 300px;
-            padding: 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1.1em;
-            margin: 10px 0;
-        }
-
-        .chat-container {
-            display: none;
-            height: 500px;
-            flex-direction: column;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #f8f9fa;
-        }
-
-        .message {
-            margin: 15px 0;
-            display: flex;
-            align-items: flex-start;
-        }
-
-        .message.luna {
-            justify-content: flex-start;
-        }
-
-        .message.user {
-            justify-content: flex-end;
-        }
-
-        .message-bubble {
-            max-width: 70%;
-            padding: 15px 20px;
-            border-radius: 20px;
-            line-height: 1.4;
-        }
-
-        .message.luna .message-bubble {
-            background: white;
-            color: #333;
-            border-bottom-left-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .message.user .message-bubble {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            border-bottom-right-radius: 5px;
-        }
-
-        .luna-avatar {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            margin-right: 10px;
-            font-size: 1.2em;
-        }
-
-        .suggested-responses {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #eee;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .suggested-btn {
-            background: #f8f9fa;
-            color: #333;
-            border: 2px solid #e9ecef;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .suggested-btn:hover {
-            background: #e9ecef;
-            transform: translateY(-1px);
-        }
-
-        .chat-input {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #eee;
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 12px 20px;
-            border: 2px solid #e9ecef;
-            border-radius: 25px;
-            font-size: 1em;
-        }
-
-        .send-btn {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-        }
-
-        .dashboard {
-            display: none;
-            padding: 20px;
-            background: #f8f9fa;
-            height: 500px;
-            position: relative;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .app-tile {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .app-tile:hover {
-            transform: translateY(-5px);
-        }
-
-        .app-icon {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .mini-chat {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: none;
-        }
-
-        .mini-chat-header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 15px 15px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            color: #666;
-        }
-
-        .typing-dots {
-            display: flex;
-            gap: 3px;
-            margin-left: 10px;
-        }
-
-        .dot {
-            width: 6px;
-            height: 6px;
-            background: #666;
-            border-radius: 50%;
-            animation: typing 1.4s infinite;
-        }
-
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes typing {
-            0%, 60%, 100% { opacity: 0.3; }
-            30% { opacity: 1; }
-        }
-
-        .scanning-animation {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100px;
-            height: 100px;
-            border: 3px solid #e9ecef;
-            border-top: 3px solid #4facfe;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        .step-counter {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.9);
-            padding: 10px 15px;
-            border-radius: 20px;
-            font-weight: 600;
-            color: #666;
-        }
-
-
-        .setup-list {
-            text-align: left;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .setup-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 0;
-            font-size: 1.1em;
-        }
-
-        .setup-number {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            font-weight: bold;
-        }
-
-        /* Enhanced Step 1 Styles */
-        .welcome-hero {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .welcome-icon {
-            font-size: 4em;
-            margin-bottom: 15px;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .welcome-subtitle {
-            font-size: 1.2em;
-            color: #666;
-            font-weight: 300;
-            margin-top: 10px;
-        }
-
-        .highlight-text {
-            color: #4facfe;
-            font-weight: 600;
-        }
-
-        .unboxing-visual {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 40px 0;
-        }
-
-        .box-container {
-            text-align: center;
-        }
-
-        .luna-box {
-            position: relative;
-            width: 180px;
-            height: 120px;
-            margin: 0 auto 15px;
-            perspective: 1000px;
-        }
-
-        .box-lid {
-            position: absolute;
-            top: 0;
-            left: 20px;
-            width: 140px;
-            height: 15px;
-            background: linear-gradient(135deg, #8B7355 0%, #A0845C 50%, #8B7355 100%);
-            border-radius: 8px 8px 0 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            animation: boxLidFloat 4s ease-in-out infinite;
-            transform-origin: left center;
-        }
-
-        .box-base {
-            position: absolute;
-            top: 15px;
-            left: 20px;
-            width: 140px;
-            height: 90px;
-            background: linear-gradient(135deg, #D2B48C 0%, #F5DEB3 50%, #D2B48C 100%);
-            border-radius: 0 0 8px 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            padding: 10px;
-        }
-
-        .box-item {
-            font-size: 1.8em;
-            animation: itemBounce 2s ease-in-out infinite;
-        }
-
-        .box-item.cable {
-            animation-delay: 0.3s;
-        }
-
-        .box-item.adapter {
-            animation-delay: 0.6s;
-        }
-
-        .box-label {
-            font-size: 0.9em;
-            color: #666;
-            font-weight: 500;
-            margin-top: 10px;
-        }
-
-        .button-group {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            align-items: center;
-            margin-top: 40px;
-        }
-
-        .back-btn {
-            margin-top: 30px;
-            font-size: 0.9em;
-            padding: 10px 20px;
-        }
-
-        .primary-cta {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
-            transform: scale(1.05);
-            font-size: 1.2em;
-            padding: 18px 35px;
-            transition: all 0.3s ease;
-        }
-
-        .primary-cta:hover {
-            transform: scale(1.08) translateY(-3px);
-            box-shadow: 0 12px 35px rgba(79, 172, 254, 0.4);
-        }
-
-        .button-icon {
-            margin-right: 8px;
-        }
-
-        @keyframes float {
-            0%, 100% { 
-                transform: translateY(0px) rotate(0deg); 
-            }
-            50% { 
-                transform: translateY(-10px) rotate(5deg); 
-            }
-        }
-
-        @keyframes boxLidFloat {
-            0%, 100% { 
-                transform: translateY(0px) rotateX(0deg); 
-            }
-            50% { 
-                transform: translateY(-5px) rotateX(-10deg); 
-            }
-        }
-
-        @keyframes itemBounce {
-            0%, 100% { 
-                transform: translateY(0px) scale(1); 
-            }
-            50% { 
-                transform: translateY(-3px) scale(1.1); 
-            }
-        }
-
-        /* Setup Photo Styles */
-        .setup-photo {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 40px 0;
-        }
-
-        .device-diagram {
-            position: relative;
-            width: 400px;
-            height: 200px;
-            margin-bottom: 15px;
-        }
-
-        .photo-caption {
-            font-size: 0.9em;
-            color: #666;
-            font-style: italic;
-            text-align: center;
-        }
-
-        /* Luna Device Back View */
-        .luna-device-back {
-            position: absolute;
-            left: 50px;
-            top: 50px;
-            width: 100px;
-            height: 60px;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        .luna-device-back .device-body::before {
-            content: 'LUNA';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ecf0f1;
-            font-size: 0.7em;
-            font-weight: bold;
-        }
-
-        /* Individual LEDs */
-        .power-led {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        .ethernet-led {
-            position: absolute;
-            top: 10px;
-            right: 25px;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        .power-led.red.blinking {
-            background: #e74c3c;
-            animation: powerLedBlink 1s ease-in-out infinite;
-        }
-
-        .power-led.red.solid {
-            background: #e74c3c;
-            box-shadow: 0 0 8px rgba(231, 76, 60, 0.8);
-        }
-
-        .ethernet-led.blue.blinking {
-            background: #3498db;
-            animation: ethernetLedBlink 1.2s ease-in-out infinite;
-        }
-
-        .ethernet-led.blue.solid {
-            background: #3498db;
-            box-shadow: 0 0 8px rgba(52, 152, 219, 0.8);
-        }
-
-        .ethernet-led.off {
-            background: #34495e;
-            opacity: 0.3;
-        }
-
-        .power-port {
-            position: absolute;
-            right: -8px;
-            top: 15px;
-            width: 12px;
-            height: 12px;
-            background: #34495e;
-            border-radius: 50%;
-            border: 2px solid #2c3e50;
-        }
-
-        .power-port.highlighted {
-            background: #e74c3c;
-            border-color: #c0392b;
-            animation: portPulse 1.5s ease-in-out infinite;
-        }
-
-        .ethernet-port {
-            position: absolute;
-            right: -8px;
-            bottom: 15px;
-            width: 12px;
-            height: 8px;
-            background: #34495e;
-            border-radius: 2px;
-        }
-
-        .ethernet-port.highlighted {
-            background: #3498db;
-            border: 2px solid #2980b9;
-            animation: portPulse 1.5s ease-in-out infinite;
-        }
-
-        .power-adapter {
-            position: absolute;
-            right: 30px;
-            top: 70px;
-            display: flex;
-            align-items: center;
-        }
-
-        .adapter-plug {
-            width: 20px;
-            height: 15px;
-            background: #7f8c8d;
-            border-radius: 3px;
-            margin-right: 5px;
-        }
-
-        .connection-line {
-            width: 60px;
-            height: 2px;
-            background: #95a5a6;
-            position: relative;
-            animation: connectionFlow 2s ease-in-out infinite;
-        }
-
-        /* Luna Device Side View */
-        .luna-device-side {
-            position: absolute;
-            left: 30px;
-            top: 70px;
-            width: 80px;
-            height: 60px;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        .usb-c-port {
-            position: absolute;
-            right: -6px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 8px;
-            height: 4px;
-            background: #34495e;
-            border-radius: 2px;
-        }
-
-        .ethernet-cable {
-            position: absolute;
-            left: 120px;
-            top: 92px;
-            display: flex;
-            align-items: center;
-        }
-
-        .cable-line {
-            width: 150px;
-            height: 3px;
-            background: #95a5a6;
-            animation: connectionFlow 2s ease-in-out infinite;
-            border-radius: 1px;
-        }
-
-        .ethernet-connector {
-            width: 18px;
-            height: 12px;
-            background: #7f8c8d;
-            border-radius: 2px;
-            position: relative;
-        }
-
-        .ethernet-connector::before {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            right: 2px;
-            bottom: 2px;
-            background: #34495e;
-            border-radius: 1px;
-        }
-
-        .router {
-            position: absolute;
-            right: 20px;
-            top: 40px;
-            width: 80px;
-            height: 50px;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            border-radius: 8px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-        }
-
-        .router-body::before {
-            content: '📶';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.2em;
-        }
-
-        .router-port {
-            position: absolute;
-            left: -6px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 8px;
-            height: 6px;
-            background: #7f8c8d;
-            border-radius: 1px;
-        }
-
-        .router-antennas {
-            position: absolute;
-            top: -8px;
-            right: 10px;
-            width: 3px;
-            height: 15px;
-            background: #7f8c8d;
-            border-radius: 1px;
-        }
-
-        .router-antennas::before {
-            content: '';
-            position: absolute;
-            right: 8px;
-            width: 3px;
-            height: 12px;
-            background: #7f8c8d;
-            border-radius: 1px;
-        }
-
-        /* Luna Device Complete */
-        .luna-device-complete {
-            position: absolute;
-            left: 50%;
-            top: 30px;
-            transform: translateX(-50%);
-            width: 120px;
-            height: 80px;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-        }
-
-        .status-led {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 8px;
-            height: 8px;
-            background: #2ecc71;
-            border-radius: 50%;
-        }
-
-        .status-led.blinking {
-            animation: ledBlink 1s ease-in-out infinite;
-        }
-
-        .power-cable {
-            position: absolute;
-            right: -15px;
-            top: 20px;
-            width: 15px;
-            height: 3px;
-            background: #e74c3c;
-            border-radius: 1px;
-        }
-
-        .ethernet-cable-connected {
-            position: absolute;
-            right: -15px;
-            bottom: 20px;
-            width: 15px;
-            height: 3px;
-            background: #3498db;
-            border-radius: 1px;
-        }
-
-        .status-indicators {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 30px;
-        }
-
-        .indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9em;
-            color: #666;
-        }
-
-        .indicator-light {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-
-        .indicator-light.green {
-            background: #2ecc71;
-            animation: indicatorGlow 2s ease-in-out infinite;
-        }
-
-        .indicator-light.red.solid {
-            background: #e74c3c;
-            box-shadow: 0 0 8px rgba(231, 76, 60, 0.6);
-        }
-
-        .indicator-light.blue.solid {
-            background: #3498db;
-            box-shadow: 0 0 8px rgba(52, 152, 219, 0.6);
-        }
-
-        @keyframes portPulse {
-            0%, 100% { 
-                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); 
-            }
-            50% { 
-                box-shadow: 0 0 0 8px rgba(231, 76, 60, 0); 
-            }
-        }
-
-        @keyframes connectionFlow {
-            0% { 
-                background: linear-gradient(90deg, #95a5a6 0%, #95a5a6 50%, #3498db 51%, #3498db 100%);
-            }
-            50% { 
-                background: linear-gradient(90deg, #3498db 0%, #3498db 50%, #95a5a6 51%, #95a5a6 100%);
-            }
-            100% { 
-                background: linear-gradient(90deg, #95a5a6 0%, #95a5a6 50%, #3498db 51%, #3498db 100%);
-            }
-        }
-
-        @keyframes ledBlink {
-            0%, 100% { 
-                opacity: 1; 
-                transform: scale(1);
-            }
-            50% { 
-                opacity: 0.3; 
-                transform: scale(1.2);
-            }
-        }
-
-        @keyframes indicatorGlow {
-            0%, 100% { 
-                box-shadow: 0 0 5px rgba(46, 204, 113, 0.5); 
-            }
-            50% { 
-                box-shadow: 0 0 15px rgba(46, 204, 113, 0.8); 
-            }
-        }
-
-        @keyframes powerLedBlink {
-            0%, 100% { 
-                opacity: 1; 
-                box-shadow: 0 0 8px rgba(231, 76, 60, 0.8);
-            }
-            50% { 
-                opacity: 0.3; 
-                box-shadow: 0 0 3px rgba(231, 76, 60, 0.3);
-            }
-        }
-
-        @keyframes ethernetLedBlink {
-            0%, 100% { 
-                opacity: 1; 
-                box-shadow: 0 0 8px rgba(52, 152, 219, 0.8);
-            }
-            50% { 
-                opacity: 0.3; 
-                box-shadow: 0 0 3px rgba(52, 152, 219, 0.3);
-            }
-        }
-    </style>
+    <title>Luna Companion App</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="luna-logo">🌙 Luna</div>
-            <div>Your Private AI Assistant</div>
-        </div>
-        
-        <div class="step-counter" id="stepCounter">Step 1 of 14</div>
+    <div class="app-container">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="screen active">
+            <div class="content welcome-content">
+                <h1>Meet Luna</h1>
+                <div class="welcome-subtitle">
+                    <p>Your private AI assistant that runs completely on your device</p>
+                </div>
 
-        <!-- Phase 1: Physical Setup -->
-        <div class="content" id="step1">
-            <div class="welcome-hero">
-                <div class="welcome-icon">🌙</div>
-                <div class="phase-title">Welcome to Luna!</div>
-                <div class="welcome-subtitle">Your Personal AI Assistant</div>
+                <!-- Feature Showcase -->
+                <div class="features-showcase">
+                    <div class="feature-card chat-feature">
+                        <div class="feature-icon">💬</div>
+                        <div class="feature-label">Chat about anything</div>
+                    </div>
+
+                    <div class="feature-card support-feature">
+                        <div class="feature-icon">❤️</div>
+                        <div class="feature-label">Emotional support</div>
+                    </div>
+
+                    <div class="feature-card questions-feature">
+                        <div class="feature-icon">🧠</div>
+                        <div class="feature-label">Answer questions</div>
+                    </div>
+
+                    <div class="feature-card expert-feature">
+                        <div class="feature-icon">📚</div>
+                        <div class="feature-label">Create topic experts</div>
+                    </div>
+
+                    <div class="feature-card privacy-feature">
+                        <div class="feature-icon">🔒</div>
+                        <div class="feature-label">100% private & local</div>
+                    </div>
+
+                    <div class="feature-card voice-feature coming-soon-feature">
+                        <div class="feature-icon">🎤</div>
+                        <div class="feature-label">Voice chat</div>
+                        <div class="coming-soon-text">Soon</div>
+                    </div>
+                </div>
+
+                <div class="welcome-device">
+                    <img src="assets/luna-intro.png" alt="Luna Device" class="device-image">
+                </div>
+
+                <div class="welcome-description">
+                    <p>Hi there! Let's get your Luna AI assistant set up. Don't worry - we'll walk through this step by step, and it's easier than it looks!</p>
+                </div>
+
+                <button class="primary-btn get-started-btn" onclick="nextScreen('setup-step1')">Get Started</button>
             </div>
-            <div class="description">
-                Let's get your Luna device set up. Inside your box you'll find your Luna device, USB-C cable, and power adapter. 
-                <br><br>
-                <span class="highlight-text">This process will take just a few minutes.</span>
-            </div>
-            <div class="unboxing-visual">
-                <div class="box-container">
-                    <div class="luna-box">
-                        <div class="box-lid"></div>
-                        <div class="box-base">
-                            <div class="box-item device">📱</div>
-                            <div class="box-item cable">🔌</div>
-                            <div class="box-item adapter">⚡</div>
+        </div>
+
+        <!-- Setup Step 1: Power Device -->
+        <div id="setup-step1" class="screen">
+            <div class="content setup-content">
+                <div class="step-header">
+                    <span class="step-number">Step 1 of 3</span>
+                    <h2>Plug in Your Luna Device</h2>
+                </div>
+                
+                <div class="setup-layout">
+                    <div class="setup-visuals">
+                        <div class="components-intro">
+                            <p><strong>You'll need this black power adapter:</strong></p>
+                            <img src="assets/power-supply-intro.png" alt="Power adapter" class="component-image">
+                        </div>
+                        <div class="step-images">
+                            <img src="assets/luna-to-power.png" alt="Connect power to Luna" class="step-image">
+                            <img src="assets/power-supply-to-wall.png" alt="Connect power adapter to wall" class="step-image">
                         </div>
                     </div>
-                    <div class="box-label">Luna Starter Kit</div>
-                </div>
-            </div>
-            <div class="button-group">
-                <button class="button primary-cta" onclick="nextStep()">
-                    <span class="button-icon">🚀</span>
-                    Let's Begin Setup
-                </button>
-                <button class="button secondary" onclick="skipToChat()">
-                    <span class="button-icon">⚡</span>
-                    Skip Setup (Advanced)
-                </button>
-            </div>
-        </div>
-
-
-        <div class="content" id="step2" style="display: none;">
-            <div class="phase-title">Connect Power Adapter</div>
-            <div class="description">
-                Let's start by connecting the power adapter to your Luna device. Look for the round power port on the back of your device. When connected properly, you'll see the power LED light up.
-            </div>
-            <div class="setup-photo">
-                <div class="device-diagram">
-                    <div class="luna-device-back">
-                        <div class="device-body"></div>
-                        <div class="power-led red blinking"></div>
-                        <div class="ethernet-led off"></div>
-                        <div class="power-port highlighted"></div>
-                        <div class="usb-port"></div>
-                    </div>
-                    <div class="power-adapter">
-                        <div class="adapter-plug"></div>
-                        <div class="connection-line"></div>
-                    </div>
-                </div>
-                <div class="photo-caption">Connect the round power adapter - watch for the red power LED</div>
-            </div>
-            <button class="button secondary back-btn" onclick="previousStep()">← Back</button>
-            <button class="button" onclick="nextStep()" style="margin-top: 15px;">Power Connected ⚡</button>
-        </div>
-
-        <div class="content" id="step3" style="display: none;">
-            <div class="phase-title">Connect Ethernet Cable</div>
-            <div class="description">
-                Now connect the ethernet cable from your Luna device to your router or network switch. This allows Luna to communicate with your system and access updates. You'll see the blue ethernet LED light up when connected.
-            </div>
-            <div class="setup-photo">
-                <div class="device-diagram">
-                    <div class="luna-device-side">
-                        <div class="device-body"></div>
-                        <div class="power-led red solid"></div>
-                        <div class="ethernet-led blue blinking"></div>
-                        <div class="ethernet-port highlighted"></div>
-                    </div>
-                    <div class="ethernet-cable">
-                        <div class="cable-line"></div>
-                        <div class="ethernet-connector"></div>
-                    </div>
-                    <div class="router">
-                        <div class="router-body"></div>
-                        <div class="router-port"></div>
-                        <div class="router-antennas"></div>
-                    </div>
-                </div>
-                <div class="photo-caption">Connect ethernet cable - watch for the blue network LED</div>
-            </div>
-            <button class="button secondary back-btn" onclick="previousStep()">← Back</button>
-            <button class="button" onclick="nextStep()" style="margin-top: 15px;">Network Connected 🌐</button>
-        </div>
-
-        <div class="content" id="step4" style="display: none;">
-            <div class="phase-title">Connection Status ✅</div>
-            <div class="description">
-                Excellent! Both connections are established. Notice how both LEDs are now solid - red for power and blue for network connectivity. Luna is fully connected and ready to start.
-            </div>
-            <div class="setup-photo">
-                <div class="device-diagram">
-                    <div class="luna-device-complete">
-                        <div class="device-body"></div>
-                        <div class="power-led red solid"></div>
-                        <div class="ethernet-led blue solid"></div>
-                        <div class="power-cable"></div>
-                        <div class="ethernet-cable-connected"></div>
-                    </div>
-                    <div class="status-indicators">
-                        <div class="indicator">
-                            <div class="indicator-light red solid"></div>
-                            <span>Power: ON</span>
+                    
+                    <div class="setup-instructions">
+                        <div class="detailed-instructions">
+                            <p><strong>Here's exactly what to do:</strong></p>
+                            <ol>
+                                <li><strong>Find the power adapter</strong> - It's the black rectangular box with a cable</li>
+                                <li><strong>Plug the small end into Luna</strong> - Look for the round hole on the side of your Luna device</li>
+                                <li><strong>Plug the other end into the wall</strong> - Use any regular wall outlet in your home</li>
+                                <li><strong>That's it!</strong> - You should see a small light turn on</li>
+                            </ol>
                         </div>
-                        <div class="indicator">
-                            <div class="indicator-light blue solid"></div>
-                            <span>Network: CONNECTED</span>
+                        <button class="primary-btn" onclick="nextScreen('setup-step2')">Next: Connect Device</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Setup Step 2: Connect Device -->
+        <div id="setup-step2" class="screen">
+            <div class="content setup-content">
+                <div class="step-header">
+                    <span class="step-number">Step 2 of 3</span>
+                    <h2>Connect Luna to Your Computer</h2>
+                </div>
+                
+                <div class="setup-layout">
+                    <div class="setup-visuals">
+                        <div class="components-intro">
+                            <p><strong>You'll need this cable (it looks like a thick phone charger):</strong></p>
+                            <img src="assets/network-cable-intro.png" alt="Network cable" class="component-image">
+                        </div>
+                        <div class="step-images">
+                            <img src="assets/luna-to-network-cable.png" alt="Connect network cable to Luna" class="step-image">
+                            <img src="assets/network-cable-to-computer.png" alt="Connect network cable to computer" class="step-image">
+                        </div>
+                    </div>
+                    
+                    <div class="setup-instructions">
+                        <div class="detailed-instructions">
+                            <p><strong>Now let's connect Luna to your computer:</strong></p>
+                            <ol>
+                                <li><strong>Find the network cable</strong> - It's the thick cable with rectangular plugs on both ends</li>
+                                <li><strong>Plug one end into Luna</strong> - Look for the rectangular hole on the back/side of Luna (next to where you plugged in power)</li>
+                                <li><strong>Plug the other end into your computer</strong> - Look for a similar rectangular hole on your laptop or computer</li>
+                                <li><strong>Push firmly!</strong> - You should hear a little "click" when it's properly connected</li>
+                            </ol>
+                            <p><em>Note: If your computer doesn't have this type of port, you may need to use a USB adapter (check your Luna box for one).</em></p>
+                        </div>
+                        <button class="primary-btn" onclick="nextScreen('wait-for-face')">Next: Wait for Luna</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wait for Luna's Face -->
+        <div id="wait-for-face" class="screen">
+            <div class="content setup-content">
+                <div class="step-header">
+                    <span class="step-number">Step 3 of 3</span>
+                    <h2>Wait for Luna to Wake Up</h2>
+                </div>
+                
+                <div class="setup-layout">
+                    <div class="setup-visuals">
+                        <div class="face-check-illustration">
+                            <img id="luna-face-image" src="assets/luna-intro.png" alt="Luna device waking up" class="face-image">
+                        </div>
+                    </div>
+                    
+                    <div class="setup-instructions">
+                        <div class="detailed-instructions">
+                            <p><strong>Now we wait for Luna to start up:</strong></p>
+                            <ul>
+                                <li><strong>Look at Luna's screen</strong> - It's the small dark rectangle on the front</li>
+                                <li><strong>Be patient!</strong> - Luna needs about 30-60 seconds to wake up (like starting up a computer)</li>
+                                <li><strong>You'll see a happy face</strong> - Luna will show a smiley face when she's ready</li>
+                                <li><strong>Don't unplug anything</strong> - Just wait and watch the screen</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="face-status">
+                            <div id="face-timer">Waiting for Luna to wake up...</div>
+                            <div id="face-check-buttons" style="display: none;">
+                                <p><strong>Look at Luna's little screen right now:</strong></p>
+                                <p>Do you see a smiley face (😊) on Luna's display?</p>
+                                <div class="button-group">
+                                    <button class="primary-btn" onclick="confirmFaceVisible()">Yes! I see the happy face 😊</button>
+                                    <button class="secondary-btn" onclick="handleNoFace()">No, the screen is still dark/blank</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="photo-caption">Both LEDs solid - Luna is fully connected and ready!</div>
-            </div>
-            <button class="button secondary back-btn" onclick="previousStep()">← Back</button>
-            <button class="button" onclick="nextStep()" style="margin-top: 15px;">Perfect! Continue ✨</button>
-        </div>
-
-        <div class="content" id="step5" style="display: none;">
-            <div class="phase-title">Power On Luna</div>
-            <div class="description">
-                Watch as Luna comes to life! You should see a friendly face appear on your device.
-            </div>
-            <div class="device-visual">
-                <div class="device-face">😊</div>
-            </div>
-            <button class="button secondary back-btn" onclick="previousStep()">← Back</button>
-            <button class="button" onclick="nextStep()" style="margin-top: 15px;">I See Luna's Face 😊</button>
-        </div>
-
-        <div class="content" id="step6" style="display: none;">
-            <div class="phase-title">Scanning for Device</div>
-            <div class="description">
-                The Luna app is now scanning for your device...
-            </div>
-            <div class="scanning-animation"></div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="scanProgress" style="width: 0%;"></div>
             </div>
         </div>
 
-        <div class="content" id="step7" style="display: none;">
-            <div class="phase-title">Connection Successful! 🎉</div>
-            <div class="description">
-                Great! Luna is now connected and ready. Your conversations will be completely private and processed locally on your device - no internet required.
-            </div>
-            <div class="device-visual">
-                <div class="device-face">✨</div>
-            </div>
-            <button class="button secondary back-btn" onclick="previousStep()">← Back</button>
-            <button class="button" onclick="nextStep()" style="margin-top: 15px;">Continue</button>
-        </div>
-
-        <div class="content" id="step8" style="display: none;">
-            <div class="phase-title">What's Your Name?</div>
-            <div class="description">
-                Luna would love to know what to call you!
-            </div>
-            <div class="input-group">
-                <input type="text" id="userName" class="input-field" placeholder="Enter your name" />
-                <button class="button secondary back-btn" onclick="previousStep()">← Back</button>
-                <button class="button" onclick="startConversation()" style="margin-top: 15px;">Start Conversation 💬</button>
-            </div>
-        </div>
-
-        <!-- Phase 2: Chat Interface -->
-        <div class="chat-container" id="chatContainer">
-            <div class="chat-messages" id="chatMessages"></div>
-            <div class="suggested-responses" id="suggestedResponses"></div>
-            <div class="chat-input">
-                <input type="text" id="chatInput" placeholder="Type your message..." />
-                <button class="send-btn" onclick="sendMessage()">Send</button>
-            </div>
-        </div>
-
-        <!-- Phase 3: Dashboard -->
-        <div class="dashboard" id="dashboard">
-            <h2>Luna Dashboard</h2>
-            <p>Explore Luna's capabilities through these AI-powered applications:</p>
-            <div class="dashboard-grid">
-                <div class="app-tile" onclick="showAppInfo('chat')">
-                    <div class="app-icon">💬</div>
-                    <h3>Chat</h3>
-                    <p>Natural conversation with your AI assistant</p>
+        <!-- Device Scanning -->
+        <div id="device-scanning" class="screen">
+            <div class="content">
+                <h2>Looking for Your Luna Device</h2>
+                <div class="loading-animation">
+                    <div class="spinner"></div>
                 </div>
-                <div class="app-tile" onclick="showAppInfo('expert')">
-                    <div class="app-icon">🧠</div>
-                    <h3>Expert Creator</h3>
-                    <p>Create specialized AI experts for any topic</p>
+                <div class="detailed-instructions">
+                    <p><strong>Great! Now I'm looking for Luna on your computer.</strong></p>
+                    <p>This is automatic - I'm checking if your computer can "see" Luna through the cable you just connected.</p>
+                    <p><em>This usually takes 10-30 seconds. Just wait and don't unplug anything!</em></p>
                 </div>
-                <div class="app-tile" onclick="showAppInfo('emotional')">
-                    <div class="app-icon">❤️</div>
-                    <h3>Emotional Support</h3>
-                    <p>Caring conversations and mental wellness</p>
-                </div>
-                <div class="app-tile" onclick="showAppInfo('automation')">
-                    <div class="app-icon">⚙️</div>
-                    <h3>Automation (Coming Soon)</h3>
-                    <p>Automate tasks and workflows</p>
+                <div class="scan-options" style="display: none;">
+                    <p>Taking longer than expected?</p>
+                    <button class="secondary-btn" onclick="showScreen('scan-failed')">Need Help</button>
                 </div>
             </div>
-            <button class="button" onclick="returnToChat()" style="margin-top: 20px;">Return to Chat</button>
         </div>
 
-        <!-- Mini Chat for Dashboard -->
-        <div class="mini-chat" id="miniChat">
-            <div class="mini-chat-header">
-                <div>🌙 Luna</div>
-                <button onclick="expandChat()" style="background: none; border: none; color: white; cursor: pointer;">↗️</button>
+        <!-- Scan Failed -->
+        <div id="scan-failed" class="screen">
+            <div class="content">
+                <h2>Let's Double-Check Your Setup</h2>
+                <div class="error-icon">⚠️</div>
+                <div class="detailed-instructions">
+                    <p><strong>Don't worry! This happens sometimes. Let's check a few things:</strong></p>
+                    <ol>
+                        <li><strong>Is Luna plugged into power?</strong> - Look for a small light on Luna</li>
+                        <li><strong>Is the cable connected properly?</strong> - Both ends should be pushed in firmly until you hear a "click"</li>
+                        <li><strong>Did you see Luna's happy face?</strong> - Luna needs to be fully awake before we can connect</li>
+                        <li><strong>Try a different port</strong> - If your computer has multiple rectangular ports, try another one</li>
+                    </ol>
+                    <p><em>Most connection issues are just loose cables or Luna hasn't finished starting up yet.</em></p>
+                </div>
+                <div class="error-actions">
+                    <button class="secondary-btn" onclick="nextScreen('setup-step1')">Start Over from Step 1</button>
+                    <button class="primary-btn" onclick="nextScreen('device-scanning')">Try Connecting Again</button>
+                </div>
             </div>
-            <div class="chat-messages" id="miniChatMessages" style="height: 200px; font-size: 0.9em;"></div>
+        </div>
+
+        <!-- Connection Success -->
+        <div id="connection-success" class="screen">
+            <div class="content">
+                <div class="success-icon">✅</div>
+                <h2>Perfect! Luna is Connected</h2>
+                <div class="detailed-instructions">
+                    <p><strong>Excellent work! 🎉</strong></p>
+                    <p>Your computer found Luna and they're now talking to each other. The hard part is done!</p>
+                    <p>Now let's introduce you to Luna so she knows what to call you.</p>
+                </div>
+                <button class="primary-btn" onclick="nextScreen('name-entry')">Continue to Introduction</button>
+            </div>
+        </div>
+
+        <!-- Name Entry -->
+        <div id="name-entry" class="screen">
+            <div class="content">
+                <h2>What Should Luna Call You?</h2>
+                <div class="detailed-instructions">
+                    <p><strong>Let's introduce yourself to Luna!</strong></p>
+                    <p>Just type your first name (or whatever you'd like Luna to call you). This will be saved so Luna remembers you.</p>
+                    <p><em>Examples: "Sarah", "Mom", "Dr. Smith", "Chef Bob" - whatever feels right!</em></p>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="user-name" placeholder="Type your name here..." maxlength="50">
+                    <button class="primary-btn" onclick="startChat()">Meet Luna!</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div id="chat-interface" class="screen">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h3>Chat with Luna</h3>
+                </div>
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages will be added dynamically -->
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="handleChatKeyPress(event)">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="screen">
+            <div class="dashboard-container">
+                <div class="dashboard-header">
+                    <h2>Luna Dashboard</h2>
+                    <p>Welcome to your AI-powered workspace</p>
+                </div>
+                <div class="app-grid">
+                    <div class="app-tile">
+                        <div class="app-icon">💬</div>
+                        <h3>Chat</h3>
+                        <p>Talk with Luna about anything</p>
+                    </div>
+                    <div class="app-tile">
+                        <div class="app-icon">🧠</div>
+                        <h3>Expert Creation</h3>
+                        <p>Upload files to create topic experts</p>
+                    </div>
+                    <div class="app-tile">
+                        <div class="app-icon">❤️</div>
+                        <h3>Emotional Support</h3>
+                        <p>Personal conversations and support</p>
+                    </div>
+                    <div class="app-tile">
+                        <div class="app-icon">❓</div>
+                        <h3>Q&A</h3>
+                        <p>General knowledge and assistance</p>
+                    </div>
+                    <div class="app-tile coming-soon">
+                        <div class="app-icon">🎤</div>
+                        <h3>Voice Chat</h3>
+                        <p>Real-time voice interaction</p>
+                        <span class="coming-soon-badge">Coming Soon</span>
+                    </div>
+                    <div class="app-tile coming-soon">
+                        <div class="app-icon">⚙️</div>
+                        <h3>Automation</h3>
+                        <p>Email, CRM, web search tools</p>
+                        <span class="coming-soon-badge">Coming Soon</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script>
-        let currentStep = 1;
-        let userName = '';
-        let chatHistory = [];
-        let isInDashboard = false;
-
-        function nextStep() {
-            document.getElementById(`step${currentStep}`).style.display = 'none';
-            currentStep++;
-            document.getElementById('stepCounter').textContent = `Step ${currentStep} of 14`;
-            
-            if (currentStep === 6) {
-                document.getElementById(`step${currentStep}`).style.display = 'block';
-                simulateScanning();
-            } else if (currentStep <= 8) {
-                document.getElementById(`step${currentStep}`).style.display = 'block';
-            }
-        }
-
-        function previousStep() {
-            if (currentStep > 1) {
-                document.getElementById(`step${currentStep}`).style.display = 'none';
-                currentStep--;
-                document.getElementById('stepCounter').textContent = `Step ${currentStep} of 14`;
-                document.getElementById(`step${currentStep}`).style.display = 'block';
-            }
-        }
-
-        function simulateScanning() {
-            const progressBar = document.getElementById('scanProgress');
-            let progress = 0;
-            
-            const interval = setInterval(() => {
-                progress += Math.random() * 15;
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        nextStep();
-                    }, 500);
-                }
-                progressBar.style.width = progress + '%';
-            }, 200);
-        }
-
-        function skipToChat() {
-            userName = 'Guest';
-            startConversation();
-        }
-
-        function startConversation() {
-            const nameInput = document.getElementById('userName');
-            if (nameInput && nameInput.value.trim()) {
-                userName = nameInput.value.trim();
-            } else if (!userName) {
-                userName = 'Guest';
-            }
-
-            // Hide setup, show chat
-            document.getElementById(`step${currentStep}`).style.display = 'none';
-            document.getElementById('stepCounter').style.display = 'none';
-            document.getElementById('chatContainer').style.display = 'flex';
-
-            // Start Luna introduction
-            setTimeout(() => {
-                addLunaMessage(`Hi ${userName}! I'm Luna, your personal AI assistant. I run completely locally on your device - no internet needed, no data sent to the cloud, and no usage charges. Think of me like ChatGPT, but private and truly yours. What would you like to know about me?`);
-                showSuggestedResponses(['What can you do?', 'How does local processing work?', 'Tell me about privacy', 'That sounds amazing!']);
-            }, 1000);
-        }
-
-        function addLunaMessage(message) {
-            const messagesDiv = document.getElementById('chatMessages');
-            const messageEl = document.createElement('div');
-            messageEl.className = 'message luna';
-            messageEl.innerHTML = `
-                <div class="luna-avatar">🌙</div>
-                <div class="message-bubble">${message}</div>
-            `;
-            messagesDiv.appendChild(messageEl);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            
-            chatHistory.push({type: 'luna', message: message});
-        }
-
-        function addUserMessage(message) {
-            const messagesDiv = document.getElementById('chatMessages');
-            const messageEl = document.createElement('div');
-            messageEl.className = 'message user';
-            messageEl.innerHTML = `<div class="message-bubble">${message}</div>`;
-            messagesDiv.appendChild(messageEl);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            
-            chatHistory.push({type: 'user', message: message});
-        }
-
-        function showTypingIndicator() {
-            const messagesDiv = document.getElementById('chatMessages');
-            const typingEl = document.createElement('div');
-            typingEl.className = 'typing-indicator';
-            typingEl.id = 'typingIndicator';
-            typingEl.innerHTML = `
-                <div class="luna-avatar">🌙</div>
-                <div>Luna is typing
-                    <div class="typing-dots">
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                    </div>
-                </div>
-            `;
-            messagesDiv.appendChild(typingEl);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        function hideTypingIndicator() {
-            const typingEl = document.getElementById('typingIndicator');
-            if (typingEl) {
-                typingEl.remove();
-            }
-        }
-
-        function showSuggestedResponses(suggestions) {
-            const suggestedDiv = document.getElementById('suggestedResponses');
-            suggestedDiv.innerHTML = '';
-            
-            suggestions.forEach(suggestion => {
-                const btn = document.createElement('button');
-                btn.className = 'suggested-btn';
-                btn.textContent = suggestion;
-                btn.onclick = () => handleUserResponse(suggestion);
-                suggestedDiv.appendChild(btn);
-            });
-        }
-
-        function handleUserResponse(message) {
-            addUserMessage(message);
-            document.getElementById('suggestedResponses').innerHTML = '';
-            
-            showTypingIndicator();
-            
-            setTimeout(() => {
-                hideTypingIndicator();
-                respondToUser(message.toLowerCase());
-            }, 1500 + Math.random() * 1000);
-        }
-
-        function respondToUser(message) {
-            let response = '';
-            let suggestions = [];
-
-            if (message.includes('what can you do') || message.includes('capabilities')) {
-                response = `I can help you with many things! I'm great for natural conversations, answering questions, creative writing, analysis, and emotional support. I can also create specialized "expert" versions of myself for specific topics. Plus, I'm working on automation tools to help with your daily tasks. What interests you most?`;
-                suggestions = ['Tell me about experts', 'How private is this really?', 'Show me the dashboard', 'What about emotional support?'];
-            } else if (message.includes('local processing') || message.includes('how does') || message.includes('work')) {
-                response = `Great question! I run entirely on your Luna device using advanced AI chips. When you talk to me, everything happens right here - no data leaves your device, no internet required. It's like having a supercomputer just for AI, sitting on your desk. This means your conversations are truly private and you never have to worry about data breaches or privacy issues.`;
-                suggestions = ['That\'s impressive!', 'What can you do?', 'Show me the dashboard', 'Tell me more about privacy'];
-            } else if (message.includes('privacy') || message.includes('private')) {
-                response = `Privacy is Luna's superpower! Unlike cloud-based AI services, I never send your data anywhere. No conversation logs on external servers, no data mining, no tracking. Your thoughts, ideas, and conversations stay completely with you. It's AI that respects your privacy by design.`;
-                suggestions = ['I love that!', 'What can you do?', 'Show me the dashboard', 'How powerful are you?'];
-            } else if (message.includes('expert') || message.includes('specialized')) {
-                response = `The Expert Creator is one of my favorite features! You can train specialized versions of me for any topic - like a cooking expert, coding mentor, writing coach, or business advisor. Each expert learns your preferences and becomes incredibly knowledgeable in their domain. It's like having a team of specialists available 24/7.`;
-                suggestions = ['That sounds useful!', 'What about automation?', 'Show me the dashboard', 'Tell me about emotional support'];
-            } else if (message.includes('emotional') || message.includes('support')) {
-                response = `I'm here for you emotionally too. Whether you need someone to listen, want to work through challenges, or just need encouragement, I provide caring, judgment-free support. Since everything stays private, you can share openly without worry. I'm trained to be helpful, empathetic, and supportive of your wellbeing.`;
-                suggestions = ['That means a lot', 'What else can you do?', 'Show me the dashboard', 'I\'m ready to explore'];
-            } else if (message.includes('dashboard') || message.includes('explore') || message.includes('ready')) {
-                response = `Perfect! Let me show you the Luna dashboard where you can access all my different capabilities. I'll minimize to the corner so you can explore, but I'll still be here if you have questions. Ready to take a look?`;
-                suggestions = ['Yes, show me!', 'I have more questions first'];
-            } else if (message.includes('yes') || message.includes('show me') || message.includes('sounds amazing') || message.includes('impressive') || message.includes('love that')) {
-                if (Math.random() > 0.5) {
-                    response = `I'm so glad you're excited about Luna! The dashboard has different apps for all my capabilities. Would you like to see it now, or do you have more questions?`;
-                    suggestions = ['Show me the dashboard!', 'More questions first', 'What about automation?'];
-                } else {
-                    response = `Thanks ${userName}! I think you're getting the hang of what makes Luna special. Ready to explore the dashboard and see all the different ways I can help you?`;
-                    suggestions = ['Let\'s go!', 'Tell me about automation first', 'One more question'];
-                }
-            } else if (message.includes('automation')) {
-                response = `Automation tools are coming soon! They'll let you create workflows like "summarize my emails every morning" or "remind me of important tasks." I'll be able to work with your apps and files to make your life easier. It's still in development, but it's going to be powerful!`;
-                suggestions = ['Can\'t wait!', 'Show me what\'s ready now', 'Tell me about experts'];
-            } else if (message.includes('go') || message.includes('let\'s') || message.includes('ready to explore')) {
-                showDashboard();
-                return;
-            } else {
-                // Handle random questions to demonstrate capability
-                response = `That's an interesting question! I can help with all sorts of topics. Since I run locally, I can answer questions, help with analysis, assist with creative projects, and much more - all while keeping your data completely private. What would you like to explore about Luna's capabilities?`;
-                suggestions = ['Show me the dashboard', 'What can you do?', 'Tell me about privacy', 'I\'m ready to start'];
-            }
-
-            addLunaMessage(response);
-            showSuggestedResponses(suggestions);
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            if (message) {
-                handleUserResponse(message);
-                input.value = '';
-            }
-        }
-
-        function showDashboard() {
-            addLunaMessage("Great! I'm opening the dashboard now. I'll minimize to the corner, but click on me anytime if you have questions about any of the apps or features.");
-            
-            setTimeout(() => {
-                document.getElementById('chatContainer').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                document.getElementById('miniChat').style.display = 'block';
-                isInDashboard = true;
-                
-                // Add mini chat message
-                document.getElementById('miniChatMessages').innerHTML = `
-                    <div class="message luna" style="margin: 10px 0;">
-                        <div class="luna-avatar" style="width: 30px; height: 30px; font-size: 1em;">🌙</div>
-                        <div class="message-bubble" style="font-size: 0.9em;">Explore the apps! Click on me if you need help.</div>
-                    </div>
-                `;
-            }, 2000);
-        }
-
-        function returnToChat() {
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('miniChat').style.display = 'none';
-            document.getElementById('chatContainer').style.display = 'flex';
-            isInDashboard = false;
-            
-            setTimeout(() => {
-                addLunaMessage("Welcome back to our chat! How was exploring the dashboard? Do you have any questions about the different apps or features?");
-                showSuggestedResponses(['The Expert Creator looks cool', 'How do I get started?', 'Tell me about automation', 'I\'m ready to use Luna!']);
-            }, 500);
-        }
-
-        function expandChat() {
-            returnToChat();
-        }
-
-        function showAppInfo(appType) {
-            const messages = document.getElementById('miniChatMessages');
-            let info = '';
-            
-            switch(appType) {
-                case 'chat':
-                    info = 'This is where we have natural conversations! You can ask me anything, brainstorm ideas, or just chat.';
-                    break;
-                case 'expert':
-                    info = 'Expert Creator lets you train specialized versions of me! Create a cooking expert, coding mentor, or business advisor.';
-                    break;
-                case 'emotional':
-                    info = 'I provide caring emotional support and mental wellness conversations. Always private, always here for you.';
-                    break;
-                case 'automation':
-                    info = 'Coming soon! These tools will automate your workflows and integrate with your apps to save you time.';
-                    break;
-            }
-            
-            messages.innerHTML = `
-                <div class="message luna" style="margin: 10px 0;">
-                    <div class="luna-avatar" style="width: 30px; height: 30px; font-size: 1em;">🌙</div>
-                    <div class="message-bubble" style="font-size: 0.9em;">${info}</div>
-                </div>
-            `;
-        }
-
-        // Enter key support for chat input
-        document.addEventListener('DOMContentLoaded', function() {
-            const chatInput = document.getElementById('chatInput');
-            if (chatInput) {
-                chatInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        sendMessage();
-                    }
-                });
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
