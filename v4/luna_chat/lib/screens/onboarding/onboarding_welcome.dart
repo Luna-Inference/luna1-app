@@ -217,77 +217,33 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen>
   }
 
   Widget _buildDeviceWithChatBubble() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isLargeScreen = screenWidth >= 1024;
-    
-    if (isLargeScreen) {
-      // Large screen: device with chat bubble on the right (like v4.1)
-      return SizedBox(
-        height: 300, // Define explicit height
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Luna device image
-            SizedBox(
-              width: 300,
-              child: Image.asset(
-                'assets/onboarding/luna-intro.png',
-                fit: BoxFit.contain,
-              ),
-            ),
-            
-            const SizedBox(width: 20),
-            
-            // Chat bubble positioned to the right
-            if (_showChatBubble)
-              Expanded(
-                child: AnimatedOpacity(
-                  opacity: _showChatBubble ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 500),
-                  child: AnimatedSlide(
-                    offset: _showChatBubble ? Offset.zero : const Offset(0, 0.1),
-                    duration: const Duration(milliseconds: 500),
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 0),
-                      child: _buildChatBubble(),
-                    ),
-                  ),
-                ),
-              ),
-          ],
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Luna device image at top (clear hierarchy)
+        SizedBox(
+          width: 300,
+          child: Image.asset(
+            'assets/onboarding/luna-intro.png',
+            fit: BoxFit.contain,
+          ),
         ),
-      );
-    } else {
-      // Small screen: device on top, chat bubble below (stacked vertically)
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Luna device image
-          SizedBox(
-            width: 300,
-            child: Image.asset(
-              'assets/onboarding/luna-intro.png',
-              fit: BoxFit.contain,
+        
+        const SizedBox(height: 24),
+        
+        // Chat bubble below device (top-down flow)
+        if (_showChatBubble)
+          AnimatedOpacity(
+            opacity: _showChatBubble ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 500),
+            child: AnimatedSlide(
+              offset: _showChatBubble ? Offset.zero : const Offset(0, 0.1),
+              duration: const Duration(milliseconds: 500),
+              child: _buildChatBubble(),
             ),
           ),
-          
-          // Chat bubble below device
-          if (_showChatBubble) ...[
-            const SizedBox(height: 20),
-            AnimatedOpacity(
-              opacity: _showChatBubble ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 500),
-              child: AnimatedSlide(
-                offset: _showChatBubble ? Offset.zero : const Offset(0, 0.1),
-                duration: const Duration(milliseconds: 500),
-                child: _buildChatBubble(),
-              ),
-            ),
-          ],
-        ],
-      );
-    }
+      ],
+    );
   }
 
   Widget _buildChatBubble() {

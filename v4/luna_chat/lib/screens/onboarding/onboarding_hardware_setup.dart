@@ -1,147 +1,57 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
 import 'package:luna_chat/themes/typography.dart';
-import 'package:luna_chat/themes/color.dart';
-import 'package:luna_chat/functions/luna_scan.dart';
 
 class OnboardingHardwareSetupScreen extends StatefulWidget {
   final VoidCallback? onContinue;
   
   const OnboardingHardwareSetupScreen({
-    Key? key,
+    super.key,
     this.onContinue,
-  }) : super(key: key);
+  });
 
   @override
   State<OnboardingHardwareSetupScreen> createState() => _OnboardingHardwareSetupScreenState();
 }
 
 class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupScreen>
-    with SingleTickerProviderStateMixin {
-  Player? player;
-  VideoController? controller;
-  bool _isInitialized = false;
-  bool _hasVideoError = false;
-  bool _isPlaying = true;
-  bool _isScanning = false;
-  bool _deviceFound = false;
-  String _statusMessage = 'Initializing...';
-  
-  late AnimationController _animController;
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _typingController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   
-  Timer? _scanTimer;
-  StreamSubscription? _bufferingSubscription;
-  StreamSubscription? _errorSubscription;
-  
-  // Debug timing
-  late DateTime _widgetInitTime;
+  int _currentStep = 1; // 1 for power, 2 for network
+  List<String> _typingTexts = ['', '', '', ''];
+  List<bool> _showChatBubbles = [false, false, false, false];
+  bool _showStepContent = false;
+  bool _showNextButton = false;
+
+  // Step 1 texts
+  final List<String> _step1Texts = [
+    "You'll need this black power adapter - it should be in your Luna box!",
+    "1. Plug the big end into any wall outlet in your home",
+    "2. Plug the small end into Luna - look for the round hole",
+  ];
+
+  // Step 2 texts  
+  final List<String> _step2Texts = [
+    "You'll need this cable - it looks like a thick phone charger!",
+    "1. Plug one end into Luna - look for the rectangular hole", 
+    "2. Plug the other end into your computer - find a similar hole",
+  ];
 
   @override
   void initState() {
     super.initState();
-    _widgetInitTime = DateTime.now();
-    debugPrint('🎬 [VIDEO_DEBUG] Widget initState started');
     
-    _initializeAnimations();
+    // Initialize animation controllers
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
     
-    // Initialize video loading asynchronously without blocking UI
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeVideoAsync();
-    });
-    
-    _startDeviceScan();
-    debugPrint('🎬 [VIDEO_DEBUG] initState completed, video loading in background');
-  }
-  
-  @override
-  void dispose() {
-    debugPrint('🎬 [VIDEO_DEBUG] Disposing resources');
-    _scanTimer?.cancel();
-    _bufferingSubscription?.cancel();
-    _errorSubscription?.cancel();
-    player?.dispose();
-    _animController.dispose();
-    super.dispose();
-  }
-  
-  Future<void> _startDeviceScan() async {
-    if (_isScanning) {
-      debugPrint('[LUNA_SCAN] Scan already in progress');
-      return;
-    }
-    
-    debugPrint('[LUNA_SCAN] Starting device scan...');
-    setState(() {
-      _isScanning = true;
-      _statusMessage = 'Initializing scanner...';
-    });
-
-    // Add a small delay to ensure network is ready
-    await Future.delayed(const Duration(milliseconds: 500));
-    
-    _scanTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
-      if (_deviceFound) {
-        debugPrint('[LUNA_SCAN] Device already found, stopping scan');
-        timer.cancel();
-        return;
-      }
-      
-      if (!mounted) {
-        debugPrint('[LUNA_SCAN] Widget not mounted, stopping scan');
-        timer.cancel();
-        return;
-      }
-      
-      try {
-        debugPrint('[LUNA_SCAN] Attempting to find Luna...');
-        final luna = await LunaScanner.findLuna(timeoutSeconds: 2)
-          .timeout(const Duration(seconds: 3), onTimeout: () {
-            debugPrint('[LUNA_SCAN] Scan timed out after 3 seconds');
-            return null;
-          });
-          
-        debugPrint('[LUNA_SCAN] Scan completed, result: ${luna != null ? 'Found' : 'Not found'}');
-        
-        if (luna != null) {
-          debugPrint('[LUNA_SCAN] Luna found at ${luna.ip}');
-          if (mounted) {
-            setState(() {
-              _deviceFound = true;
-              _statusMessage = 'Luna device found at ${luna.ip}!';
-            });
-            
-            // Small delay before continuing to show feedback
-            await Future.delayed(const Duration(seconds: 1));
-            
-            if (mounted && widget.onContinue != null) {
-              widget.onContinue!();
-            }
-          }
-        } else if (mounted) {
-          setState(() {
-            _statusMessage = 'Scanning for Luna device... (${DateTime.now().toIso8601String().substring(11, 19)})';
-          });
-        }
-      } catch (e, stackTrace) {
-        debugPrint('[LUNA_SCAN] Error during scan: $e');
-        debugPrint('Stack trace: $stackTrace');
-        
-        if (mounted) {
-          setState(() {
-            _statusMessage = 'Error: ${e.toString().split('\n').first}';
-          });
-        }
-      }
-    });
-  }
-
-  void _initializeAnimations() {
-    _animController = AnimationController(
-      duration: const Duration(milliseconds: 1800),
+    _typingController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
       vsync: this,
     );
 
@@ -149,365 +59,457 @@ class _OnboardingHardwareSetupScreenState extends State<OnboardingHardwareSetupS
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: const Interval(0.2, 1.0, curve: Curves.easeOut),
+      parent: _fadeController,
+      curve: Curves.easeOut,
     ));
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(-0.3, 0),
+      begin: const Offset(0, 0.3),
       end: Offset.zero,
     ).animate(CurvedAnimation(
-      parent: _animController,
+      parent: _fadeController,
       curve: Curves.easeOutCubic,
     ));
 
-    _animController.forward();
+    // Start sequence
+    _startAnimationSequence();
   }
 
-  // NON-BLOCKING video initialization
-  Future<void> _initializeVideoAsync() async {
-    final videoInitStart = DateTime.now();
-    debugPrint('🎬 [VIDEO_DEBUG] Starting async video initialization');
+  void _startAnimationSequence() async {
+    // Start main content animation
+    _fadeController.forward();
     
-    try {
-      // Create player instance
-      player = Player();
-      controller = VideoController(player!);
+    // Wait a bit, then show step content
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (mounted) {
+      setState(() {
+        _showStepContent = true;
+      });
+    }
+    
+    // Start showing chat bubbles and typing animations
+    await Future.delayed(const Duration(milliseconds: 400));
+    _startStepAnimations();
+  }
+
+  void _startStepAnimations() async {
+    final texts = _currentStep == 1 ? _step1Texts : _step2Texts;
+    
+    for (int i = 0; i < texts.length; i++) {
+      if (!mounted) return;
       
-      debugPrint('🎬 [VIDEO_DEBUG] Player and controller created');
-      
-      // Set up error handling first
-      _errorSubscription = player!.stream.error.listen((error) {
-        debugPrint('🎬 [VIDEO_DEBUG] ❌ Video error: $error');
-        if (mounted) {
-          setState(() {
-            _hasVideoError = true;
-          });
-        }
+      // Show chat bubble
+      setState(() {
+        _showChatBubbles[i] = true;
       });
       
-      // Set up buffering listener
-      _bufferingSubscription = player!.stream.buffering.listen((buffering) {
-        final now = DateTime.now();
-        debugPrint('🎬 [VIDEO_DEBUG] Buffering: $buffering at ${now.difference(videoInitStart).inMilliseconds}ms');
-        
-        if (!buffering && mounted && !_isInitialized) {
-          final totalTime = now.difference(videoInitStart);
-          debugPrint('🎬 [VIDEO_DEBUG] ✅ Video ready! Total time: ${totalTime.inMilliseconds}ms');
-          
-          setState(() {
-            _isInitialized = true;
-          });
-        }
+      // Start typing animation
+      await Future.delayed(const Duration(milliseconds: 300));
+      await _animateTyping(i, texts[i]);
+      
+      // Wait before next bubble
+      await Future.delayed(const Duration(milliseconds: 600));
+    }
+    
+    // Show next button after all animations
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (mounted) {
+      setState(() {
+        _showNextButton = true;
       });
-      
-      // Configure player
-      await player!.setPlaylistMode(PlaylistMode.loop);
-      await player!.setVolume(0.0);  // Mute the audio
-      debugPrint('🎬 [VIDEO_DEBUG] Player configured and muted, opening media...');
-      
-      // Open media - this might take time but won't block UI
-      await player!.open(
-        Media('asset:///assets/onboarding/setup_480p.mp4'),
-        play: true,
-      );
-      
-      debugPrint('🎬 [VIDEO_DEBUG] Media open command completed');
-      
-    } catch (e) {
-      final errorTime = DateTime.now();
-      final totalErrorTime = errorTime.difference(videoInitStart);
-      debugPrint('🎬 [VIDEO_DEBUG] ❌ Error after ${totalErrorTime.inMilliseconds}ms: $e');
-      
+    }
+  }
+
+  Future<void> _animateTyping(int index, String text) async {
+    for (int i = 0; i <= text.length; i++) {
       if (mounted) {
         setState(() {
-          _hasVideoError = true;
+          _typingTexts[index] = text.substring(0, i);
         });
+        await Future.delayed(const Duration(milliseconds: 30));
       }
     }
+  }
+
+  void _goToNextStep() {
+    if (_currentStep == 1) {
+      // Reset state for step 2
+      setState(() {
+        _currentStep = 2;
+        _typingTexts = ['', '', '', ''];
+        _showChatBubbles = [false, false, false, false];
+        _showNextButton = false;
+      });
+      _startStepAnimations();
+    } else {
+      // Complete hardware setup
+      if (widget.onContinue != null) {
+        widget.onContinue!();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _typingController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              Colors.grey[100]!,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth < 800) {
-                  return Column(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: _buildContentSection(),
-                      ),
-                      const SizedBox(height: 24),
-                      Expanded(
-                        flex: 3,
-                        child: _buildVideoSection(),
-                      ),
-                    ],
-                  );
-                } else {
-                  return Row(
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Expanded(
-                        flex: 5,
-                        child: _buildContentSection(),
-                      ),
-                      const SizedBox(width: 48),
-                      Expanded(
-                        flex: 4,
-                        child: Container(
-                          constraints: const BoxConstraints(
-                            maxHeight: 400,
-                            maxWidth: 600,
-                          ),
-                          child: _buildVideoSection(),
-                        ),
+                      // Main content with animations
+                      AnimatedBuilder(
+                        animation: _fadeController,
+                        builder: (context, child) {
+                          return FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: SlideTransition(
+                              position: _slideAnimation,
+                              child: Container(
+                                constraints: const BoxConstraints(maxWidth: 800),
+                                child: Column(
+                                  children: [
+                                    // Step Header
+                                    _buildStepHeader(),
+                                    
+                                    const SizedBox(height: 40),
+                                    
+                                    // Step Content
+                                    if (_showStepContent) _buildStepContent(),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ],
-                  );
-                }
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContentSection() {
-    return AnimatedBuilder(
-      animation: _animController,
-      builder: (context, child) {
-        return FadeTransition(
-          opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Connect Your Luna',
-                  style: TextStyle(
-                    fontSize: 42,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
-                    color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 24),
-                
-                Text(
-                  'To begin your journey with Luna, let\'s get her connected.\n\nSimply plug Luna into power and connect her to your laptop. The guide on the right will help you through each step.',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w400,
-                    height: 1.6,
-                    color: Colors.black87,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepHeader() {
+    return Column(
+      children: [
+        // Step number badge
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF38b2ac),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            'Step $_currentStep of 2',
+            style: mainText.copyWith(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Step title
+        Text(
+          _currentStep == 1 
+            ? 'Plug in Your Luna Device'
+            : 'Connect Luna to Your Computer',
+          style: headingText.copyWith(
+            fontSize: 32,
+            fontWeight: FontWeight.w400,
+            color: const Color(0xFF2d3748),
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepContent() {
+    return Column(
+      children: [
+        // Component introduction
+        _buildComponentIntro(),
+        
+        const SizedBox(height: 40),
+        
+        // Connection steps
+        _buildConnectionSteps(),
+        
+        const SizedBox(height: 40),
+        
+        // Final instructions and button
+        _buildFinalInstructions(),
+      ],
+    );
+  }
+
+  Widget _buildComponentIntro() {
+    return AnimatedOpacity(
+      opacity: _showChatBubbles[0] ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 600),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFf7fafc),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFe2e8f0), width: 2),
+        ),
+        child: Column(
+          children: [
+            // Chat bubble first (consistent with connection steps)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFfef3c7), Color(0xFFfde68a)],
+                ),
+                border: Border.all(color: const Color(0xFFf59e0b), width: 2),
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFf59e0b).withValues(alpha: 0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-                
-                const SizedBox(height: 32),
-                
-                Row(
-                  children: [
-                    _deviceFound
-                        ? const Icon(Icons.check_circle, color: Colors.green, size: 20)
-                        : _isScanning
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                                ),
-                              )
-                            : const Icon(Icons.error_outline, color: Colors.orange, size: 20),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      child: Text(
-                        _statusMessage,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: _deviceFound ? Colors.green : Colors.grey[700],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                
-                // Auto-continue when device is found
-                if (_deviceFound && widget.onContinue != null) ...[
-                  const SizedBox(height: 24),
-                  // Removed continue button as per request
-                ]
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildVideoSection() {
-    if (_hasVideoError) {
-      return Container(
-        height: 300,
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.grey[300]!,
-            width: 1,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 48,
-                color: Colors.grey[400],
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Unable to load video',
-                style: TextStyle(
+              child: Text(
+                _typingTexts[0],
+                style: mainText.copyWith(
                   fontSize: 16,
-                  color: Colors.grey[600],
+                  color: const Color(0xFF92400e),
+                  height: 1.5,
+                  fontWeight: FontWeight.w500,
                 ),
-              ),
-              const SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _hasVideoError = false;
-                    _isInitialized = false;
-                  });
-                  _initializeVideoAsync();
-                },
-                child: Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    
-    if (!_isInitialized || controller == null) {
-      debugPrint('🎬 [VIDEO_DEBUG] Showing loading state');
-      
-      return Container(
-        height: 300,
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.grey[300]!,
-            width: 1,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(
-                color: Colors.blue,
-                strokeWidth: 3,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Loading video...',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    
-    debugPrint('🎬 [VIDEO_DEBUG] ✅ Rendering video player');
-    return _buildVideoPlayer();
-  }
-
-  Widget _buildVideoPlayer() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: Container(
-            color: Colors.black,
-            child: GestureDetector(
-              onTap: _togglePlayPause,
-              child: Video(
-                controller: controller!,
-                controls: NoVideoControls,
-                fit: BoxFit.contain,
+                textAlign: TextAlign.center,
               ),
             ),
-          ),
+            
+            const SizedBox(height: 20),
+            
+            // Component image below (consistent format)
+            Container(
+              width: 240,
+              height: 160,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  _currentStep == 1 
+                    ? 'assets/onboarding/power-supply-intro.png'
+                    : 'assets/onboarding/network-cable-intro.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Future<void> _togglePlayPause() async {
-    if (player == null) return;
-    
-    final toggleStart = DateTime.now();
-    debugPrint('🎬 [VIDEO_DEBUG] Toggle play/pause - current state: $_isPlaying');
-    
-    try {
-      if (_isPlaying) {
-        await player!.pause();
-      } else {
-        await player!.play();
-      }
-      if (mounted) {
-        setState(() {
-          _isPlaying = !_isPlaying;
-        });
-      }
-      
-      final toggleDuration = DateTime.now().difference(toggleStart);
-      debugPrint('🎬 [VIDEO_DEBUG] Toggle completed in: ${toggleDuration.inMilliseconds}ms');
-    } catch (e) {
-      debugPrint('🎬 [VIDEO_DEBUG] Error toggling playback: $e');
-    }
+  Widget _buildConnectionSteps() {
+    return Column(
+      children: [
+        // Step 1
+        _buildConnectionStep(
+          1, 
+          _currentStep == 1 
+            ? 'assets/onboarding/power-supply-to-wall.png'
+            : 'assets/onboarding/luna-to-network-cable.png'
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Step 2
+        _buildConnectionStep(
+          2,
+          _currentStep == 1
+            ? 'assets/onboarding/luna-to-power.png' 
+            : 'assets/onboarding/network-cable-to-computer.png'
+        ),
+      ],
+    );
+  }
+
+  Widget _buildConnectionStep(int stepIndex, String imagePath) {
+    return AnimatedOpacity(
+      opacity: _showChatBubbles[stepIndex] ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 600),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFf7fafc),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFe2e8f0), width: 2),
+        ),
+        child: Column(
+          children: [
+            // Chat bubble first (top-down hierarchy)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFfef3c7), Color(0xFFfde68a)],
+                ),
+                border: Border.all(color: const Color(0xFFf59e0b), width: 2),
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFf59e0b).withValues(alpha: 0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Text(
+                _typingTexts[stepIndex],
+                style: mainText.copyWith(
+                  fontSize: 16,
+                  color: const Color(0xFF92400e),
+                  height: 1.5,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Step image below (clear hierarchy)
+            Container(
+              width: 240,
+              height: 160,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFinalInstructions() {
+    return Column(
+      children: [
+        // Detailed instructions
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFFf7fafc),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFF38b2ac), width: 4),
+          ),
+          child: Text(
+            _currentStep == 1
+              ? 'Look for a small red light on Luna that also turns green - if you see it, you\'re doing great! No light? Just push both plugs in a little harder until they feel snug.'
+              : 'Push both ends in until you hear a "click" sound - that\'s how you know they\'re connected! Can\'t find the right hole on your computer? Check your Luna box for a small adapter piece.',
+            style: mainText.copyWith(
+              fontSize: 16,
+              color: const Color(0xFF2d3748),
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        
+        const SizedBox(height: 32),
+        
+        // Next button
+        AnimatedOpacity(
+          opacity: _showNextButton ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 500),
+          child: AnimatedSlide(
+            offset: _showNextButton ? Offset.zero : const Offset(0, 0.2),
+            duration: const Duration(milliseconds: 500),
+            child: ElevatedButton(
+              onPressed: _goToNextStep,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF38b2ac),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                _currentStep == 1 
+                  ? 'Next: Connect Device'
+                  : 'Next: Wait for Luna',
+                style: mainText.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
