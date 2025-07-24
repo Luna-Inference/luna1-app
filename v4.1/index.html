@@ -19,10 +19,9 @@
 
                 <div class="welcome-device">
                     <img src="assets/luna-intro.png" alt="Luna Device" class="device-image">
-                </div>
-
-                <div class="welcome-description">
-                    <p>Hi there! Let's get your Luna AI assistant set up. Don't worry - we'll walk through this step by step, and it's easier than it looks!</p>
+                    <div class="welcome-chat-bubble">
+                        <div class="typing-text">Hi there! Let's get your Luna AI assistant set up. Don't worry - we'll walk through this step by step, and it's easier than it looks!</div>
+                    </div>
                 </div>
 
                 <button class="primary-btn get-started-btn" onclick="nextScreen('setup-step1')">Get Started</button>
@@ -37,27 +36,45 @@
                     <h2>Plug in Your Luna Device</h2>
                 </div>
                 
-                <div class="setup-layout">
-                    <div class="setup-visuals">
+                <div class="setup-flow">
+                    <!-- Step 1: Identify the power adapter -->
+                    <div class="setup-step-block">
                         <div class="components-intro">
-                            <p><strong>You'll need this black power adapter:</strong></p>
-                            <img src="assets/power-supply-intro.png" alt="Power adapter" class="component-image">
-                        </div>
-                        <div class="step-images">
-                            <img src="assets/luna-to-power.png" alt="Connect power to Luna" class="step-image">
-                            <img src="assets/power-supply-to-wall.png" alt="Connect power adapter to wall" class="step-image">
+                            <div class="component-with-chat">
+                                <img src="assets/power-supply-intro.png" alt="Power adapter" class="component-image">
+                                <div class="component-chat-bubble">
+                                    <div class="component-typing-text">You'll need this black power adapter - it should be in your Luna box!</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="setup-instructions">
+                    <!-- Step 2: Connection images with integrated instructions -->
+                    <div class="setup-step-block">
+                        <div class="step-images">
+                            <div class="connection-step">
+                                <div class="step-with-chat">
+                                    <img src="assets/power-supply-to-wall.png" alt="Connect power adapter to wall" class="step-image">
+                                    <div class="step-chat-bubble">
+                                        <div class="step-typing-text">1. Plug the big end into any wall outlet in your home</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="connection-step">
+                                <div class="step-with-chat">
+                                    <img src="assets/luna-to-power.png" alt="Connect power to Luna" class="step-image">
+                                    <div class="step-chat-bubble">
+                                        <div class="step-typing-text">2. Plug the small end into Luna - look for the round hole</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Final instructions and button -->
+                    <div class="setup-step-block">
                         <div class="detailed-instructions">
-                            <p><strong>Here's exactly what to do:</strong></p>
-                            <ol>
-                                <li><strong>Find the power adapter</strong> - It's the black rectangular box with a cable</li>
-                                <li><strong>Plug the small end into Luna</strong> - Look for the round hole on the side of your Luna device</li>
-                                <li><strong>Plug the other end into the wall</strong> - Use any regular wall outlet in your home</li>
-                                <li><strong>That's it!</strong> - You should see a small light turn on</li>
-                            </ol>
+                            <p>Look for a small red light on Luna - if you see it, you're doing great! No light? Just push both plugs in a little harder until they feel snug.</p>
                         </div>
                         <button class="primary-btn" onclick="nextScreen('setup-step2')">Next: Connect Device</button>
                     </div>
@@ -73,28 +90,45 @@
                     <h2>Connect Luna to Your Computer</h2>
                 </div>
                 
-                <div class="setup-layout">
-                    <div class="setup-visuals">
+                <div class="setup-flow">
+                    <!-- Step 1: Identify the cable -->
+                    <div class="setup-step-block">
                         <div class="components-intro">
-                            <p><strong>You'll need this cable (it looks like a thick phone charger):</strong></p>
-                            <img src="assets/network-cable-intro.png" alt="Network cable" class="component-image">
-                        </div>
-                        <div class="step-images">
-                            <img src="assets/luna-to-network-cable.png" alt="Connect network cable to Luna" class="step-image">
-                            <img src="assets/network-cable-to-computer.png" alt="Connect network cable to computer" class="step-image">
+                            <div class="component-with-chat">
+                                <img src="assets/network-cable-intro.png" alt="Network cable" class="component-image">
+                                <div class="component-chat-bubble">
+                                    <div class="component-typing-text">You'll need this cable - it looks like a thick phone charger!</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="setup-instructions">
+                    <!-- Step 2: Connection images with integrated instructions -->
+                    <div class="setup-step-block">
+                        <div class="step-images">
+                            <div class="connection-step">
+                                <div class="step-with-chat">
+                                    <img src="assets/luna-to-network-cable.png" alt="Connect network cable to Luna" class="step-image">
+                                    <div class="step-chat-bubble">
+                                        <div class="step-typing-text">1. Plug one end into Luna - look for the rectangular hole</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="connection-step">
+                                <div class="step-with-chat">
+                                    <img src="assets/network-cable-to-computer.png" alt="Connect network cable to computer" class="step-image">
+                                    <div class="step-chat-bubble">
+                                        <div class="step-typing-text">2. Plug the other end into your computer - find a similar hole</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Final instructions and button -->
+                    <div class="setup-step-block">
                         <div class="detailed-instructions">
-                            <p><strong>Now let's connect Luna to your computer:</strong></p>
-                            <ol>
-                                <li><strong>Find the network cable</strong> - It's the thick cable with rectangular plugs on both ends</li>
-                                <li><strong>Plug one end into Luna</strong> - Look for the rectangular hole on the back/side of Luna (next to where you plugged in power)</li>
-                                <li><strong>Plug the other end into your computer</strong> - Look for a similar rectangular hole on your laptop or computer</li>
-                                <li><strong>Push firmly!</strong> - You should hear a little "click" when it's properly connected</li>
-                            </ol>
-                            <p><em>Note: If your computer doesn't have this type of port, you may need to use a USB adapter (check your Luna box for one).</em></p>
+                            <p>Push both ends in until you hear a "click" sound - that's how you know they're connected! Can't find the right hole on your computer? Check your Luna box for a small adapter piece.</p>
                         </div>
                         <button class="primary-btn" onclick="nextScreen('startup-wait-screen')">Next: Wait for Luna</button>
                     </div>
@@ -114,40 +148,39 @@
                 </div>
                 <div class="detailed-instructions">
                     <p><strong>Please wait about 30 seconds for Luna to start up.</strong></p>
-                    <p>While you wait, let me show you what Luna can do:</p>
+                    <p>While you wait, here are some interesting things about Luna:</p>
                 </div>
                 
-                <!-- Feature Showcase -->
-                <div class="features-showcase" id="startup-features-showcase">
-                    <div class="feature-card chat-feature" style="opacity: 0;">
-                        <div class="feature-icon">💬</div>
-                        <div class="feature-label">Chat about anything</div>
+                <!-- Organic Feature Showcase -->
+                <div class="organic-features-showcase" id="startup-organic-showcase">
+                    <div class="organic-feature">
+                        <div class="feature-prefix">💡 Did you know?</div>
+                        <div class="feature-highlight">Luna runs completely on your device</div>
+                        <div class="feature-description">Unlike ChatGPT or other cloud services, Luna processes everything locally. Your conversations never leave your computer, and there are no usage fees!</div>
                     </div>
 
-                    <div class="feature-card support-feature" style="opacity: 0;">
-                        <div class="feature-icon">❤️</div>
-                        <div class="feature-label">Emotional support</div>
+                    <div class="organic-feature">
+                        <div class="feature-prefix">🤔 Fun fact:</div>
+                        <div class="feature-highlight">You can create custom AI experts</div>
+                        <div class="feature-description">Upload documents to teach Luna about specific topics. Want a cooking expert? Upload recipes. Need a work assistant? Upload your company handbook!</div>
                     </div>
 
-                    <div class="feature-card questions-feature" style="opacity: 0;">
-                        <div class="feature-icon">🧠</div>
-                        <div class="feature-label">Answer questions</div>
+                    <div class="organic-feature">
+                        <div class="feature-prefix">✨ Here's something cool:</div>
+                        <div class="feature-highlight">Luna works without internet</div>
+                        <div class="feature-description">Once set up, you can chat with Luna even when offline. Perfect for travel, remote work, or just maintaining complete privacy.</div>
                     </div>
 
-                    <div class="feature-card expert-feature" style="opacity: 0;">
-                        <div class="feature-icon">📚</div>
-                        <div class="feature-label">Create topic experts</div>
+                    <div class="organic-feature">
+                        <div class="feature-prefix">💝 Bonus:</div>
+                        <div class="feature-highlight">Luna provides emotional support too</div>
+                        <div class="feature-description">Need someone to talk to? Luna is designed to be empathetic and supportive, available 24/7 whenever you need a friendly conversation.</div>
                     </div>
 
-                    <div class="feature-card privacy-feature" style="opacity: 0;">
-                        <div class="feature-icon">🔒</div>
-                        <div class="feature-label">100% private & local</div>
-                    </div>
-
-                    <div class="feature-card voice-feature coming-soon-feature" style="opacity: 0;">
-                        <div class="feature-icon">🎤</div>
-                        <div class="feature-label">Voice chat</div>
-                        <div class="coming-soon-text">Soon</div>
+                    <div class="organic-feature coming-soon">
+                        <div class="feature-prefix">🚀 Coming soon:</div>
+                        <div class="feature-highlight">Voice conversations<span class="coming-soon-badge">Soon</span></div>
+                        <div class="feature-description">We're adding natural voice chat so you can talk to Luna just like a friend. All processing will still happen locally on your device!</div>
                     </div>
                 </div>
             </div>

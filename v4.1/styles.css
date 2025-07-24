@@ -92,6 +92,342 @@ body {
     margin-bottom: 2rem;
 }
 
+/* Setup Step 2 Layout */
+.setup-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.setup-step-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.step-images {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.connection-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 300px;
+}
+
+.step-caption {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #4a5568;
+    line-height: 1.4;
+}
+
+/* Setup Step Chat Bubbles */
+.setup-chat-container {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+
+.setup-chat-bubble {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid #0ea5e9;
+    border-radius: 20px;
+    padding: 16px 20px;
+    max-width: 450px;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+    font-size: 1rem;
+    color: #0c4a6e;
+    line-height: 1.5;
+    position: relative;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.setup-chat-bubble.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.setup-chat-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #0ea5e9;
+}
+
+.setup-typing-text {
+    overflow: hidden;
+    white-space: normal;
+    word-wrap: break-word;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.5s ease, opacity 0.5s ease;
+}
+
+.setup-typing-text.typing {
+    max-height: 200px;
+    opacity: 1;
+    border-right: 2px solid #0c4a6e;
+    animation: blink-caret 0.75s step-end infinite;
+}
+
+.setup-typing-text.typing-complete {
+    max-height: 200px;
+    opacity: 1;
+    border-right: none;
+}
+
+/* Component Chat Bubble (top right of component image) */
+.component-with-chat {
+    position: relative;
+    display: inline-block;
+}
+
+.component-chat-bubble {
+    position: absolute;
+    top: -10px;
+    left: 100%;
+    margin-left: 15px;
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 15px;
+    padding: 10px 14px;
+    max-width: 200px;
+    min-width: 180px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-size: 0.9rem;
+    color: #4a5568;
+    line-height: 1.4;
+    z-index: 10;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.component-chat-bubble.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.component-chat-bubble::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid #ffffff;
+}
+
+.component-chat-bubble::after {
+    content: '';
+    position: absolute;
+    top: 13px;
+    left: -10px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid #e2e8f0;
+    z-index: -1;
+}
+
+/* Step Chat Bubbles (for connection steps) */
+.step-with-chat {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.step-chat-bubble {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 15px;
+    padding: 12px 16px;
+    margin-top: 10px;
+    max-width: 280px;
+    min-height: 40px;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+    font-size: 0.9rem;
+    color: #92400e;
+    line-height: 1.5;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-chat-bubble.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.step-chat-bubble::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #f59e0b;
+}
+
+.step-typing-text {
+    overflow: visible;
+    white-space: normal;
+    word-wrap: break-word;
+    width: 100%;
+    text-align: center;
+}
+
+.step-typing-text.typing {
+    border-right: 2px solid #92400e;
+    animation: blink-caret 0.75s step-end infinite;
+}
+
+.step-typing-text.typing-complete {
+    border-right: none;
+}
+
+.component-typing-text {
+    overflow: hidden;
+    white-space: normal;
+    word-wrap: break-word;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.5s ease, opacity 0.5s ease;
+}
+
+.component-typing-text.typing {
+    max-height: 100px;
+    opacity: 1;
+    border-right: 2px solid #4a5568;
+    animation: blink-caret 0.75s step-end infinite;
+}
+
+.component-typing-text.typing-complete {
+    max-height: 100px;
+    opacity: 1;
+    border-right: none;
+}
+
+/* Setup Step 1 Animations */
+#setup-step1 .step-header,
+#setup-step1 .setup-step-block {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+#setup-step1 .step-header.show,
+#setup-step1 .setup-step-block.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Setup Step 2 Animations */
+#setup-step2 .step-header,
+#setup-step2 .setup-step-block {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+#setup-step2 .step-header.show,
+#setup-step2 .setup-step-block.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Startup Wait Screen Animations */
+#startup-wait-screen .step-header,
+#startup-wait-screen .loading-animation,
+#startup-wait-screen .detailed-instructions,
+#startup-wait-screen .organic-feature {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+#startup-wait-screen .step-header.show,
+#startup-wait-screen .loading-animation.show,
+#startup-wait-screen .detailed-instructions.show,
+#startup-wait-screen .organic-feature.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Organic Feature Styling */
+.organic-feature {
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    max-width: 500px;
+    text-align: left;
+}
+
+.organic-feature .feature-prefix {
+    font-size: 0.9rem;
+    color: #718096;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.organic-feature .feature-highlight {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.organic-feature .feature-description {
+    font-size: 0.95rem;
+    color: #4a5568;
+    line-height: 1.5;
+}
+
+.organic-feature.coming-soon {
+    background: linear-gradient(135deg, #fef5e7 0%, #fed7aa 100%);
+    border-color: #f6ad55;
+}
+
+.organic-feature.coming-soon .coming-soon-badge {
+    display: inline-block;
+    background: #ed8936;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 0.5rem;
+}
+
 /* Typography */
 h1 {
     font-size: 3rem;
@@ -199,8 +535,27 @@ p {
 
 /* Welcome Screen Styling */
 .welcome-content {
-    max-width: 800px;
+    max-width: 1200px;
     padding: 1rem;
+    position: relative;
+    overflow: visible;
+}
+
+.welcome-content h1,
+.welcome-content .welcome-subtitle,
+.welcome-content .welcome-device,
+.welcome-content .get-started-btn {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.welcome-content h1.show,
+.welcome-content .welcome-subtitle.show,
+.welcome-content .welcome-device.show,
+.welcome-content .get-started-btn.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .welcome-subtitle {
@@ -320,6 +675,113 @@ p {
 
 .welcome-device {
     margin: 2rem 0;
+    position: relative;
+    display: inline-block;
+}
+
+.welcome-chat-bubble {
+    position: absolute;
+    top: -20px;
+    left: 100%;
+    margin-left: 20px;
+    right: -400px;
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 16px 20px;
+    max-width: 420px;
+    min-width: 350px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-size: 1rem;
+    color: #4a5568;
+    line-height: 1.5;
+    z-index: 10;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.welcome-chat-bubble.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.welcome-chat-bubble::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid #ffffff;
+}
+
+.welcome-chat-bubble::after {
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: -10px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid #e2e8f0;
+    z-index: -1;
+}
+
+.welcome-chat-bubble .typing-text {
+    overflow: hidden;
+    white-space: normal;
+    word-wrap: break-word;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.5s ease, opacity 0.5s ease;
+}
+
+.welcome-chat-bubble .typing-text.typing {
+    max-height: 200px;
+    opacity: 1;
+    border-right: 2px solid #4a5568;
+    animation: blink-caret 0.75s step-end infinite;
+}
+
+.welcome-chat-bubble .typing-text.typing-complete {
+    max-height: 200px;
+    opacity: 1;
+    border-right: none;
+}
+
+/* Responsive adjustments for chat bubble */
+@media (max-width: 1024px) {
+    .welcome-chat-bubble {
+        position: static;
+        margin: 1.5rem auto 0;
+        max-width: 90%;
+        min-width: auto;
+        right: auto;
+        transform: none !important;
+    }
+    
+    .welcome-chat-bubble::before,
+    .welcome-chat-bubble::after {
+        display: none;
+    }
+    
+    .welcome-device {
+        position: static;
+        display: block;
+    }
+    
+    .welcome-content {
+        max-width: 800px;
+    }
+}
+
+@keyframes blink-caret {
+    from, to { border-color: transparent; }
+    50% { border-color: #4a5568; }
 }
 
 .welcome-description {

@@ -18,6 +18,17 @@ function showScreen(screenId) {
         targetScreen.classList.add('active');
         currentScreen = screenId;
         console.log(`Successfully switched to screen: ${currentScreen}`);
+        
+        // Trigger screen-specific animations
+        if (screenId === 'welcome-screen') {
+            animateWelcomeScreen();
+        } else if (screenId === 'setup-step1') {
+            animateSetupStep1();
+        } else if (screenId === 'setup-step2') {
+            animateSetupStep2();
+        } else if (screenId === 'startup-wait-screen') {
+            animateStartupWaitScreen();
+        }
     } else {
         console.error(`Screen with ID "${screenId}" not found.`);
     }
@@ -29,7 +40,6 @@ function nextScreen(screenId) {
     
     // Special handling for different screens
     if (screenId === 'startup-wait-screen') {
-        startFeatureAnimation();
         setTimeout(() => {
             nextScreen('face-selection-screen');
         }, 30000); // 30-second wait
@@ -47,15 +57,33 @@ function handleFaceSelection(selection) {
     }
 }
 
-// Feature Animation for Startup Wait Screen
-function startFeatureAnimation() {
-    const features = document.querySelectorAll('#startup-features-showcase .feature-card');
-    const animationInterval = 30000 / features.length; // Distribute over 30 seconds
+// Startup Wait Screen Animation
+function animateStartupWaitScreen() {
+    const elements = [
+        { selector: '#startup-wait-screen .step-header', delay: 0 },
+        { selector: '#startup-wait-screen .loading-animation', delay: 600 },
+        { selector: '#startup-wait-screen .detailed-instructions', delay: 1200 }
+    ];
     
-    features.forEach((feature, index) => {
+    // Animate initial elements
+    elements.forEach(({ selector, delay }) => {
         setTimeout(() => {
-            feature.classList.add('animated');
-        }, index * animationInterval);
+            const element = document.querySelector(selector);
+            if (element) {
+                element.classList.add('show');
+            }
+        }, delay);
+    });
+    
+    // Animate organic features with longer intervals for reading
+    const organicFeatures = document.querySelectorAll('#startup-organic-showcase .organic-feature');
+    const featureInterval = 4000; // 4 seconds between each feature
+    const startDelay = 2000; // Start after initial elements
+    
+    organicFeatures.forEach((feature, index) => {
+        setTimeout(() => {
+            feature.classList.add('show');
+        }, startDelay + (index * featureInterval));
     });
 }
 
@@ -372,6 +400,281 @@ function loadAppState() {
         }
     }
     return false;
+}
+
+// Welcome Screen Animation
+function animateWelcomeScreen() {
+    const elements = [
+        { selector: '.welcome-content h1', delay: 0 },
+        { selector: '.welcome-content .welcome-subtitle', delay: 600 },
+        { selector: '.welcome-content .welcome-device', delay: 1200 }
+        // Button will be shown after typing completes
+    ];
+    
+    elements.forEach(({ selector, delay }) => {
+        setTimeout(() => {
+            const element = document.querySelector(selector);
+            if (element) {
+                element.classList.add('show');
+            }
+        }, delay);
+    });
+    
+    // Show and animate chat bubble after device appears
+    setTimeout(() => {
+        const chatBubble = document.querySelector('.welcome-chat-bubble');
+        if (chatBubble) {
+            chatBubble.classList.add('show');
+            // Start typing animation
+            setTimeout(() => {
+                startTypingAnimation();
+            }, 500);
+        }
+    }, 1800);
+}
+
+// Typing Animation Function
+function startTypingAnimation() {
+    const typingElement = document.querySelector('.welcome-chat-bubble .typing-text');
+    if (!typingElement) return;
+    
+    const fullText = typingElement.textContent;
+    typingElement.textContent = '';
+    typingElement.classList.add('typing');
+    
+    let currentIndex = 0;
+    const typingSpeed = 50; // milliseconds per character
+    
+    function typeNextCharacter() {
+        if (currentIndex < fullText.length) {
+            typingElement.textContent += fullText[currentIndex];
+            currentIndex++;
+            setTimeout(typeNextCharacter, typingSpeed);
+        } else {
+            // Typing complete - remove cursor
+            setTimeout(() => {
+                typingElement.classList.remove('typing');
+                typingElement.classList.add('typing-complete');
+                
+                // Show button 1 second after typing completes
+                setTimeout(() => {
+                    const button = document.querySelector('.welcome-content .get-started-btn');
+                    if (button) {
+                        button.classList.add('show');
+                    }
+                }, 1000);
+            }, 1000);
+        }
+    }
+    
+    typeNextCharacter();
+}
+
+// Setup Step 1 Animation
+function animateSetupStep1() {
+    const elements = [
+        { selector: '#setup-step1 .step-header', delay: 0 },
+        { selector: '#setup-step1 .setup-step-block:nth-child(1)', delay: 600 },
+        { selector: '#setup-step1 .setup-step-block:nth-child(2)', delay: 1200 },
+        { selector: '#setup-step1 .setup-step-block:nth-child(3)', delay: 1800 }
+    ];
+    
+    elements.forEach(({ selector, delay }) => {
+        setTimeout(() => {
+            const element = document.querySelector(selector);
+            if (element) {
+                element.classList.add('show');
+            }
+        }, delay);
+    });
+    
+    // Animate component chat bubble after first block
+    setTimeout(() => {
+        const componentBubble = document.querySelector('#setup-step1 .component-chat-bubble');
+        if (componentBubble) {
+            componentBubble.classList.add('show');
+            setTimeout(() => {
+                const typingText = componentBubble.querySelector('.component-typing-text');
+                if (typingText) {
+                    startComponentTypingAnimation(typingText);
+                }
+            }, 300);
+        }
+    }, 1000);
+    
+    // Animate first step chat bubble after component bubble finishes
+    setTimeout(() => {
+        const firstStepBubble = document.querySelector('#setup-step1 .step-chat-bubble:first-of-type');
+        if (firstStepBubble) {
+            firstStepBubble.classList.add('show');
+            setTimeout(() => {
+                const typingText = firstStepBubble.querySelector('.step-typing-text');
+                if (typingText) {
+                    startStepTypingAnimation(typingText);
+                }
+            }, 500);
+        }
+    }, 4000); // Wait longer for component bubble to finish
+    
+    // Animate second step chat bubble after first one finishes
+    setTimeout(() => {
+        const stepBubbles = document.querySelectorAll('#setup-step1 .step-chat-bubble');
+        const secondStepBubble = stepBubbles[1]; // Get the second bubble explicitly
+        if (secondStepBubble) {
+            secondStepBubble.classList.add('show');
+            setTimeout(() => {
+                const typingText = secondStepBubble.querySelector('.step-typing-text');
+                if (typingText) {
+                    startStepTypingAnimation(typingText);
+                }
+            }, 500);
+        }
+    }, 6000); // Wait for first step bubble to finish
+}
+
+// Setup Step 2 Animation
+function animateSetupStep2() {
+    const elements = [
+        { selector: '#setup-step2 .step-header', delay: 0 },
+        { selector: '#setup-step2 .setup-step-block:nth-child(1)', delay: 600 },
+        { selector: '#setup-step2 .setup-step-block:nth-child(2)', delay: 1200 },
+        { selector: '#setup-step2 .setup-step-block:nth-child(3)', delay: 1800 }
+    ];
+    
+    elements.forEach(({ selector, delay }) => {
+        setTimeout(() => {
+            const element = document.querySelector(selector);
+            if (element) {
+                element.classList.add('show');
+            }
+        }, delay);
+    });
+    
+    // Animate component chat bubble after first block
+    setTimeout(() => {
+        const componentBubble = document.querySelector('#setup-step2 .component-chat-bubble');
+        if (componentBubble) {
+            componentBubble.classList.add('show');
+            setTimeout(() => {
+                const typingText = componentBubble.querySelector('.component-typing-text');
+                if (typingText) {
+                    startComponentTypingAnimation(typingText);
+                }
+            }, 300);
+        }
+    }, 1000);
+    
+    // Animate first step chat bubble after component bubble finishes
+    setTimeout(() => {
+        const firstStepBubble = document.querySelector('#setup-step2 .step-chat-bubble:first-of-type');
+        if (firstStepBubble) {
+            firstStepBubble.classList.add('show');
+            setTimeout(() => {
+                const typingText = firstStepBubble.querySelector('.step-typing-text');
+                if (typingText) {
+                    startStepTypingAnimation(typingText);
+                }
+            }, 500);
+        }
+    }, 4000); // Wait longer for component bubble to finish
+    
+    // Animate second step chat bubble after first one finishes
+    setTimeout(() => {
+        const stepBubbles = document.querySelectorAll('#setup-step2 .step-chat-bubble');
+        const secondStepBubble = stepBubbles[1]; // Get the second bubble explicitly
+        if (secondStepBubble) {
+            secondStepBubble.classList.add('show');
+            setTimeout(() => {
+                const typingText = secondStepBubble.querySelector('.step-typing-text');
+                if (typingText) {
+                    startStepTypingAnimation(typingText);
+                }
+            }, 500);
+        }
+    }, 6000); // Wait for first step bubble to finish
+}
+
+// Setup Typing Animation Function
+function startSetupTypingAnimation(selector) {
+    const typingElement = document.querySelector(selector);
+    if (!typingElement) return;
+    
+    const fullText = typingElement.textContent;
+    typingElement.textContent = '';
+    typingElement.classList.add('typing');
+    
+    let currentIndex = 0;
+    const typingSpeed = 40; // milliseconds per character
+    
+    function typeNextCharacter() {
+        if (currentIndex < fullText.length) {
+            typingElement.textContent += fullText[currentIndex];
+            currentIndex++;
+            setTimeout(typeNextCharacter, typingSpeed);
+        } else {
+            // Typing complete - remove cursor
+            setTimeout(() => {
+                typingElement.classList.remove('typing');
+                typingElement.classList.add('typing-complete');
+            }, 1000);
+        }
+    }
+    
+    typeNextCharacter();
+}
+
+// Component Typing Animation Function
+function startComponentTypingAnimation(element) {
+    if (!element) return;
+    
+    const fullText = element.textContent;
+    element.textContent = '';
+    element.classList.add('typing');
+    
+    let currentIndex = 0;
+    const typingSpeed = 35;
+    
+    function typeNextCharacter() {
+        if (currentIndex < fullText.length) {
+            element.textContent += fullText[currentIndex];
+            currentIndex++;
+            setTimeout(typeNextCharacter, typingSpeed);
+        } else {
+            setTimeout(() => {
+                element.classList.remove('typing');
+                element.classList.add('typing-complete');
+            }, 500);
+        }
+    }
+    
+    typeNextCharacter();
+}
+
+// Step Typing Animation Function
+function startStepTypingAnimation(element) {
+    if (!element) return;
+    
+    const fullText = element.textContent;
+    element.textContent = '';
+    element.classList.add('typing');
+    
+    let currentIndex = 0;
+    const typingSpeed = 50;
+    
+    function typeNextCharacter() {
+        if (currentIndex < fullText.length) {
+            element.textContent += fullText[currentIndex];
+            currentIndex++;
+            setTimeout(typeNextCharacter, typingSpeed);
+        } else {
+            setTimeout(() => {
+                element.classList.remove('typing');
+                element.classList.add('typing-complete');
+            }, 1000);
+        }
+    }
+    
+    typeNextCharacter();
 }
 
 // Initialize App
