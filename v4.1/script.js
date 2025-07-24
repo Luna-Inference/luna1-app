@@ -6,6 +6,7 @@ let isScanning = false;
 
 // Screen Navigation
 function showScreen(screenId) {
+    console.log(`Attempting to show screen: ${screenId}`);
     // Hide all screens
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
@@ -16,141 +17,78 @@ function showScreen(screenId) {
     if (targetScreen) {
         targetScreen.classList.add('active');
         currentScreen = screenId;
+        console.log(`Successfully switched to screen: ${currentScreen}`);
+    } else {
+        console.error(`Screen with ID "${screenId}" not found.`);
     }
 }
 
 function nextScreen(screenId) {
+    console.log(`Navigating to next screen: ${screenId}`);
     showScreen(screenId);
     
     // Special handling for different screens
-    if (screenId === 'wait-for-face') {
-        startFaceDetection();
+    if (screenId === 'startup-wait-screen') {
+        startFeatureAnimation();
+        setTimeout(() => {
+            nextScreen('face-selection-screen');
+        }, 30000); // 30-second wait
     } else if (screenId === 'device-scanning') {
         startDeviceScanning();
     }
 }
 
-// Face Detection Logic
-function startFaceDetection() {
-    const faceTimer = document.getElementById('face-timer');
-    const faceCheckButtons = document.getElementById('face-check-buttons');
-    const lunaDisplay = document.getElementById('luna-display');
-    
-    let countdown = 30;
-    
-    // Update timer every second
-    const timerInterval = setInterval(() => {
-        countdown--;
-        if (countdown > 20) {
-            faceTimer.textContent = `Luna is starting up... ${countdown} seconds left. (This is normal!)`;
-        } else if (countdown > 10) {
-            faceTimer.textContent = `Almost ready... ${countdown} seconds. Watch Luna's little screen!`;
-        } else if (countdown > 0) {
-            faceTimer.textContent = `Any moment now... ${countdown} seconds. Look for the smiley face!`;
-        } else {
-            clearInterval(timerInterval);
-            // Simulate Luna's face appearing
-            showLunaFace();
-            faceTimer.textContent = "Luna should be showing a happy face now! Check her little screen.";
-            faceCheckButtons.style.display = 'block';
-        }
-    }, 1000);
+// Face Selection Logic
+function handleFaceSelection(selection) {
+    if (selection === 'correct') {
+        nextScreen('device-scanning');
+    } else {
+        nextScreen('face-troubleshooting-screen');
+    }
 }
 
-function showLunaFace() {
-    const lunaFaceImage = document.getElementById('luna-face-image');
-    lunaFaceImage.src = 'assets/luna-face.png';
-    lunaFaceImage.alt = 'Luna device with happy face';
-}
-
-function confirmFaceVisible() {
-    // User confirms they can see Luna's face
-    showScreen('device-scanning');
-}
-
-function handleNoFace() {
-    // User doesn't see the face - show troubleshooting
-    const faceTimer = document.getElementById('face-timer');
-    const faceCheckButtons = document.getElementById('face-check-buttons');
+// Feature Animation for Startup Wait Screen
+function startFeatureAnimation() {
+    const features = document.querySelectorAll('#startup-features-showcase .feature-card');
+    const animationInterval = 30000 / features.length; // Distribute over 30 seconds
     
-    faceTimer.innerHTML = `
-        <div style="color: #e53e3e; margin-bottom: 1rem;">
-            <strong>No problem! Let's figure this out together:</strong>
-        </div>
-        <ul style="text-align: left; max-width: 500px; margin: 0 auto; line-height: 1.6;">
-            <li><strong>Is Luna's power light on?</strong> - Look for a small light anywhere on Luna</li>
-            <li><strong>Check the power cable</strong> - Make sure it's pushed all the way into Luna</li>
-            <li><strong>Wait a little longer</strong> - Some Luna devices take up to 90 seconds to start</li>
-            <li><strong>Try restarting Luna</strong> - Unplug the power for 10 seconds, then plug it back in</li>
-            <li><strong>Check different angles</strong> - Sometimes the screen is hard to see from certain positions</li>
-        </ul>
-        <p style="margin-top: 1rem; font-style: italic;">Remember: You're looking for a smiley face (😊) on Luna's little screen!</p>
-    `;
-    
-    faceCheckButtons.innerHTML = `
-        <div class="button-group">
-            <button class="primary-btn" onclick="retryFaceDetection()">Try Again</button>
-            <button class="secondary-btn" onclick="skipToScanning()">Skip & Continue</button>
-        </div>
-    `;
-}
-
-function retryFaceDetection() {
-    // Reset the face detection process
-    const faceTimer = document.getElementById('face-timer');
-    const faceCheckButtons = document.getElementById('face-check-buttons');
-    const lunaFaceImage = document.getElementById('luna-face-image');
-    
-    // Reset image to initial state
-    lunaFaceImage.src = 'assets/luna-intro.png';
-    lunaFaceImage.alt = 'Luna device waking up';
-    
-    faceCheckButtons.style.display = 'none';
-    startFaceDetection();
-}
-
-function skipToScanning() {
-    // Allow user to skip face detection if having issues
-    showScreen('device-scanning');
+    features.forEach((feature, index) => {
+        setTimeout(() => {
+            feature.classList.add('animated');
+        }, index * animationInterval);
+    });
 }
 
 // Device Discovery and Connection
 async function startDeviceScanning() {
-    if (isScanning) return;
-    
+    console.log('startDeviceScanning function called.');
+    if (isScanning) {
+        console.log('Device scanning is already in progress. Aborting.');
+        return;
+    }
+
     isScanning = true;
-    const scanOptions = document.querySelector('.scan-options');
-    
-    // Show scan failed option after 5 seconds
+    console.log('isScanning set to true.');
+
+    // Automatically move to the next screen after 5 seconds
     setTimeout(() => {
+        console.log(`setTimeout callback executed. Current screen is: ${currentScreen}`);
         if (currentScreen === 'device-scanning') {
-            scanOptions.style.display = 'block';
-        }
-    }, 5000);
-    
-    try {
-        // Simulate device discovery process
-        const deviceFound = await simulateDeviceDiscovery();
-        
-        if (deviceFound && currentScreen === 'device-scanning') {
+            console.log('Condition met. Moving to connection-success screen.');
             isScanning = false;
             showScreen('connection-success');
+        } else {
+            console.log(`Condition not met. Not moving to connection-success screen. Current screen: ${currentScreen}`);
         }
-    } catch (error) {
-        console.error('Device scanning error:', error);
-        if (currentScreen === 'device-scanning') {
-            isScanning = false;
-            showScreen('scan-failed');
-        }
-    }
+    }, 5000);
 }
 
 async function simulateDeviceDiscovery() {
     // Simulate network scanning for Luna device
     return new Promise((resolve) => {
-        // Random success/failure for demo purposes
-        const scanDuration = Math.random() * 3000 + 2000; // 2-5 seconds
-        const success = Math.random() > 0.3; // 70% success rate
+        // Always succeed for demo purposes
+        const scanDuration = Math.random() * 2000 + 1000; // 1-3 seconds
+        const success = true; // Always succeed
         
         setTimeout(() => {
             resolve(success);
@@ -206,19 +144,20 @@ function startChat() {
 function initializeChat() {
     const chatMessages = document.getElementById('chat-messages');
     chatMessages.innerHTML = '';
-    
+
     // Start Luna's onboarding conversation
     const welcomeMessage = `Hi ${userName}! I'm Luna, your private AI assistant. I run completely locally on your device - no internet needed, no data sent anywhere, and no usage charges for our core features. Pretty cool, right?`;
-    
+
     addChatMessage('luna', welcomeMessage);
-    
+
     setTimeout(() => {
         const featuresMessage = "I can help with chat conversations, emotional support, answering questions, and even become an expert on specific topics when you upload files. We also have automation tools for email and CRM coming soon.";
         addChatMessage('luna', featuresMessage);
-        
+
         setTimeout(() => {
             const questionMessage = "What would you like to know about first?";
             addChatMessage('luna', questionMessage);
+            showRecommendations();
         }, 2000);
     }, 3000);
 }
@@ -228,16 +167,16 @@ function addChatMessage(sender, message) {
     const chatMessages = document.getElementById('chat-messages');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
-    
+
     if (sender === 'luna') {
         messageDiv.innerHTML = `<div class="message-sender">Luna</div>${message}`;
     } else {
         messageDiv.innerHTML = message;
     }
-    
+
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    
+
     // Store in conversation history
     chatConversation.push({ sender, message, timestamp: Date.now() });
 }
@@ -245,35 +184,93 @@ function addChatMessage(sender, message) {
 function sendMessage() {
     const chatInput = document.getElementById('chat-input');
     const message = chatInput.value.trim();
-    
+
     if (!message) return;
-    
+
     // Add user message
     addChatMessage('user', message);
     chatInput.value = '';
-    
+
     // Simulate Luna's response
     setTimeout(() => {
         const response = generateLunaResponse(message);
         addChatMessage('luna', response);
-        
-        // Check if conversation should end
-        if (shouldEndOnboarding()) {
-            setTimeout(() => {
-                const finalMessage = "Great questions! You seem ready to explore everything Luna can do. Let me show you your dashboard where you'll find all our AI-powered apps.";
-                addChatMessage('luna', finalMessage);
-                
-                setTimeout(() => {
-                    const transitionMessage = "Ready to dive in?";
-                    addChatMessage('luna', transitionMessage);
-                    
-                    setTimeout(() => {
-                        showScreen('dashboard');
-                    }, 2000);
-                }, 3000);
-            }, 1000);
-        }
     }, 1500);
+}
+
+function showRecommendations() {
+    const recommendationsContainer = document.getElementById('chat-recommendations');
+    recommendationsContainer.innerHTML = '';
+
+    const recommendations = [
+        'What can you do?',
+        'How does local AI work?',
+        'Tell me about Luna privacy features',
+        'Start using the application'
+    ];
+
+    recommendations.forEach(rec => {
+        const button = document.createElement('button');
+        button.className = 'recommendation-btn';
+        button.textContent = rec;
+        button.onclick = () => handleRecommendationClick(rec);
+        recommendationsContainer.appendChild(button);
+    });
+}
+
+function handleRecommendationClick(recommendation) {
+    // Remove the clicked button
+    const recommendationsContainer = document.getElementById('chat-recommendations');
+    const buttons = recommendationsContainer.querySelectorAll('.recommendation-btn');
+    buttons.forEach(button => {
+        if (button.textContent === recommendation) {
+            button.style.display = 'none';
+        }
+    });
+
+    if (recommendation === 'Start using the application') {
+        addChatMessage('user', recommendation);
+        setTimeout(() => {
+            const response = "Let's get you started using the application.";
+            addChatMessage('luna', response);
+            setTimeout(() => {
+                showDashboardWithChat();
+            }, 1500);
+        }, 1000);
+    } else {
+        addChatMessage('user', recommendation);
+        setTimeout(() => {
+            const response = generateLunaResponse(recommendation);
+            addChatMessage('luna', response);
+        }, 1500);
+    }
+}
+
+function showDashboardWithChat() {
+    const appContainer = document.querySelector('.app-container');
+    const chatInterface = document.getElementById('chat-interface');
+    const dashboard = document.getElementById('dashboard');
+    const chatToggleBtn = document.getElementById('chat-toggle-btn');
+
+    appContainer.classList.add('dashboard-view');
+    chatInterface.classList.add('minimized', 'show');
+    dashboard.classList.add('active-alongside-chat');
+    chatToggleBtn.classList.remove('hidden');
+
+    // Ensure other screens are not active
+    document.querySelectorAll('.screen').forEach(screen => {
+        if (screen.id !== 'chat-interface' && screen.id !== 'dashboard') {
+            screen.classList.remove('active');
+        }
+    });
+
+    showScreen('dashboard');
+    chatInterface.classList.add('active');
+}
+
+function toggleChat() {
+    const chatInterface = document.getElementById('chat-interface');
+    chatInterface.classList.toggle('show');
 }
 
 function generateLunaResponse(userMessage) {

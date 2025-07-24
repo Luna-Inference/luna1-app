@@ -554,12 +554,123 @@ p {
     opacity: 0.8;
 }
 
+.face-selection-container {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.face-option {
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.2s;
+}
+
+.face-option:hover {
+    border-color: #4a90e2;
+    background-color: #f0f8ff;
+}
+
+.face-option img {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+}
+
+.face-option p {
+    margin-top: 0.5rem;
+    font-weight: bold;
+}
+
 .chat-input-container {
     display: flex;
     padding: 1rem;
-    border-top: 1px solid #e2e8f0;
-    background-color: #f7fafc;
-    gap: 1rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.chat-recommendations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0 1rem 1rem;
+}
+
+.recommendation-btn {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 15px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.recommendation-btn:hover {
+    background-color: #e0e0e0;
+}
+
+/* Minimized Chat and Dashboard side-by-side */
+.app-container.dashboard-view {
+    display: flex;
+}
+
+#chat-interface.minimized {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background: white;
+    border-left: 1px solid #e0e0e0;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out;
+    z-index: 999;
+}
+
+#chat-interface.minimized.show {
+    right: 0;
+}
+
+/* Floating Chat Toggle Button */
+#chat-toggle-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    background-color: #4a90e2;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 1000;
+}
+
+#chat-toggle-btn.hidden {
+    display: none;
+}
+
+#chat-toggle-btn:hover {
+    background-color: #357abd;
+}
+
+#chat-interface:not(.minimized) {
+    width: 875px;
+    flex-shrink: 0;
+    height: 100vh;
+    border-left: 1px solid #e0e0e0;
+    order: 1;
+}
+
+#dashboard.active-alongside-chat {
+    flex-grow: 1;
+    display: block; /* Override the default screen display */
 }
 
 .chat-input-container input {
@@ -864,4 +975,15 @@ p {
 
 .screen.active {
     opacity: 1;
+}
+
+/* Feature card animation */
+.feature-card {
+    transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+    transform: translateY(20px);
+}
+
+.feature-card.animated {
+    opacity: 1 !important;
+    transform: translateY(0);
 }

@@ -16,39 +16,6 @@
                     <p>Your private AI assistant that runs completely on your device</p>
                 </div>
 
-                <!-- Feature Showcase -->
-                <div class="features-showcase">
-                    <div class="feature-card chat-feature">
-                        <div class="feature-icon">💬</div>
-                        <div class="feature-label">Chat about anything</div>
-                    </div>
-
-                    <div class="feature-card support-feature">
-                        <div class="feature-icon">❤️</div>
-                        <div class="feature-label">Emotional support</div>
-                    </div>
-
-                    <div class="feature-card questions-feature">
-                        <div class="feature-icon">🧠</div>
-                        <div class="feature-label">Answer questions</div>
-                    </div>
-
-                    <div class="feature-card expert-feature">
-                        <div class="feature-icon">📚</div>
-                        <div class="feature-label">Create topic experts</div>
-                    </div>
-
-                    <div class="feature-card privacy-feature">
-                        <div class="feature-icon">🔒</div>
-                        <div class="feature-label">100% private & local</div>
-                    </div>
-
-                    <div class="feature-card voice-feature coming-soon-feature">
-                        <div class="feature-icon">🎤</div>
-                        <div class="feature-label">Voice chat</div>
-                        <div class="coming-soon-text">Soon</div>
-                    </div>
-                </div>
 
                 <div class="welcome-device">
                     <img src="assets/luna-intro.png" alt="Luna Device" class="device-image">
@@ -129,50 +96,99 @@
                             </ol>
                             <p><em>Note: If your computer doesn't have this type of port, you may need to use a USB adapter (check your Luna box for one).</em></p>
                         </div>
-                        <button class="primary-btn" onclick="nextScreen('wait-for-face')">Next: Wait for Luna</button>
+                        <button class="primary-btn" onclick="nextScreen('startup-wait-screen')">Next: Wait for Luna</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Wait for Luna's Face -->
-        <div id="wait-for-face" class="screen">
+        <!-- Startup Wait Screen -->
+        <div id="startup-wait-screen" class="screen">
             <div class="content setup-content">
                 <div class="step-header">
                     <span class="step-number">Step 3 of 3</span>
-                    <h2>Wait for Luna to Wake Up</h2>
+                    <h2>Waking Up Luna...</h2>
+                </div>
+                <div class="loading-animation">
+                    <div class="spinner"></div>
+                </div>
+                <div class="detailed-instructions">
+                    <p><strong>Please wait about 30 seconds for Luna to start up.</strong></p>
+                    <p>While you wait, let me show you what Luna can do:</p>
                 </div>
                 
-                <div class="setup-layout">
-                    <div class="setup-visuals">
-                        <div class="face-check-illustration">
-                            <img id="luna-face-image" src="assets/luna-intro.png" alt="Luna device waking up" class="face-image">
-                        </div>
+                <!-- Feature Showcase -->
+                <div class="features-showcase" id="startup-features-showcase">
+                    <div class="feature-card chat-feature" style="opacity: 0;">
+                        <div class="feature-icon">💬</div>
+                        <div class="feature-label">Chat about anything</div>
                     </div>
-                    
-                    <div class="setup-instructions">
-                        <div class="detailed-instructions">
-                            <p><strong>Now we wait for Luna to start up:</strong></p>
-                            <ul>
-                                <li><strong>Look at Luna's screen</strong> - It's the small dark rectangle on the front</li>
-                                <li><strong>Be patient!</strong> - Luna needs about 30-60 seconds to wake up (like starting up a computer)</li>
-                                <li><strong>You'll see a happy face</strong> - Luna will show a smiley face when she's ready</li>
-                                <li><strong>Don't unplug anything</strong> - Just wait and watch the screen</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="face-status">
-                            <div id="face-timer">Waiting for Luna to wake up...</div>
-                            <div id="face-check-buttons" style="display: none;">
-                                <p><strong>Look at Luna's little screen right now:</strong></p>
-                                <p>Do you see a smiley face (😊) on Luna's display?</p>
-                                <div class="button-group">
-                                    <button class="primary-btn" onclick="confirmFaceVisible()">Yes! I see the happy face 😊</button>
-                                    <button class="secondary-btn" onclick="handleNoFace()">No, the screen is still dark/blank</button>
-                                </div>
-                            </div>
-                        </div>
+
+                    <div class="feature-card support-feature" style="opacity: 0;">
+                        <div class="feature-icon">❤️</div>
+                        <div class="feature-label">Emotional support</div>
                     </div>
+
+                    <div class="feature-card questions-feature" style="opacity: 0;">
+                        <div class="feature-icon">🧠</div>
+                        <div class="feature-label">Answer questions</div>
+                    </div>
+
+                    <div class="feature-card expert-feature" style="opacity: 0;">
+                        <div class="feature-icon">📚</div>
+                        <div class="feature-label">Create topic experts</div>
+                    </div>
+
+                    <div class="feature-card privacy-feature" style="opacity: 0;">
+                        <div class="feature-icon">🔒</div>
+                        <div class="feature-label">100% private & local</div>
+                    </div>
+
+                    <div class="feature-card voice-feature coming-soon-feature" style="opacity: 0;">
+                        <div class="feature-icon">🎤</div>
+                        <div class="feature-label">Voice chat</div>
+                        <div class="coming-soon-text">Soon</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Face Selection -->
+        <div id="face-selection-screen" class="screen">
+            <div class="content setup-content">
+                <div class="step-header">
+                    <span class="step-number">Step 3 of 3</span>
+                    <h2>What do you see on Luna's screen?</h2>
+                </div>
+                <div class="face-selection-container">
+                    <div class="face-option" onclick="handleFaceSelection('correct')">
+                        <img src="assets/luna-face.png" alt="Happy face">
+                        <p>A happy, smiling face</p>
+                    </div>
+                    <div class="face-option" onclick="handleFaceSelection('incorrect')">
+                        <img src="assets/luna-intro.png" alt="Blank screen">
+                        <p>A blank or dark screen</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Face Troubleshooting -->
+        <div id="face-troubleshooting-screen" class="screen">
+            <div class="content">
+                <h2>Let's troubleshoot the connection</h2>
+                <div class="error-icon">⚠️</div>
+                <div class="detailed-instructions">
+                    <p><strong>No problem! Let's figure this out together:</strong></p>
+                    <ul style="text-align: left; max-width: 500px; margin: 1rem auto; line-height: 1.6;">
+                        <li><strong>Is Luna's power light on?</strong> - Look for a small light anywhere on Luna</li>
+                        <li><strong>Check the power cable</strong> - Make sure it's pushed all the way into Luna</li>
+                        <li><strong>Wait a little longer</strong> - Some Luna devices take up to 90 seconds to start</li>
+                        <li><strong>Try restarting Luna</strong> - Unplug the power for 10 seconds, then plug it back in</li>
+                    </ul>
+                </div>
+                <div class="error-actions">
+                    <button class="primary-btn" onclick="nextScreen('face-selection-screen')">Try Again</button>
                 </div>
             </div>
         </div>
@@ -257,6 +273,9 @@
                 <div class="chat-messages" id="chat-messages">
                     <!-- Messages will be added dynamically -->
                 </div>
+                <div class="chat-recommendations" id="chat-recommendations">
+                    <!-- Recommendation buttons will be added dynamically -->
+                </div>
                 <div class="chat-input-container">
                     <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="handleChatKeyPress(event)">
                     <button onclick="sendMessage()">Send</button>
@@ -307,6 +326,11 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Floating Chat Toggle Button -->
+    <div id="chat-toggle-btn" class="hidden" onclick="toggleChat()">
+        <span>💬</span>
     </div>
 
     <script src="script.js"></script>
