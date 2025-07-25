@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dia Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+        h1 {
+            font-size: 64px;
+            font-weight: 400;
+            margin: 0;
+            letter-spacing: -1.5px;
+        }
+        .subtitle {
+            font-size: 18px;
+            color: #666;
+            margin: 20px 0 60px;
+        }
+        .section-title {
+            font-size: 28px;
+            font-weight: 500;
+            margin-bottom: 30px;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            text-align: left;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.07);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            margin-right: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+        .card-icon.sales { background-color: #e0f3ff; color: #007aff; }
+        .card-icon.support { background-color: #e0fff1; color: #34c759; }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 500;
+        }
+        .card-description {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+        .card-status {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #34c759;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #34c759;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="logo">Dia</div>
+        <h1>Your Dashboard</h1>
+        <p class="subtitle">Here's a quick overview of your applications.</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon sales">🚀</div>
+                    <h3 class="card-title">Sales Analytics</h3>
+                </div>
+                <p class="card-description">Monitor sales performance, track KPIs, and visualize revenue trends in real-time.</p>
+                <div class="card-status">
+                    <div class="status-dot"></div>
+                    <span>All systems operational</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon support">💬</div>
+                    <h3 class="card-title">Support Tickets</h3>
+                </div>
+                <p class="card-description">Manage customer support requests, assign tickets, and track resolution times.</p>
+                <div class="card-status">
+                    <div class="status-dot"></div>
+                    <span>All systems operational</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
