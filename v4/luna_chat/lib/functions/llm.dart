@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:luna_chat/config.dart';
-import 'package:luna_chat/data/luna_ip_address.dart';
 
 /// An enum to represent the different types of events in the LLM stream.
 enum LlmStreamEventType {
