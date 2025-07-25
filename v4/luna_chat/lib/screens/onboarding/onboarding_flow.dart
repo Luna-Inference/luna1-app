@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:luna_chat/screens/onboarding/onboarding_hardware_setup.dart';
-import 'package:luna_chat/screens/onboarding/onboarding_device_connected.dart';
 import 'package:luna_chat/screens/onboarding/onboarding_user_name.dart';
 import 'package:luna_chat/screens/onboarding/onboarding_instruction_manual_check.dart';
 import 'package:luna_chat/screens/onboarding/onboarding_scanning_luna.dart';
-import 'package:luna_chat/applications/chat.dart';
+import 'package:luna_chat/applications/user_dashboard.dart';
 import 'onboarding_welcome.dart';
 
 class OnboardingFlow extends StatefulWidget {
@@ -35,7 +34,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     } else {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => LunaChatApp(),
+          builder: (context) => UserDashboardApp(),
         ),
       );
     }
@@ -67,15 +66,10 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     });
   }
 
-  void _onDeviceConnected() {
-    setState(() {
-      _currentStep = 4; // This will now be DeviceConnectedScreen
-    });
-  }
 
   void _onLunaScanned() {
     setState(() {
-      _currentStep = 5; // This will now be OnboardingNameInputScreen
+      _currentStep = 4; // This will now be OnboardingNameInputScreen
     });
   }
 
@@ -108,10 +102,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           onScanFailed: _onManualCheckNo, // Option to go back to manual check if scan fails
         );
       case 4:
-        return DeviceConnectedScreen(
-          onComplete: _onDeviceConnected,
-        );
-      case 5:
         return OnboardingNameInputScreen(
           initialName: _userName,
           onNameSubmit: _onNameSubmitted,
