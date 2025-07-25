@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:luna_chat/themes/color.dart';
 import 'package:luna_chat/themes/typography.dart';
 
-class PopupChatBubble extends StatelessWidget {
+class SimpleChatBubble extends StatelessWidget {
   final String text;
   final double maxWidth;
   final Color? backgroundColor;
@@ -11,8 +11,10 @@ class PopupChatBubble extends StatelessWidget {
   final EdgeInsets? padding;
   final bool isUserMessage;
   final bool showTail;
+  final Widget? leading;
+  final Widget? trailing;
   
-  const PopupChatBubble({
+  const SimpleChatBubble({
     super.key,
     required this.text,
     this.maxWidth = 300,
@@ -22,9 +24,10 @@ class PopupChatBubble extends StatelessWidget {
     this.padding,
     this.isUserMessage = false,
     this.showTail = true,
+    this.leading,
+    this.trailing,
   });
   
-
   @override
   Widget build(BuildContext context) {
     final bubbleColor = backgroundColor ?? 
@@ -37,11 +40,14 @@ class PopupChatBubble extends StatelessWidget {
     );
     
     return Row(
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: isUserMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
+        if (leading != null && !isUserMessage) leading!,
         if (showTail && !isUserMessage)
           CustomPaint(
-            painter: ChatBubbleTail(
+            painter: SimpleChatBubbleTail(
               color: bubbleColor,
               isUserMessage: false,
             ),
@@ -75,22 +81,23 @@ class PopupChatBubble extends StatelessWidget {
         ),
         if (showTail && isUserMessage)
           CustomPaint(
-            painter: ChatBubbleTail(
+            painter: SimpleChatBubbleTail(
               color: bubbleColor,
               isUserMessage: true,
             ),
             size: const Size(8, 15),
           ),
+        if (trailing != null && isUserMessage) trailing!,
       ],
     );
   }
 }
 
-class ChatBubbleTail extends CustomPainter {
+class SimpleChatBubbleTail extends CustomPainter {
   final Color color;
   final bool isUserMessage;
   
-  ChatBubbleTail({required this.color, required this.isUserMessage});
+  SimpleChatBubbleTail({required this.color, required this.isUserMessage});
   
   @override
   void paint(Canvas canvas, Size size) {
@@ -119,5 +126,4 @@ class ChatBubbleTail extends CustomPainter {
   
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
-
 }

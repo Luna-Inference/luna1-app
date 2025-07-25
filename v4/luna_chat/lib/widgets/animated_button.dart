@@ -15,7 +15,8 @@ class AnimatedButton extends StatelessWidget {
   final TextStyle? textStyle;
   final double? width;
   final double? elevation;
-  
+  final Widget? icon;
+
   const AnimatedButton({
     super.key,
     required this.text,
@@ -30,6 +31,7 @@ class AnimatedButton extends StatelessWidget {
     this.textStyle,
     this.width,
     this.elevation,
+    this.icon,
   });
 
   @override
@@ -47,28 +49,50 @@ class AnimatedButton extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: backgroundColor ?? onboardingPrimary,
               foregroundColor: foregroundColor ?? Colors.white,
-              padding: padding ?? const EdgeInsets.symmetric(
-                horizontal: 32,
-                vertical: 16,
-              ),
+              padding:
+                  padding ??
+                  const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: borderRadius ?? BorderRadius.circular(12),
-                side: borderColor != null ? BorderSide(
-                  color: borderColor!,
-                  width: 2,
-                ) : BorderSide.none,
+                side:
+                    borderColor != null
+                        ? BorderSide(color: borderColor!, width: 2)
+                        : BorderSide.none,
               ),
               elevation: elevation ?? 0,
             ),
-            child: Text(
-              text,
-              style: textStyle ?? mainText.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: foregroundColor ?? Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
+            child:
+                icon == null
+                    ? Text(
+                      text,
+                      style:
+                          textStyle ??
+                          mainText.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: foregroundColor ?? Colors.white,
+                          ),
+                      textAlign: TextAlign.center,
+                    )
+                    : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        icon!,
+                        const SizedBox(width: 8),
+                        Text(
+                          text,
+                          style:
+                              textStyle ??
+                              mainText.copyWith(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: foregroundColor ?? Colors.white,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
           ),
         ),
       ),
