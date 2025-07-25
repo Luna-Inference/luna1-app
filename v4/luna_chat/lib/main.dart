@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:dash_chat_2/dash_chat_2.dart';
-import 'package:luna_chat/applications/chat.dart';
 import 'package:luna_chat/applications/user_dashboard.dart';
 import 'package:luna_chat/functions/luna_scan.dart';
 import 'package:luna_chat/screens/onboarding/onboarding_flow.dart';
-import 'package:luna_chat/screens/onboarding/onboarding_hardware_setup.dart';
-import 'package:luna_chat/screens/onboarding/onboarding_welcome.dart';
 import 'package:luna_chat/themes/typography.dart';
-import 'package:luna_chat/themes/color.dart';
 import 'package:media_kit/media_kit.dart';
 
 void main() {
@@ -34,10 +29,10 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: 
-        UserDashboardApp()
+       // UserDashboardApp()
       // TestScreen(),
       // LunaChatApp()
-      // OnboardingFlow()
+      OnboardingFlow()
     );
   }
 }

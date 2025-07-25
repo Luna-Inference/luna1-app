@@ -9,6 +9,7 @@ import 'package:luna_chat/functions/llm.dart';
 import 'package:luna_chat/functions/luna_health_check.dart';
 import 'package:luna_chat/themes/color.dart';
 import 'package:luna_chat/themes/typography.dart';
+import 'package:luna_chat/applications/user_dashboard.dart';
 
 class LunaChatApp extends StatefulWidget {
   const LunaChatApp({super.key});
@@ -119,7 +120,7 @@ class _LunaChatAppState extends State<LunaChatApp> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: textColor.withOpacity(0.3),
+                    color: textColor.withAlpha((255 * 0.3).round()),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -136,7 +137,7 @@ class _LunaChatAppState extends State<LunaChatApp> {
                   leading: Container(
                     padding: EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
+                      color: Colors.red.withAlpha((255 * 0.1).round()),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
@@ -381,6 +382,15 @@ class _LunaChatAppState extends State<LunaChatApp> {
     return AppBar(
       backgroundColor: backgroundColor,
       elevation: 0,
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back, color: whiteAccent),
+        onPressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const UserDashboardApp()),
+          );
+        },
+      ),
       title: FutureBuilder<String>(
         future: getUserName(),
         builder: (context, snapshot) {
@@ -397,7 +407,7 @@ class _LunaChatAppState extends State<LunaChatApp> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: buttonColor.withOpacity(0.3),
+                      color: buttonColor.withAlpha((255 * 0.3).round()),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -436,7 +446,7 @@ class _LunaChatAppState extends State<LunaChatApp> {
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: buttonColor.withOpacity(0.2),
+                              color: buttonColor.withAlpha((255 * 0.2).round()),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -518,7 +528,7 @@ class _LunaChatAppState extends State<LunaChatApp> {
   Builders _buildCustomBuilders() {
     return Builders(
       textMessageBuilder: (context, message, index, {required isSentByMe, groupStatus}) {
-        return _buildCustomTextMessage(context, message as TextMessage, isSentByMe);
+        return _buildCustomTextMessage(context, message, isSentByMe);
       },
     );
   }
@@ -553,9 +563,9 @@ class _LunaChatAppState extends State<LunaChatApp> {
                 ? BorderRadius.circular(12)
                 : BorderRadius.zero,
             border: isThinking 
-              ? Border.all(color: Colors.orange.withOpacity(0.5), width: 1)
+              ? Border.all(color: Colors.orange.withAlpha((255 * 0.5).round()), width: 1)
               : isAttachment 
-                ? Border.all(color: buttonColor.withOpacity(0.5), width: 1)
+                ? Border.all(color: buttonColor.withAlpha((255 * 0.5).round()), width: 1)
                 : null,
             boxShadow: _getShadowColor(isSentByMe, isThinking, isError, isAttachment) == Colors.transparent 
               ? null
@@ -703,17 +713,17 @@ class _LunaChatAppState extends State<LunaChatApp> {
                                   color: _getTextColor(isSentByMe, isThinking, isError, isAttachment),
                                   fontFamily: 'monospace',
                                   backgroundColor: isSentByMe 
-                                      ? backgroundColor.withOpacity(0.2)
-                                      : buttonColor.withOpacity(0.1),
+                                      ? backgroundColor.withAlpha((255 * 0.2).round())
+                                      : buttonColor.withAlpha((255 * 0.1).round()),
                                 ),
                                 codeblockDecoration: BoxDecoration(
                                   color: isSentByMe 
-                                      ? backgroundColor.withOpacity(0.2)
-                                      : buttonColor.withOpacity(0.1),
+                                      ? backgroundColor.withAlpha((255 * 0.2).round())
+                                      : buttonColor.withAlpha((255 * 0.1).round()),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 blockquote: mainText.copyWith(
-                                  color: _getTextColor(isSentByMe, isThinking, isError, isAttachment).withOpacity(0.8),
+                                  color: _getTextColor(isSentByMe, isThinking, isError, isAttachment).withAlpha((255 * 0.8).round()),
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
@@ -729,7 +739,7 @@ class _LunaChatAppState extends State<LunaChatApp> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            isSentByMe ? whiteAccent.withOpacity(0.8) : textColor,
+                            isSentByMe ? whiteAccent.withAlpha((255 * 0.8).round()) : textColor,
                           ),
                         ),
                       ),
@@ -755,17 +765,17 @@ class _LunaChatAppState extends State<LunaChatApp> {
 
   // Helper methods for styling
   Color _getMessageBackgroundColor(bool isSentByMe, bool isThinking, bool isError, bool isAttachment) {
-    if (isError) return Colors.red.withOpacity(0.1);
-    if (isThinking) return Colors.orange.withOpacity(0.05);
-    if (isAttachment) return buttonColor.withOpacity(0.1);
+    if (isError) return Colors.red.withAlpha((255 * 0.1).round());
+    if (isThinking) return Colors.orange.withAlpha((255 * 0.05).round());
+    if (isAttachment) return buttonColor.withAlpha((255 * 0.1).round());
     return isSentByMe ? buttonColor : backgroundColor;
   }
 
   Color _getShadowColor(bool isSentByMe, bool isThinking, bool isError, bool isAttachment) {
-    if (isError) return Colors.red.withOpacity(0.3);
-    if (isThinking) return Colors.orange.withOpacity(0.3);
-    if (isAttachment) return buttonColor.withOpacity(0.2);
-    return isSentByMe ? buttonColor.withOpacity(0.3) : Colors.transparent;
+    if (isError) return Colors.red.withAlpha((255 * 0.3).round());
+    if (isThinking) return Colors.orange.withAlpha((255 * 0.3).round());
+    if (isAttachment) return buttonColor.withAlpha((255 * 0.2).round());
+    return isSentByMe ? buttonColor.withAlpha((255 * 0.3).round()) : Colors.transparent;
   }
 
   Color _getTextColor(bool isSentByMe, bool isThinking, bool isError, bool isAttachment) {
@@ -776,10 +786,10 @@ class _LunaChatAppState extends State<LunaChatApp> {
   }
 
   Color _getTimestampColor(bool isSentByMe, bool isThinking, bool isError, bool isAttachment) {
-    if (isError) return Colors.red.withOpacity(0.7);
-    if (isThinking) return Colors.orange.withOpacity(0.7);
-    if (isAttachment) return buttonColor.withOpacity(0.7);
-    return isSentByMe ? whiteAccent.withOpacity(0.8) : textColor;
+    if (isError) return Colors.red.withAlpha((255 * 0.7).round());
+    if (isThinking) return Colors.orange.withAlpha((255 * 0.7).round());
+    if (isAttachment) return buttonColor.withAlpha((255 * 0.7).round());
+    return isSentByMe ? whiteAccent.withAlpha((255 * 0.8).round()) : textColor;
   }
 
   void _handleMessageSend(String text) {

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:luna_chat/themes/typography.dart';
+import 'package:luna_chat/widgets/animated_button.dart';
+import 'package:luna_chat/widgets/animated_chat_bubble.dart';
+import 'package:luna_chat/themes/color.dart';
 
 class OnboardingWelcomeScreen extends StatefulWidget {
   final VoidCallback? onGetStarted;
@@ -137,7 +140,7 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen>
                                       style: headingText.copyWith(
                                         fontSize: 48,
                                         fontWeight: FontWeight.w300,
-                                        color: const Color(0xFF2d3748),
+                                        color: onboardingSecondary,
                                         letterSpacing: 1.0,
                                       ),
                                       textAlign: TextAlign.center,
@@ -152,7 +155,7 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen>
                                         'Your private AI assistant that runs completely on your device',
                                         style: mainText.copyWith(
                                           fontSize: 18,
-                                          color: const Color(0xFF4a5568),
+                                          color: onboardingTertiary,
                                           height: 1.5,
                                         ),
                                         textAlign: TextAlign.center,
@@ -167,36 +170,23 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen>
                                     const SizedBox(height: 40),
                                     
                                     // Get Started button
-                                    AnimatedOpacity(
-                                      opacity: _showButton ? 1.0 : 0.0,
-                                      duration: const Duration(milliseconds: 500),
-                                      child: AnimatedSlide(
-                                        offset: _showButton ? Offset.zero : const Offset(0, 0.2),
-                                        duration: const Duration(milliseconds: 500),
-                                        child: ElevatedButton(
-                                          onPressed: widget.onGetStarted,
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xFF38b2ac),
-                                            foregroundColor: Colors.white,
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 40,
-                                              vertical: 16,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            elevation: 0,
-                                          ),
-                                          child: Text(
-                                            'Get Started',
-                                            style: mainText.copyWith(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
+                                    AnimatedButton(
+                                      text: 'Get Started',
+                                      onPressed: widget.onGetStarted,
+                                      isVisible: _showButton,
+                                      animationDuration: const Duration(milliseconds: 500),
+                                      backgroundColor: onboardingPrimary,
+                                      borderRadius: BorderRadius.circular(8),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 40,
+                                        vertical: 16,
                                       ),
+                                      textStyle: mainText.copyWith(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white,
+                                      ),
+                                      width: null,
                                     ),
                                   ],
                                 ),
@@ -249,32 +239,22 @@ class _OnboardingWelcomeScreenState extends State<OnboardingWelcomeScreen>
   Widget _buildChatBubble() {
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth >= 1024;
+    final maxWidth = isLargeScreen ? 420.0 : 350.0;
     
-    return Container(
-      constraints: BoxConstraints(
-        maxWidth: isLargeScreen ? 420 : 350,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFe2e8f0), width: 2),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+    return AnimatedChatBubble(
+      text: _typingText,
+      isVisible: true,
+      maxWidth: maxWidth,
+      hasGradient: false,
+      backgroundColor: Colors.white,
+      borderColor: onboardingBorder,
+      textColor: onboardingTertiary,
+      textStyle: mainText.copyWith(
+        fontSize: 16,
+        color: onboardingTertiary,
+        height: 1.5,
       ),
       padding: const EdgeInsets.all(20),
-      child: Text(
-        _typingText,
-        style: mainText.copyWith(
-          fontSize: 16,
-          color: const Color(0xFF4a5568),
-          height: 1.5,
-        ),
-      ),
     );
   }
 }

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:luna_chat/themes/typography.dart';
+import 'package:luna_chat/themes/color.dart';
+import 'package:luna_chat/widgets/luna_avatar.dart';
+import 'package:luna_chat/widgets/animated_chat_bubble.dart';
+import 'package:luna_chat/widgets/animated_button.dart';
 
 class OnboardingInstructionManualCheckScreen extends StatefulWidget {
   final VoidCallback? onYesAlreadySetup;
@@ -153,7 +157,7 @@ class _OnboardingInstructionManualCheckScreenState extends State<OnboardingInstr
                                       style: headingText.copyWith(
                                         fontSize: 32,
                                         fontWeight: FontWeight.w400,
-                                        color: const Color(0xFF2d3748),
+                                        color: onboardingSecondary,
                                       ),
                                       textAlign: TextAlign.center,
                                     ),
@@ -190,159 +194,46 @@ class _OnboardingInstructionManualCheckScreenState extends State<OnboardingInstr
           child: AnimatedSlide(
             offset: _showLunaAvatar ? Offset.zero : const Offset(0, 0.2),
             duration: const Duration(milliseconds: 600),
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(60),
-                border: Border.all(
-                  color: const Color(0xFF38b2ac),
-                  width: 3,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF38b2ac).withValues(alpha: 0.2),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(57),
-                child: Image.asset(
-                  'assets/onboarding/luna-intro.png',
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
+            child: const LunaAvatar(),
           ),
         ),
         
         const SizedBox(height: 24),
         
         // Chat Bubble
-        AnimatedOpacity(
-          opacity: _showChatBubble ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 600),
-          child: AnimatedSlide(
-            offset: _showChatBubble ? Offset.zero : const Offset(0, 0.2),
-            duration: const Duration(milliseconds: 600),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 500),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFFe6fffa), Color(0xFFb2f5ea)],
-                ),
-                border: Border.all(color: const Color(0xFF38b2ac), width: 2),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF38b2ac).withValues(alpha: 0.15),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                _typingText,
-                style: mainText.copyWith(
-                  fontSize: 18,
-                  color: const Color(0xFF2d3748),
-                  height: 1.6,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
+        AnimatedChatBubble(
+          text: _typingText,
+          isVisible: _showChatBubble,
         ),
         
         const SizedBox(height: 32),
         
         // Response Buttons
-        AnimatedOpacity(
-          opacity: _showButtons ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 600),
-          child: AnimatedSlide(
-            offset: _showButtons ? Offset.zero : const Offset(0, 0.2),
-            duration: const Duration(milliseconds: 600),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(
-                children: [
-                  // Yes Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: widget.onYesAlreadySetup,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF68d391),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(
-                            color: Color(0xFF38a169),
-                            width: 2,
-                          ),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Yes, it\'s already set up',
-                        style: mainText.copyWith(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // No Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: widget.onNoNeedHelp,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFfed7d7),
-                        foregroundColor: const Color(0xFF2d3748),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(
-                            color: Color(0xFFfc8181),
-                            width: 2,
-                          ),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'No, I need help setting it up',
-                        style: mainText.copyWith(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0xFF2d3748),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ],
+        Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Column(
+            children: [
+              // Yes Button
+              AnimatedButton(
+                text: 'Yes, it\'s already set up',
+                onPressed: widget.onYesAlreadySetup,
+                isVisible: _showButtons,
+                backgroundColor: successAccent,
+                borderColor: successDark,
               ),
-            ),
+              
+              const SizedBox(height: 16),
+              
+              // No Button
+              AnimatedButton(
+                text: 'No, I need help setting it up',
+                onPressed: widget.onNoNeedHelp,
+                isVisible: _showButtons,
+                backgroundColor: errorBackground,
+                foregroundColor: onboardingSecondary,
+                borderColor: errorAccent,
+              ),
+            ],
           ),
         ),
       ],

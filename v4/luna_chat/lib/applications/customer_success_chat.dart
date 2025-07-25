@@ -9,6 +9,7 @@ import 'package:luna_chat/functions/llm.dart';
 import 'package:luna_chat/functions/luna_health_check.dart';
 import 'package:luna_chat/themes/color.dart';
 import 'package:luna_chat/themes/typography.dart';
+
 import 'package:luna_chat/prompts/system_prompts.dart';
 
 class CustomerSuccessChatApp extends StatefulWidget {
@@ -459,8 +460,8 @@ class _CustomerSuccessChatAppState extends State<CustomerSuccessChatApp> {
                           _isLunaOnline ? 'Online' : 'Offline',
                           style: smallText.copyWith(
                             color: _isLunaOnline 
-                                ? const Color(0xFF4ADE80)
-                                : const Color(0xFFEF4444),
+                                ? successGreen
+                                : errorRed,
                           ),
                         ),
                         if (_attachedDocumentText != null) ...[
@@ -528,12 +529,12 @@ class _CustomerSuccessChatAppState extends State<CustomerSuccessChatApp> {
         onPrimary: backgroundColor,
         surface: backgroundColor,
         onSurface: whiteAccent,
-        surfaceContainer: const Color(0xFF2A2A2A),
-        surfaceContainerLow: const Color(0xFF1F1F1F),
-        surfaceContainerHigh: const Color(0xFF333333),
+        surfaceContainer: surfaceContainer,
+        surfaceContainerLow: surfaceContainerLow,
+        surfaceContainerHigh: surfaceContainerHigh,
       ),
       typography: ChatTypography.standard(
-        fontFamily: 'Roboto',
+        fontFamily: primaryFontFamily,
       ).copyWith(
         bodyMedium: mainText.copyWith(
           color: whiteAccent,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:luna_chat/applications/customer_success_chat.dart';
 import 'package:luna_chat/data/application_list.dart';
+import 'package:luna_chat/themes/color.dart';
+import 'package:luna_chat/themes/typography.dart';
+import 'package:luna_chat/widgets/application_card.dart';
 
 class UserDashboardApp extends StatefulWidget {
   const UserDashboardApp({super.key});
@@ -10,8 +13,14 @@ class UserDashboardApp extends StatefulWidget {
 }
 
 class _UserDashboardAppState extends State<UserDashboardApp> {
+  // State variables
   bool _isChatVisible = true;
   late final Widget _chatWidget;
+
+  // Constants for chat widget
+  static const double _chatWidth = 450.0;
+  static const double _chatHeight = 450.0;
+  static const double _chatSpacing = 16.0; // Gap between FAB and chat widget
 
   @override
   void initState() {
@@ -21,291 +30,179 @@ class _UserDashboardAppState extends State<UserDashboardApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Luna Companion App',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: Color(0xFFF7F7F7),
-        textTheme: ThemeData.dark().textTheme.apply(
-          fontFamily: 'Roboto',
-        ),
-      ),
-      home: Scaffold(
-        backgroundColor: Color(0xFFF7F7F7),
-        body: Stack(
+    return Scaffold(
+      backgroundColor: dashboardBackground,
+      body: _buildMainContent(),
+      floatingActionButton: _buildFloatingChatSection(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  /// Main scrollable content of the dashboard
+  Widget _buildMainContent() {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(40),
+        child: Column(
           children: [
-            // Main dashboard content
-            SafeArea(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(40),
-                child: Column(
-                  children: [
-                    // Header
-                    _buildHeader(),
-                    SizedBox(height: 50),
-                    
-                    // Grid of cards
-                    _buildGrid(),
-                  ],
-                ),
-              ),
-            ),
-            
-            // Chat toggle button
-            _buildChatToggle(),
-            
-            // Chat widget
-            if (_isChatVisible) _buildChatWidget(),
+            _buildHeader(),
+            const SizedBox(height: 50),
+            _buildGrid(),
+            // Add bottom padding to prevent FAB overlap
+            const SizedBox(height: 100),
           ],
         ),
       ),
     );
   }
 
+  /// Floating chat section that includes both FAB and chat widget
+  Widget _buildFloatingChatSection() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // Chat widget appears above the FAB when visible
+        if (_isChatVisible) ...[
+          _buildAttachedChatWidget(),
+          const SizedBox(height: _chatSpacing),
+        ],
+        // Floating action button
+        FloatingActionButton(
+          onPressed: _toggleChatVisibility,
+          backgroundColor: chatBlue,
+          child: const Icon(
+            Icons.chat,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Toggle chat visibility
+  void _toggleChatVisibility() {
+    setState(() {
+      _isChatVisible = !_isChatVisible;
+    });
+  }
+
+  /// Dashboard header with title and subtitle
   Widget _buildHeader() {
     return Column(
       children: [
         Text(
           'Luna Companion App',
-          style: TextStyle(
-            fontSize: 48,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF333333),
-          ),
+          style: dashboardTitle.copyWith(color: primaryText),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Text(
           'A suite of powerful, private, and local applications for your Luna device.',
-          style: TextStyle(
-            fontSize: 18,
-            color: Color(0xFF666666),
-          ),
+          style: dashboardSubtitle.copyWith(color: secondaryText),
           textAlign: TextAlign.center,
         ),
       ],
     );
   }
 
+  /// Responsive grid of application cards
   Widget _buildGrid() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        int crossAxisCount = constraints.maxWidth > 900 ? 4 : constraints.maxWidth > 600 ? 2 : 1;
+        // Determine columns based on screen width
+        final int crossAxisCount = _calculateGridColumns(constraints.maxWidth);
+        
         return GridView.count(
           shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           crossAxisCount: crossAxisCount,
           crossAxisSpacing: 40,
           mainAxisSpacing: 40,
           childAspectRatio: 1.2,
           children: ApplicationList.applications
-              .map((app) => _buildApplicationCard(app))
+              .map((app) => ApplicationCard(app: app))
               .toList(),
         );
       },
     );
   }
 
-  Widget _buildApplicationCard(LunaApplication app) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
+  /// Calculate number of grid columns based on screen width
+  int _calculateGridColumns(double screenWidth) {
+    if (screenWidth > 900) return 4;
+    if (screenWidth > 600) return 2;
+    return 1;
+  }
+
+
+
+  /// Chat widget that's physically attached to the FAB
+  Widget _buildAttachedChatWidget() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      width: _chatWidth,
+      height: _isChatVisible ? _chatHeight : 0,
+      decoration: _buildChatDecoration(),
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 25,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Card image section
-          Expanded(
-            flex: 3,
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: app.color,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
-              ),
-              child: Center(
-                child: Icon(
-                  app.icon,
-                  size: 50,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          // Card content
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          app.title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF333333),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (app.isComingSoon) ...[
-                        SizedBox(width: 8),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: app.color.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Soon',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w500,
-                              color: app.color,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  SizedBox(height: 6),
-                  Expanded(
-                    child: Text(
-                      app.description,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF666666),
-                        height: 1.3,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChatToggle() {
-    return Positioned(
-      bottom: 16,
-      right: 16,
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _isChatVisible = !_isChatVisible;
-          });
-        },
-        child: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            color: Color(0xFF007AFF),
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 15,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Icon(
-            Icons.chat,
-            color: Colors.white,
-            size: 28,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChatWidget() {
-    return Positioned(
-      bottom: 90,
-      right: 16,
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        width: 450,
-        height: _isChatVisible ? 450 : 0,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 25,
-              offset: Offset(0, 8),
-            ),
+        child: Column(
+          children: [
+            _buildChatHeader(),
+            _buildChatContent(),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            child: Column(
-              children: [
-                // Chat header
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Color(0xFF007AFF),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Luna Assistant',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _isChatVisible = false;
-                          });
-                        },
-                        child: Icon(
-                          Icons.close,
-                          size: 20,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // Embedded chat widget - using the persistent chat widget
-                Expanded(
-                  child: _chatWidget,
-                ),
-              ],
+      ),
+    );
+  }
+
+  /// Chat widget decoration with shadow
+  BoxDecoration _buildChatDecoration() {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.15),
+          blurRadius: 25,
+          offset: const Offset(0, 8),
+        ),
+      ],
+    );
+  }
+
+  /// Chat header with title and close button
+  Widget _buildChatHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: chatBlue,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Luna Assistant',
+            style: chatAppBarTitle.copyWith(color: Colors.white),
+          ),
+          GestureDetector(
+            onTap: _toggleChatVisibility,
+            child: const Icon(
+              Icons.close,
+              size: 20,
+              color: Colors.white,
             ),
           ),
-        ),
+        ],
       ),
+    );
+  }
+
+  /// Chat content area
+  Widget _buildChatContent() {
+    return Expanded(
+      child: _chatWidget,
     );
   }
 }

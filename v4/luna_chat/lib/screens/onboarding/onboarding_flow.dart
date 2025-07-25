@@ -4,6 +4,7 @@ import 'package:luna_chat/screens/onboarding/onboarding_user_name.dart';
 import 'package:luna_chat/screens/onboarding/onboarding_instruction_manual_check.dart';
 import 'package:luna_chat/screens/onboarding/onboarding_scanning_luna.dart';
 import 'package:luna_chat/applications/user_dashboard.dart';
+import 'package:luna_chat/data/user_name.dart';
 import 'onboarding_welcome.dart';
 
 class OnboardingFlow extends StatefulWidget {
@@ -25,10 +26,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   @override
   void initState() {
     super.initState();
-    // Start with welcome screen - no timers needed
   }
 
-  void _navigateToChat() {
+  void _navigateToDashboard() {
     if (widget.onComplete != null) {
       widget.onComplete!();
     } else {
@@ -62,7 +62,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   void _onHardwareSetupComplete() {
     setState(() {
-      _currentStep = 3; // This will now be OnboardingScanningLunaScreen
+      _currentStep = 3; 
     });
   }
 
@@ -73,11 +73,27 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     });
   }
 
-  void _onNameSubmitted(String name) {
+  void _onNameSubmitted(String name) async {
     setState(() {
       _userName = name;
     });
-    _navigateToChat();
+    
+    // Save the user name to SharedPreferences
+    final success = await saveUserName(name);
+    
+    if (success) {
+      _navigateToDashboard();
+    } else {
+      // Handle save error - could show a dialog or retry
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to save user name. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -105,7 +121,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         return OnboardingNameInputScreen(
           initialName: _userName,
           onNameSubmit: _onNameSubmitted,
-          onTap: _navigateToChat,
+          onTap: _navigateToDashboard,
           buttonText: 'Get Started',
         );
       default:
