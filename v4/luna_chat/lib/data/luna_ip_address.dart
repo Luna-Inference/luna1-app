@@ -1,1 +1,0 @@
-String lunaIpAddress = '169.254.100.10';

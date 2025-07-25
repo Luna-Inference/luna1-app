@@ -11,7 +11,6 @@ void main() {
   runApp(const MyApp());
 }
 
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -23,16 +22,13 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
-        textTheme: TextTheme(
-          bodyLarge: mainText,
-          headlineLarge: headingText,
-        ),
+        textTheme: TextTheme(bodyLarge: mainText, headlineLarge: headingText),
       ),
-      home: 
-       // UserDashboardApp()
-      // TestScreen(),
-      // LunaChatApp()
-      OnboardingFlow()
+      home:
+          // UserDashboardApp()
+          // TestScreen(),
+          // LunaChatApp()
+          OnboardingFlow(),
     );
   }
 }
@@ -46,15 +42,15 @@ class TestScreen extends StatelessWidget {
       body: Center(
         child: TextButton(
           child: Text('test'),
-          onPressed: () async{
+          onPressed: () async {
             final luna = await LunaScanner.findLuna();
             if (luna != null) {
               // Luna is connected and ready!
-              // Make API calls to http://169.254.100.10:1309/your-endpoints
+              // Make API calls to http://${LunaPort.lunaIpAddress}:${LunaPort.status}/your-endpoints
             }
-          }
-          ,
-          )),
+          },
+        ),
+      ),
     );
   }
 }

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:luna_chat/data/luna_ip_address.dart';
+import 'package:luna_chat/config.dart';
 
 class LunaDevice {
   final String ip;
@@ -11,43 +11,41 @@ class LunaDevice {
 }
 
 class LunaScanner {
-  static const int _port = 1309;
+  static int get _port => int.parse(LunaPort.status);
   static const int _timeoutSeconds = 3;
 
   /// Check if Luna is available at its static IP address
   static Future<LunaDevice?> findLuna({
     int timeoutSeconds = _timeoutSeconds,
   }) async {
-    print('Checking Luna at ${lunaIpAddress}:${_port}...');
-    
+    print('Checking Luna at ${LunaPort.lunaIpAddress}:${_port}...');
+
     try {
       final response = await http
           .get(
-            Uri.parse('http://$lunaIpAddress:$_port/luna'),
+            Uri.parse('http://${LunaPort.lunaIpAddress}:$_port/luna'),
             headers: {'Accept': 'application/json'},
           )
           .timeout(Duration(seconds: timeoutSeconds));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
-        
+
         if (data['device'] == 'luna') {
-          print('Luna found at $lunaIpAddress');
-          return LunaDevice(ip: lunaIpAddress);
+          print('Luna found at ${LunaPort.lunaIpAddress}');
+          return LunaDevice(ip: LunaPort.lunaIpAddress);
         }
       }
     } catch (e) {
       print('Luna not reachable: $e');
     }
-    
-    print('Luna not found at $lunaIpAddress');
+
+    print('Luna not found at ${LunaPort.lunaIpAddress}');
     return null;
   }
 
   /// Quick availability check (shorter timeout)
-  static Future<bool> isLunaAvailable({
-    int timeoutSeconds = 1,
-  }) async {
+  static Future<bool> isLunaAvailable({int timeoutSeconds = 1}) async {
     final device = await findLuna(timeoutSeconds: timeoutSeconds);
     return device != null;
   }
@@ -62,7 +60,7 @@ void main() async {
   
   if (luna != null) {
     print('Found Luna! Ready to connect.');
-    // Make API calls to http://169.254.100.10:1309/your-endpoints
+    // Make API calls to http://${LunaPort.lunaIpAddress}:${LunaPort.status}/your-endpoints
   } else {
     print('Luna not found. Check ethernet connection.');
   }
