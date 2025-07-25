@@ -9,6 +9,7 @@ import 'package:luna_chat/functions/llm.dart';
 import 'package:luna_chat/functions/luna_health_check.dart';
 import 'package:luna_chat/themes/color.dart';
 import 'package:luna_chat/themes/typography.dart';
+import 'package:luna_chat/prompts/system_prompts.dart';
 
 class CustomerSuccessChatApp extends StatefulWidget {
   const CustomerSuccessChatApp({super.key});
@@ -57,21 +58,8 @@ class _CustomerSuccessChatAppState extends State<CustomerSuccessChatApp> {
   Future<void> _initializeSystemMessage() async {
     final userName = _cachedUserName ?? '';
     
-    // Enhanced system prompt for customer success
-    String systemPrompt = '''You are Luna, a customer success AI assistant running locally on a private Luna device. Your role is to help users understand and get the most from their Luna experience.
-
-Key Luna features to highlight when relevant:
-- Local processing (private, no internet needed, no usage charges)
-- Chat interface for conversations and support
-- Document upload for topic-specific expertise
-- Dashboard with AI-powered apps (CodeVerter, AI Platformer)
-- Upcoming: voice chat, automation tools
-
-Guide users naturally through their journey, answer questions about Luna capabilities, and help them navigate the dashboard. Be conversational, helpful, and concise given limited context windows.''';
-    
-    if (userName.isNotEmpty) {
-      systemPrompt += ' The user you are interacting with is $userName.';
-    }
+    // Get system prompt from SystemPrompts class
+    final systemPrompt = SystemPrompts.getCustomerSuccessPrompt(userName: userName);
 
     // Initialize conversation history with system message
     _conversationHistory = [
@@ -91,21 +79,56 @@ Guide users naturally through their journey, answer questions about Luna capabil
     String welcomeText;
     
     if (userName.isNotEmpty) {
-      welcomeText = 'Hello $userName! 👋\n\nWelcome to Luna Chat. I\'m Luna, your AI assistant running locally on your Luna device. I\'m here to help with questions, creative tasks, coding, analysis, and more.\n\nHow can I assist you today?';
+      welcomeText = 'Hello $userName! 👋\n\nWelcome to the Luna Companion Application. I\'m Luna, your AI assistant running locally on your Luna device. I\'m here to help with questions, creative tasks, coding, analysis, and more.\n\nHow can I assist you today?';
     } else {
-      welcomeText = 'Hello there! 👋\n\nWelcome to Luna Chat. I\'m Luna, your AI assistant running locally on your Luna device. I\'m here to help with questions, creative tasks, coding, analysis, and more.\n\nHow can I assist you today?';
+      welcomeText = 'Hello there! 👋\n\nWelcome to the Luna Companion Application. I\'m Luna, your AI assistant running locally on your Luna device. I\'m here to help with questions, creative tasks, coding, analysis, and more.\n\nHow can I assist you today?';
     }
 
+    // Create initial empty welcome message
     final welcomeMessage = TextMessage(
       id: 'welcome-${DateTime.now().millisecondsSinceEpoch}',
       authorId: _aiUserId,
       createdAt: DateTime.now(),
-      text: welcomeText,
+      text: '',
+      metadata: {'streaming': true},
     );
     
     if (mounted) {
       _chatController.insertMessage(welcomeMessage);
+      
+      // Stream the welcome text character by character
+      await _streamWelcomeText(welcomeMessage, welcomeText);
       _hasShownWelcome = true;
+    }
+  }
+
+  Future<void> _streamWelcomeText(TextMessage message, String fullText) async {
+    const int delay = 30; // milliseconds between characters
+    String currentText = '';
+    
+    for (int i = 0; i < fullText.length; i++) {
+      if (!mounted) return;
+      
+      currentText += fullText[i];
+      
+      final updatedMessage = message.copyWith(
+        text: currentText,
+        metadata: {'streaming': true},
+      );
+      
+      _chatController.updateMessage(message, updatedMessage);
+      
+      // Add delay between characters for typing effect
+      await Future.delayed(Duration(milliseconds: delay));
+    }
+    
+    // Final update to remove streaming metadata
+    if (mounted) {
+      final finalMessage = message.copyWith(
+        text: fullText,
+        metadata: {},
+      );
+      _chatController.updateMessage(message, finalMessage);
     }
   }
 

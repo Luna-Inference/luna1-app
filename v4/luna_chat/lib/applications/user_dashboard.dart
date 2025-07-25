@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:luna_chat/applications/customer_success_chat.dart';
+import 'package:luna_chat/data/application_list.dart';
 
 class UserDashboardApp extends StatefulWidget {
   const UserDashboardApp({super.key});
@@ -9,7 +10,14 @@ class UserDashboardApp extends StatefulWidget {
 }
 
 class _UserDashboardAppState extends State<UserDashboardApp> {
-  bool _isChatVisible = false;
+  bool _isChatVisible = true;
+  late final Widget _chatWidget;
+
+  @override
+  void initState() {
+    super.initState();
+    _chatWidget = _ChatWidgetWrapper();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +90,7 @@ class _UserDashboardAppState extends State<UserDashboardApp> {
   Widget _buildGrid() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        int crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
+        int crossAxisCount = constraints.maxWidth > 900 ? 4 : constraints.maxWidth > 600 ? 2 : 1;
         return GridView.count(
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
@@ -90,16 +98,15 @@ class _UserDashboardAppState extends State<UserDashboardApp> {
           crossAxisSpacing: 40,
           mainAxisSpacing: 40,
           childAspectRatio: 1.2,
-          children: [
-            _buildCodeVerterCard(),
-            _buildAIPlatformerCard(),
-          ],
+          children: ApplicationList.applications
+              .map((app) => _buildApplicationCard(app))
+              .toList(),
         );
       },
     );
   }
 
-  Widget _buildCodeVerterCard() {
+  Widget _buildApplicationCard(LunaApplication app) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -120,142 +127,15 @@ class _UserDashboardAppState extends State<UserDashboardApp> {
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Color(0xFF222222),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
-              ),
-              padding: EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Tabs
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Color(0xFF666666),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Text(
-                          'Python',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Color(0xFF444444),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Text(
-                          'JavaScript',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 15),
-                  // Code input area
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Color(0xFF333333),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      padding: EdgeInsets.all(15),
-                      child: Text(
-                        'Enter Python\\ncode here...',
-                        style: TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 14,
-                          color: Color(0xFFCCCCCC),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Card content
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: EdgeInsets.all(25),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'CodeVerter',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Convert code between different languages seamlessly.',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Color(0xFF666666),
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAIPlatformerCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 25,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Card image section
-          Expanded(
-            flex: 3,
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Color(0xFF1A1A40),
+                color: app.color,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
               ),
               child: Center(
-                child: Container(
-                  padding: EdgeInsets.all(20),
-                  child: Text(
-                    'AI Platformer',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                child: Icon(
+                  app.icon,
+                  size: 50,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -264,25 +144,56 @@ class _UserDashboardAppState extends State<UserDashboardApp> {
           Expanded(
             flex: 2,
             child: Padding(
-              padding: EdgeInsets.all(25),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'AI Platformer',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          app.title,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF333333),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (app.isComingSoon) ...[
+                        SizedBox(width: 8),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: app.color.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Soon',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w500,
+                              color: app.color,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Play a dynamic platformer where the world is generated by AI.',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Color(0xFF666666),
-                      height: 1.5,
+                  SizedBox(height: 6),
+                  Expanded(
+                    child: Text(
+                      app.description,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF666666),
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -335,7 +246,7 @@ class _UserDashboardAppState extends State<UserDashboardApp> {
       child: AnimatedContainer(
         duration: Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        width: 320,
+        width: 450,
         height: _isChatVisible ? 450 : 0,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -386,9 +297,9 @@ class _UserDashboardAppState extends State<UserDashboardApp> {
                   ),
                 ),
                 
-                // Embedded chat widget - using the existing CustomerSuccessChatApp
+                // Embedded chat widget - using the persistent chat widget
                 Expanded(
-                  child: _ChatWidgetWrapper(),
+                  child: _chatWidget,
                 ),
               ],
             ),
