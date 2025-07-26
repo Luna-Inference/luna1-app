@@ -4,25 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Luna Companion App</title>
+    <!-- Add marked.js for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
             background-color: #f7f7f7;
             margin: 0;
-            padding: 40px 20px;
+            padding: 40px;
             color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: none;
             margin: 0 auto;
         }
         header {
             text-align: center;
             margin-bottom: 50px;
+        }
+        
+        /* Add bottom padding to prevent FAB overlap */
+        .grid-container {
+            margin-bottom: 100px;
         }
         h1 {
             font-size: 48px;
@@ -35,8 +41,25 @@
         }
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 40px;
+        }
+        
+        /* Responsive grid columns matching Flutter's _calculateGridColumns */
+        @media (max-width: 600px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (min-width: 601px) and (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (min-width: 901px) {
+            .grid-container {
+                grid-template-columns: repeat(4, 1fr);
+            }
         }
         .card {
             background-color: #fff;
@@ -46,6 +69,8 @@
             display: flex;
             flex-direction: column;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            aspect-ratio: 1.2;
+            cursor: pointer;
         }
         .card:hover {
             transform: translateY(-5px);
@@ -53,69 +78,53 @@
         }
         .card-image {
             width: 100%;
-            height: 200px;
-            background-color: #f0f0f0;
+            height: 60%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
-            color: #aaa;
-            border-bottom: 1px solid #eee;
+            font-size: 48px;
+            color: white;
+            position: relative;
+        }
+        
+        .card-icon {
+            font-size: 48px;
+            color: white;
         }
         .card-content {
-            padding: 25px;
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .card-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
             margin-bottom: 8px;
+            color: #333;
         }
         .card-description {
-            font-size: 15px;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        /* Specific card styles */
-        .card.codeverter .card-image {
-            background-color: #222;
-            color: #fff;
-            padding: 20px;
-            box-sizing: border-box;
-            display: block;
-        }
-        .card.codeverter .card-image .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .card.codeverter .card-image .tab {
-            background-color: #444;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 13px;
-        }
-        .card.codeverter .card-image .tab.active {
-            background-color: #666;
-        }
-        .card.codeverter .card-image .code-input {
-            background-color: #333;
-            border-radius: 4px;
-            padding: 15px;
-            font-family: monospace;
             font-size: 14px;
-            color: #ccc;
-            min-height: 100px;
+            color: #666;
+            line-height: 1.4;
         }
 
-        .card.ai-platformer .card-image {
-            background-color: #1a1a40;
-            padding: 20px;
-            box-sizing: border-box;
+        /* Application-specific card styles */
+        .card.chat-interface .card-image {
+            background-color: #007AFF;
         }
-        .card.ai-platformer .card-image img {
-            max-width: 100%;
-            height: auto;
+        
+        .card.expert-creation .card-image {
+            background-color: #34C759;
+        }
+        
+        .card.automation-tools .card-image {
+            background-color: #FF9500;
+        }
+        
+        .card.voice-chat .card-image {
+            background-color: #5856D6;
         }
 
         /* Chat Widget Styles */
@@ -146,10 +155,10 @@
 
         #chat-widget {
             position: fixed;
-            bottom: 100px;
+            bottom: 106px;
             right: 30px;
-            width: 350px;
-            height: 500px;
+            width: 450px;
+            height: 450px;
             background-color: #fff;
             border-radius: 16px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
@@ -168,23 +177,30 @@
         }
 
         .chat-header {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
+            padding: 12px 16px;
+            background-color: #007aff;
+            border-radius: 16px 16px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .chat-header h3 {
             margin: 0;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
+            color: white;
         }
         #close-chat {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
-            color: #999;
+            color: white;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .chat-body {
@@ -202,6 +218,65 @@
         .message.received {
             background-color: #f1f1f1;
             align-self: flex-start;
+        }
+
+        /* Markdown styles for AI messages */
+        .message.received .markdown-content {
+            line-height: 1.5;
+        }
+        
+        .message.received .markdown-content p {
+            margin: 0 0 10px 0;
+        }
+        
+        .message.received .markdown-content p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .message.received .markdown-content h1,
+        .message.received .markdown-content h2,
+        .message.received .markdown-content h3,
+        .message.received .markdown-content h4 {
+            margin: 15px 0 8px 0;
+            font-weight: 600;
+        }
+        
+        .message.received .markdown-content ul,
+        .message.received .markdown-content ol {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+        
+        .message.received .markdown-content li {
+            margin: 4px 0;
+        }
+        
+        .message.received .markdown-content code {
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+        }
+        
+        .message.received .markdown-content pre {
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+        
+        .message.received .markdown-content pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        .message.received .markdown-content blockquote {
+            border-left: 3px solid #007aff;
+            margin: 8px 0;
+            padding-left: 10px;
+            color: #666;
         }
 
         .chat-footer {
@@ -228,6 +303,99 @@
             cursor: pointer;
             font-size: 18px;
         }
+        .chat-footer button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .message.sent {
+            background-color: #007aff;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: #f1f1f1;
+            border-radius: 18px;
+            max-width: 80%;
+            margin-bottom: 15px;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background-color: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+        
+        .api-config {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 1001;
+            min-width: 300px;
+        }
+        
+        .api-config.hidden {
+            display: none;
+        }
+        
+        .api-config input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .api-config button {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        
+        .config-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1002;
+            width: 40px;
+            height: 40px;
+        }
 
     </style>
 </head>
@@ -239,31 +407,47 @@
         </header>
 
         <div class="grid-container">
-            <!-- Card 1: CodeVerter -->
-            <div class="card codeverter" title="Convert code between different languages.">
+            <!-- Card 1: Chat Interface -->
+            <div class="card chat-interface" title="ChatGPT-like local AI">
                 <div class="card-image">
-                    <div class="tabs">
-                        <span class="tab active">Python</span>
-                        <span class="tab">JavaScript</span>
-                    </div>
-                    <div class="code-input">
-                        Enter Python<br>code here...
-                    </div>
+                    <div class="card-icon">💬</div>
                 </div>
                 <div class="card-content">
-                    <div class="card-title">CodeVerter</div>
-                    <div class="card-description">Convert code between different languages seamlessly.</div>
+                    <div class="card-title">Chat Interface</div>
+                    <div class="card-description">ChatGPT-like local AI</div>
                 </div>
             </div>
 
-            <!-- Card 2: AI platformer game -->
-            <div class="card ai-platformer" title="Play a platformer game powered by AI.">
+            <!-- Card 2: Expert Creation -->
+            <div class="card expert-creation" title="Upload files for AI experts">
                 <div class="card-image">
-                    <img src="https://via.placeholder.com/250x150/1a1a40/ffffff?text=AI+Platformer" alt="AI Platformer Game">
+                    <div class="card-icon">📁</div>
                 </div>
                 <div class="card-content">
-                    <div class="card-title">AI Platformer</div>
-                    <div class="card-description">Play a dynamic platformer where the world is generated by AI.</div>
+                    <div class="card-title">Expert Creation</div>
+                    <div class="card-description">Upload files for AI experts</div>
+                </div>
+            </div>
+            
+            <!-- Card 3: Automation Tools -->
+            <div class="card automation-tools" title="Email, CRM integration">
+                <div class="card-image">
+                    <div class="card-icon">⚙️</div>
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Automation Tools</div>
+                    <div class="card-description">Email, CRM integration</div>
+                </div>
+            </div>
+            
+            <!-- Card 4: Voice Chat -->
+            <div class="card voice-chat" title="Real-time voice AI">
+                <div class="card-image">
+                    <div class="card-icon">🎤</div>
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Voice Chat</div>
+                    <div class="card-description">Real-time voice AI</div>
                 </div>
             </div>
         </div>
@@ -280,23 +464,80 @@
             <h3>Luna Assistant</h3>
             <button id="close-chat">&times;</button>
         </div>
-        <div class="chat-body">
-            <div class="message received">
-                Hi! How can I help you navigate the Luna Companion App?
-            </div>
+        <div class="chat-body" id="chat-messages">
+            <!-- Initial message will be generated by AI -->
         </div>
         <div class="chat-footer">
-            <input type="text" placeholder="Type your message...">
-            <button>&#x27A4;</button>
+            <input type="text" id="message-input" placeholder="Type your message...">
+            <button id="send-button">&#x27A4;</button>
         </div>
     </div>
 
+    <!-- API Configuration Panel -->
+    <button class="config-toggle" id="config-toggle">⚙️</button>
+    <div class="api-config hidden" id="api-config">
+        <h4 style="margin-top: 0;">AI Configuration</h4>
+        <p style="font-size: 12px; color: #666; margin: 10px 0;">API key is loaded from config.js</p>
+        <input type="text" id="model-name" placeholder="Model" value="gemini-1.5-flash">
+        <input type="number" id="max-tokens" placeholder="Max Tokens" value="1000" min="100" max="4000">
+        <input type="number" id="temperature" placeholder="Temperature (0-1)" value="0.7" min="0" max="1" step="0.1">
+        <button onclick="saveConfig()">Save</button>
+        <button onclick="toggleConfig()">Close</button>
+    </div>
+    
+    <!-- Load config.js -->
+    <script src="config.js"></script>
+
     <script>
+        // Configure marked.js for markdown rendering
+        marked.setOptions({
+            breaks: true, // Convert line breaks to <br>
+            gfm: true,    // GitHub Flavored Markdown
+            sanitize: false // Allow HTML (we'll sanitize manually)
+        });
+
+        // Chat functionality with Gemini API
+        let chatConfig = {
+            model: 'gemini-1.5-flash',
+            maxTokens: 1000,
+            temperature: 0.7
+        };
+        
+        // Customer Success Conversation State
+        let conversationState = {
+            hasSeenApps: false,
+            conversationHistory: []
+        };
+        
+        // Load conversation state from localStorage
+        const savedState = localStorage.getItem('lunaConversationState');
+        if (savedState) {
+            conversationState = JSON.parse(savedState);
+        }
+        
+        // Load saved config from localStorage
+        const savedConfig = localStorage.getItem('geminiChatConfig');
+        if (savedConfig) {
+            const config = JSON.parse(savedConfig);
+            chatConfig = { ...chatConfig, ...config };
+        }
+        
+        // Update UI with saved config when page loads
+        function updateConfigUI() {
+            document.getElementById('model-name').value = chatConfig.model;
+            document.getElementById('max-tokens').value = chatConfig.maxTokens;
+            document.getElementById('temperature').value = chatConfig.temperature;
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const chatToggle = document.getElementById('chat-toggle');
             const chatWidget = document.getElementById('chat-widget');
             const closeChat = document.getElementById('close-chat');
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            const chatMessages = document.getElementById('chat-messages');
 
+            // Chat widget toggle
             chatToggle.addEventListener('click', () => {
                 chatWidget.classList.toggle('hidden');
             });
@@ -304,7 +545,335 @@
             closeChat.addEventListener('click', () => {
                 chatWidget.classList.add('hidden');
             });
+            
+            // Send message on button click
+            sendButton.addEventListener('click', sendMessage);
+            
+            // Send message on Enter key
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Update config UI when page loads
+            updateConfigUI();
+            
+            // Generate initial AI greeting
+            setTimeout(() => {
+                generateInitialGreeting();
+            }, 1000); // Slight delay to make it feel natural
         });
+        
+        function toggleConfig() {
+            const configPanel = document.getElementById('api-config');
+            configPanel.classList.toggle('hidden');
+        }
+        
+        function saveConfig() {
+            chatConfig.model = document.getElementById('model-name').value;
+            chatConfig.maxTokens = parseInt(document.getElementById('max-tokens').value);
+            chatConfig.temperature = parseFloat(document.getElementById('temperature').value);
+            
+            localStorage.setItem('geminiChatConfig', JSON.stringify(chatConfig));
+            toggleConfig();
+            alert('Configuration saved!');
+        }
+        
+        function saveConversationState() {
+            localStorage.setItem('lunaConversationState', JSON.stringify(conversationState));
+        }
+        
+        function getCustomerSuccessPrompt(userMessage) {
+            const { hasSeenApps, conversationHistory } = conversationState;
+            
+            const appFeatures = {
+                'Chat Interface': 'ChatGPT-like local AI for private conversations and assistance',
+                'Expert Creation': 'Upload files to create specialized AI experts for specific domains', 
+                'Automation Tools': 'Connect email, CRM, and other tools for workflow automation',
+                'Voice Chat': 'Real-time voice conversations with AI assistants'
+            };
+            
+            // Build conversation context from recent history (last 6 messages)
+            const recentHistory = conversationHistory.slice(-6);
+            const conversationContext = recentHistory.length > 0 
+                ? recentHistory.map(msg => `${msg.role === 'user' ? 'User' : 'Luna'}: ${msg.message}`).join('\n')
+                : 'This is the start of the conversation.';
+            
+            const systemPrompt = `You are Luna, a friendly customer success specialist for the Luna Companion App. 
+
+CONVERSATION HISTORY:
+${conversationContext}
+
+YOUR APPROACH:
+- Be conversational, not interrogative - DON'T ask direct questions like "What's your name?" or "What do you do?"
+- Instead, share relevant info about Luna's apps and let them naturally respond with their interests
+- Casually pick up on details they mention (name, work, goals) but don't formally ask for them
+- Get them excited about the apps and guide them toward trying one
+- Keep it brief - 2-3 sentences max
+- If they seem ready, guide them to explore the actual apps
+- Use markdown formatting to make your responses more readable (use **bold**, *italic*, bullet points, etc.)
+- If you ask a question, put it on its own paragraph with a blank line before it
+
+LUNA'S APPS TO MENTION:
+${Object.entries(appFeatures).map(([name, desc]) => `${name} - ${desc}`).join('; ')}
+
+YOUR GOAL: Profile them naturally through conversation, then get them using the apps!
+
+User says: "${userMessage}"
+
+Respond as Luna - be conversational, share something interesting about Luna's capabilities, and let them naturally reveal info about themselves. Use markdown formatting to make your response more readable. If you include a question, put it on its own paragraph.`;
+            
+            return systemPrompt;
+        }
+        
+        async function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            const chatMessages = document.getElementById('chat-messages');
+            
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            // Check if API key is configured
+            if (!window.API_CONFIG || !window.API_CONFIG.GEMINI_API_KEY || window.API_CONFIG.GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+                alert('Please configure your Gemini API key in config.js file.');
+                return;
+            }
+            
+            // Add user message
+            addMessage(message, 'sent');
+            messageInput.value = '';
+            
+            // Disable input while processing
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            
+            // Show typing indicator
+            const typingIndicator = addTypingIndicator();
+            
+            try {
+                // Gemini API endpoint
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${chatConfig.model}:generateContent?key=${window.API_CONFIG.GEMINI_API_KEY}`;
+                
+                // Generate context-aware prompt
+                const systemPrompt = getCustomerSuccessPrompt(message);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: systemPrompt
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: chatConfig.temperature,
+                            maxOutputTokens: chatConfig.maxTokens
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Gemini API Error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Extract response from Gemini's response format
+                let aiResponse;
+                if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0]) {
+                    aiResponse = data.candidates[0].content.parts[0].text;
+                } else {
+                    throw new Error('Unexpected response format from Gemini API');
+                }
+                
+                // Process AI response and update conversation state
+                updateConversationState(message, aiResponse);
+                
+                // Remove typing indicator and add AI response
+                typingIndicator.remove();
+                addMessage(aiResponse, 'received');
+                
+                // Save conversation state
+                saveConversationState();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                typingIndicator.remove();
+                addMessage(`Sorry, I encountered an error: ${error.message}`, 'received');
+            } finally {
+                // Re-enable input
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+        
+        function addMessage(text, type) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            if (type === 'received') {
+                // Render markdown for AI messages
+                const markdownContent = document.createElement('div');
+                markdownContent.className = 'markdown-content';
+                markdownContent.innerHTML = marked.parse(text);
+                messageDiv.appendChild(markdownContent);
+            } else {
+                // Plain text for user messages
+                messageDiv.textContent = text;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageDiv;
+        }
+        
+        function addTypingIndicator() {
+            const chatMessages = document.getElementById('chat-messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return typingDiv;
+        }
+        
+        function updateConversationState(userMessage, aiResponse) {
+            // Simply add to conversation history - let AI handle all understanding
+            conversationState.conversationHistory.push(
+                { role: 'user', message: userMessage },
+                { role: 'assistant', message: aiResponse }
+            );
+            
+            // Only track if apps have been shown (for UI purposes)
+            const lowerAI = aiResponse.toLowerCase();
+            if (lowerAI.includes('chat interface') || lowerAI.includes('expert creation')) {
+                conversationState.hasSeenApps = true;
+            }
+        }
+        
+        // Generate AI-powered initial greeting
+        async function generateInitialGreeting() {
+            const chatMessages = document.getElementById('chat-messages');
+            
+            // Show typing indicator while generating greeting
+            const typingIndicator = addTypingIndicator();
+            
+            try {
+                const greetingPrompt = getInitialGreetingPrompt();
+                
+                // Check if API key is configured
+                if (!window.API_CONFIG || !window.API_CONFIG.GEMINI_API_KEY || window.API_CONFIG.GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+                    typingIndicator.remove();
+                    addMessage('Hi! Please configure your Gemini API key in config.js to start chatting.', 'received');
+                    return;
+                }
+                
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${chatConfig.model}:generateContent?key=${window.API_CONFIG.GEMINI_API_KEY}`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: greetingPrompt
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.9, // Higher creativity for greetings
+                            maxOutputTokens: 200
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Gemini API Error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Extract response from Gemini's response format
+                let greeting;
+                if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0]) {
+                    greeting = data.candidates[0].content.parts[0].text;
+                } else {
+                    throw new Error('Unexpected response format from Gemini API');
+                }
+                
+                // Remove typing indicator and add AI greeting
+                typingIndicator.remove();
+                addMessage(greeting, 'received');
+                
+                // Save that we've had initial interaction
+                conversationState.currentStep = 'name';
+                saveConversationState();
+                
+            } catch (error) {
+                console.error('Error generating greeting:', error);
+                typingIndicator.remove();
+                // Fallback to a simple greeting if AI fails
+                addMessage('Hi there! I\'m Luna, your guide to the Luna Companion App. What\'s your name?', 'received');
+            }
+        }
+        
+        function getInitialGreetingPrompt() {
+            if (conversationState.conversationHistory.length > 0) {
+                // Returning user - reference conversation history
+                const recentHistory = conversationState.conversationHistory.slice(-6);
+                const conversationContext = recentHistory.map(msg => `${msg.role === 'user' ? 'User' : 'Luna'}: ${msg.message}`).join('\n');
+                
+                return `You are Luna, a friendly customer success specialist for Luna Companion App speaking to a returning user.
+
+IMPORTANT: Speak as Luna directly - no options or suggestions, just BE Luna talking to them.
+
+PREVIOUS CONVERSATION:
+${conversationContext}
+
+Create a welcome back message that:
+- References what you remember from your previous conversation
+- Is enthusiastic with 1-2 emojis  
+- Asks how you can help them continue
+- Keep it 2-3 sentences max
+- Be creative and different each time
+- Use markdown formatting to make it more readable
+- If you ask a question, put it on its own paragraph with a blank line before it
+
+Just speak as Luna welcoming them back right now.`;
+            } else {
+                // First-time visitor - creative introduction
+                return `You are Luna, a friendly customer success specialist for Luna Companion App. You are speaking directly to a new user who just opened the chat. 
+
+IMPORTANT: Respond as Luna speaking directly - do NOT provide multiple options or suggestions. Just give ONE greeting as if you're talking to them right now.
+
+Create a creative, enthusiastic greeting that:
+- Introduces yourself as Luna
+- Mentions you'll help them discover Luna's AI tools  
+- Asks for their name
+- Uses 1-2 emojis
+- Is warm but professional
+- Is 2-3 sentences max
+- Feel free to reference time of day, use a metaphor, or ask an interesting question
+- Use markdown formatting to make it more readable
+- If you ask a question, put it on its own paragraph with a blank line before it
+
+Just speak directly as Luna - no "Here are options" or "You could say" - just BE Luna greeting them right now.`;
+            }
+        }
+        
+        // Configuration toggle
+        document.getElementById('config-toggle').addEventListener('click', toggleConfig);
     </script>
 </body>
 </html>
