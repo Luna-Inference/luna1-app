@@ -1,0 +1,15 @@
+// Gemini API Configuration
+// Get your API key from: https://makersuite.google.com/app/apikey
+
+const API_CONFIG = {
+    GEMINI_API_KEY: 'stuff here',
+    // You can also set other configuration options here
+    MODEL: 'gemini-2.5-pro', // or 'gemini-1.5-pro' for more advanced responses
+    MAX_TOKENS: 1000,
+    TEMPERATURE: 0.7
+};
+
+// Export for use in the main HTML file
+if (typeof window !== 'undefined') {
+    window.API_CONFIG = API_CONFIG;
+}
