@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Apps - Mini Challenges</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 400;
+        }
+
+        .new-app-btn {
+            background: #ffffff;
+            color: #1a1a1a;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .new-app-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .tab {
+            color: #888;
+            text-decoration: none;
+            padding: 1rem 0;
+            margin-right: 2rem;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            background: #333;
+            color: #ffffff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .filter-pill.active {
+            background: #ffffff;
+            color: #1a1a1a;
+        }
+
+        .filter-pill:hover {
+            background: #444;
+        }
+
+        .filter-pill.active:hover {
+            background: #f0f0f0;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .app-card {
+            background: #2a2a2a;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #333;
+        }
+
+        .app-card:hover {
+            transform: translateY(-2px);
+            border-color: #555;
+        }
+
+        .app-preview {
+            height: 200px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-info {
+            padding: 1.5rem;
+        }
+
+        .app-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .app-description {
+            color: #888;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        /* Challenge Modal */
+        .challenge-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease;
+        }
+
+        .challenge-modal.hidden {
+            display: none;
+        }
+
+        .challenge-content {
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 800px;
+            width: 95%;
+            border: 1px solid #333;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .challenge-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .challenge-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .challenge-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .challenge-description {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .challenge-input {
+            width: 100%;
+            background: #333;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin: 1rem 0;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .challenge-input::placeholder {
+            color: #888;
+        }
+
+        .challenge-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .try-btn {
+            background: #667eea;
+            color: #fff;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .try-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .try-btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+
+        .skip-challenge-btn {
+            background: none;
+            border: 1px solid #666;
+            color: #888;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .skip-challenge-btn:hover {
+            border-color: #888;
+            color: #fff;
+        }
+
+        .demo-output {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            min-height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-output.loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-spinner {
+            border: 3px solid #333;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .typing-effect {
+            overflow: hidden;
+            border-right: 2px solid #667eea;
+            white-space: nowrap;
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #667eea; }
+        }
+
+        .wow-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin: 1rem 0;
+            font-weight: 600;
+            animation: slideInUp 0.5s ease;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .next-challenge-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            margin-top: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .next-challenge-btn:hover {
+            background: #218838;
+        }
+
+        .finish-btn {
+            background: #ffc107;
+            color: #333;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .finish-btn:hover {
+            background: #e0a800;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .modal h2 {
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        .modal p {
+            color: #888;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .close-btn {
+            background: #ffffff;
+            color: #1a1a1a;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .apps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .challenge-content {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .challenge-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Apps</h1>
+            <button class="new-app-btn">
+                <span>+</span>
+                New app
+            </button>
+        </header>
+
+        <div class="tabs">
+            <a href="#" class="tab active">Inspiration</a>
+            <a href="#" class="tab">My apps</a>
+        </div>
+
+        <div class="filters" id="filters">
+        </div>
+
+        <div class="apps-grid" id="appsGrid">
+        </div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle"></h2>
+            <p id="modalDescription"></p>
+            <button class="close-btn" onclick="closeModal()">Launch App</button>
+        </div>
+    </div>
+
+    <!-- Challenge Modal -->
+    <div class="challenge-modal" id="challengeModal">
+        <div class="challenge-content">
+            <div class="challenge-header">
+                <div class="challenge-avatar">🤖</div>
+                <h2 class="challenge-title" id="challengeTitle">Let's try the Writing Assistant!</h2>
+                <p class="challenge-description" id="challengeDescription">
+                    Want to see AI writing in action? Tell me a topic you'd like to write about, and I'll show you how our AI creates content instantly!
+                </p>
+            </div>
+
+            <div id="challengeStep1">
+                <textarea 
+                    class="challenge-input" 
+                    id="topicInput" 
+                    placeholder="Type any topic... (e.g., 'sustainable energy', 'remote work productivity', 'healthy cooking')"
+                ></textarea>
+                
+                <div class="challenge-buttons">
+                    <button class="try-btn" onclick="runDemo()" disabled id="tryBtn">Generate Content!</button>
+                    <button class="skip-challenge-btn" onclick="skipChallenge()">Skip Demo</button>
+                </div>
+            </div>
+
+            <div id="challengeStep2" style="display: none;">
+                <div class="demo-output" id="demoOutput">
+                    <div class="loading-spinner"></div>
+                </div>
+                
+                <div id="wowMessage" style="display: none;">
+                    <div class="wow-message">
+                        🚀 Imagine that, but 10x faster with AI! This took just 3 seconds instead of 30 minutes.
+                    </div>
+                    <button class="next-challenge-btn" onclick="nextChallenge()">Try Another Tool!</button>
+                </div>
+            </div>
+
+            <div id="challengeComplete" style="display: none;">
+                <div class="wow-message">
+                    🎉 Amazing! You've seen the power of AI in action. Ready to explore all our tools?
+                </div>
+                <button class="finish-btn" onclick="finishChallenges()">Explore Full Marketplace</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apps = [
+            {
+                id: 1,
+                title: "Writing assistant",
+                description: "Generate high-quality content, articles, and copy with advanced AI writing capabilities",
+                category: "Writing",
+                icon: "✍️",
+                gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                details: "Transform your ideas into compelling content with our AI-powered writing assistant. Perfect for blogs, marketing copy, and creative writing."
+            },
+            {
+                id: 2,
+                title: "Code generator",
+                description: "AI-powered code generation, debugging, and optimization across multiple programming languages",
+                category: "Development",
+                icon: "💻",
+                gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+                details: "Accelerate your development workflow with intelligent code suggestions, bug fixes, and optimization recommendations."
+            },
+            {
+                id: 3,
+                title: "Image creator",
+                description: "Create stunning images and artwork from text descriptions using advanced AI models",
+                category: "Creative",
+                icon: "🎨",
+                gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+                details: "Bring your imagination to life with AI-generated images. Create artwork, illustrations, and visual content from simple text prompts."
+            },
+            {
+                id: 4,
+                title: "Data insights",
+                description: "Extract meaningful insights and patterns from your data using intelligent AI analysis",
+                category: "Analytics",
+                icon: "📊",
+                gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+                details: "Unlock the power of your data with intelligent analysis, pattern recognition, and automated insights generation."
+            },
+            {
+                id: 5,
+                title: "Voice synthesizer",
+                description: "Convert text to natural-sounding speech with customizable voices and accents",
+                category: "Audio",
+                icon: "🔊",
+                gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+                details: "Transform text into lifelike speech with customizable voices, perfect for podcasts, presentations, and accessibility."
+            },
+            {
+                id: 6,
+                title: "Smart translator",
+                description: "Instant translation between 100+ languages with context-aware AI understanding",
+                category: "Language",
+                icon: "🌍",
+                gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+                details: "Break down language barriers with accurate, context-aware translations that preserve meaning and cultural nuances."
+            },
+            {
+                id: 7,
+                title: "Video editor",
+                description: "AI-powered video editing with automatic cuts, effects, and optimization features",
+                category: "Creative",
+                icon: "🎬",
+                gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
+                details: "Create professional videos with AI assistance for cutting, effects, transitions, and optimization."
+            },
+            {
+                id: 8,
+                title: "Research assistant",
+                description: "Comprehensive research tool that gathers, analyzes, and summarizes information from multiple sources",
+                category: "Research",
+                icon: "🔍",
+                gradient: "linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)",
+                details: "Accelerate your research with AI that can gather information, fact-check, and provide comprehensive summaries."
+            }
+        ];
+
+        const categories = ['All', 'Writing', 'Development', 'Creative', 'Analytics', 'Audio', 'Language', 'Research'];
+        let activeFilter = 'All';
+        let currentChallenge = 0;
+
+        const challenges = [
+            {
+                title: "Let's try the Writing Assistant! ✍️",
+                description: "Want to see AI writing in action? Tell me a topic you'd like to write about, and I'll show you how our AI creates content instantly!",
+                placeholder: "Type any topic... (e.g., 'sustainable energy', 'remote work productivity', 'healthy cooking')",
+                generateContent: (topic) => `# ${topic.charAt(0).toUpperCase() + topic.slice(1)}: A Comprehensive Guide
+
+${topic.charAt(0).toUpperCase() + topic.slice(1)} has become increasingly important in today's world. This comprehensive guide will explore the key aspects, benefits, and practical applications.
+
+## Key Benefits
+
+• Innovative solutions that drive progress
+• Sustainable practices for long-term success  
+• Cost-effective implementation strategies
+• Proven results across multiple industries
+
+## Getting Started
+
+The journey begins with understanding the fundamentals. Whether you're a beginner or looking to expand your knowledge, the following steps will guide you through the process:
+
+1. **Research and Planning**: Establish clear objectives and understand the landscape
+2. **Implementation Strategy**: Develop a step-by-step approach tailored to your needs
+3. **Monitoring and Optimization**: Track progress and make data-driven adjustments
+
+## Best Practices
+
+Success in ${topic} requires attention to detail and consistent application of proven methods. Industry experts recommend focusing on quality over quantity and maintaining a long-term perspective.
+
+## Conclusion
+
+${topic.charAt(0).toUpperCase() + topic.slice(1)} offers tremendous opportunities for growth and innovation. By following the strategies outlined in this guide, you can achieve meaningful results and stay ahead of the curve.
+
+---
+*Generated by AI Writing Assistant in 3 seconds*`
+            },
+            {
+                title: "Try the Image Creator! 🎨",
+                description: "Describe any image you'd like to create, and watch as our AI generates stunning visuals from your words!",
+                placeholder: "Describe an image... (e.g., 'a futuristic city at sunset', 'a cozy coffee shop in winter')",
+                generateContent: (description) => `🎨 **AI Image Generation Complete!**
+
+**Your prompt:** "${description}"
+
+**Generated image details:**
+• Style: Photorealistic with enhanced lighting
+• Resolution: 1024x1024 pixels
+• Quality: Ultra-high definition
+• Processing time: 2.3 seconds
+
+**Image features detected:**
+✓ Balanced composition
+✓ Rich color palette  
+✓ Professional lighting
+✓ Sharp details throughout
+
+*[In a real app, a stunning AI-generated image would appear here]*
+
+**💡 Pro tip:** Try adding style modifiers like "in the style of Van Gogh" or "photorealistic" for different artistic effects!
+
+---
+*Generated by AI Image Creator in 2.3 seconds*`
+            },
+            {
+                title: "Experience the Research Assistant! 🔍",
+                description: "Ask me to research any topic, and I'll gather comprehensive information from multiple sources instantly!",
+                placeholder: "What would you like me to research... (e.g., 'latest trends in AI', 'best practices for remote work')",
+                generateContent: (query) => `🔍 **Research Report: ${query}**
+
+**Executive Summary:**
+Based on analysis of 50+ recent sources, here are the key findings:
+
+**📊 Key Statistics:**
+• 73% of industry leaders report positive impact
+• 45% increase in adoption over the past year
+• $2.3B market size with 15% annual growth
+
+**🎯 Main Trends:**
+1. **Innovation Focus**: Emphasis on cutting-edge solutions
+2. **Sustainability**: Environmental considerations driving decisions  
+3. **User Experience**: Prioritizing ease of use and accessibility
+4. **Data-Driven**: Analytics informing strategic choices
+
+**📚 Top Sources:**
+• Harvard Business Review (2024)
+• McKinsey Global Institute Report
+• TechCrunch Industry Analysis
+• Academic journals and peer-reviewed studies
+
+**💡 Actionable Insights:**
+- Implement best practices from leading organizations
+- Focus on user-centric design principles
+- Leverage data analytics for decision making
+- Stay updated with emerging technologies
+
+**🔗 Related Topics:** Innovation management, Digital transformation, Future trends
+
+---
+*Research completed in 4.2 seconds using 50+ sources*`
+            }
+        ];
+
+        function renderFilters() {
+            const filtersContainer = document.getElementById('filters');
+            filtersContainer.innerHTML = '';
+
+            categories.forEach(category => {
+                const filterPill = document.createElement('button');
+                filterPill.className = `filter-pill ${category === activeFilter ? 'active' : ''}`;
+                filterPill.textContent = category;
+                filterPill.onclick = () => setFilter(category);
+                filtersContainer.appendChild(filterPill);
+            });
+        }
+
+        function setFilter(category) {
+            activeFilter = category;
+            renderFilters();
+            renderApps();
+        }
+
+        function renderApps() {
+            const grid = document.getElementById('appsGrid');
+            grid.innerHTML = '';
+
+            const filteredApps = activeFilter === 'All' 
+                ? apps 
+                : apps.filter(app => app.category === activeFilter);
+
+            filteredApps.forEach(app => {
+                const appCard = document.createElement('div');
+                appCard.className = 'app-card';
+                appCard.onclick = () => openApp(app);
+
+                appCard.innerHTML = `
+                    <div class="app-preview" style="background: ${app.gradient}">
+                        <span style="font-size: 4rem;">${app.icon}</span>
+                    </div>
+                    <div class="app-info">
+                        <h3 class="app-title">${app.title}</h3>
+                        <p class="app-description">${app.description}</p>
+                    </div>
+                `;
+
+                grid.appendChild(appCard);
+            });
+        }
+
+        function openApp(app) {
+            document.getElementById('modalTitle').textContent = app.title;
+            document.getElementById('modalDescription').textContent = app.details;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Challenge functions
+        function startChallenges() {
+            currentChallenge = 0;
+            showChallenge();
+        }
+
+        function showChallenge() {
+            if (currentChallenge >= challenges.length) {
+                document.getElementById('challengeStep1').style.display = 'none';
+                document.getElementById('challengeStep2').style.display = 'none';
+                document.getElementById('challengeComplete').style.display = 'block';
+                return;
+            }
+
+            const challenge = challenges[currentChallenge];
+            document.getElementById('challengeTitle').textContent = challenge.title;
+            document.getElementById('challengeDescription').textContent = challenge.description;
+            document.getElementById('topicInput').placeholder = challenge.placeholder;
+            document.getElementById('topicInput').value = '';
+            
+            // Reset UI
+            document.getElementById('challengeStep1').style.display = 'block';
+            document.getElementById('challengeStep2').style.display = 'none';
+            document.getElementById('tryBtn').disabled = true;
+            
+            document.getElementById('challengeModal').classList.remove('hidden');
+        }
+
+        function runDemo() {
+            const input = document.getElementById('topicInput').value.trim();
+            if (!input) return;
+
+            // Hide step 1, show step 2 with loading
+            document.getElementById('challengeStep1').style.display = 'none';
+            document.getElementById('challengeStep2').style.display = 'block';
+            
+            const output = document.getElementById('demoOutput');
+            output.classList.add('loading');
+            output.innerHTML = '<div class="loading-spinner"></div>';
+            
+            // Simulate AI processing
+            setTimeout(() => {
+                output.classList.remove('loading');
+                const content = challenges[currentChallenge].generateContent(input);
+                
+                // Add typing effect
+                output.innerHTML = `<pre style="white-space: pre-wrap; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;">${content}</pre>`;
+                
+                // Show wow message
+                setTimeout(() => {
+                    document.getElementById('wowMessage').style.display = 'block';
+                }, 1000);
+                
+            }, 2000);
+        }
+
+        function nextChallenge() {
+            currentChallenge++;
+            document.getElementById('wowMessage').style.display = 'none';
+            showChallenge();
+        }
+
+        function skipChallenge() {
+            nextChallenge();
+        }
+
+        function finishChallenges() {
+            document.getElementById('challengeModal').classList.add('hidden');
+            localStorage.setItem('onboardingComplete', 'true');
+        }
+
+        // Event listeners
+        document.getElementById('topicInput').addEventListener('input', (e) => {
+            document.getElementById('tryBtn').disabled = e.target.value.trim().length === 0;
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        function init() {
+            if (localStorage.getItem('onboardingComplete') !== 'true') {
+                setTimeout(() => {
+                    startChallenges();
+                }, 1000);
+            }
+            
+            renderFilters();
+            renderApps();
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Apps - Progressive Disclosure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        header.visible {
+            opacity: 1;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 400;
+        }
+
+        .new-app-btn {
+            background: #ffffff;
+            color: #1a1a1a;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .new-app-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .tabs.visible {
+            opacity: 1;
+        }
+
+        .tab {
+            color: #888;
+            text-decoration: none;
+            padding: 1rem 0;
+            margin-right: 2rem;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .filters.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .filter-pill {
+            background: #333;
+            color: #ffffff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .filter-pill.active {
+            background: #ffffff;
+            color: #1a1a1a;
+        }
+
+        .filter-pill:hover {
+            background: #444;
+        }
+
+        .filter-pill.active:hover {
+            background: #f0f0f0;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .welcome-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .role-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .role-btn {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            border: 2px solid transparent;
+        }
+
+        .role-btn:hover {
+            background: #444;
+            transform: translateY(-2px);
+        }
+
+        .role-btn.selected {
+            background: #667eea;
+            border-color: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .start-btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .apps-section {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s ease;
+        }
+
+        .apps-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .app-card {
+            background: #2a2a2a;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            border: 1px solid #333;
+            opacity: 0;
+            transform: translateY(40px) scale(0.9);
+        }
+
+        .app-card.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .app-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: #667eea;
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
+        }
+
+        .app-preview {
+            height: 200px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-info {
+            padding: 1.5rem;
+        }
+
+        .app-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .app-description {
+            color: #888;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        .reveal-section {
+            text-align: center;
+            margin: 3rem 0;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .reveal-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-message {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: #fff;
+        }
+
+        .reveal-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 20px rgba(40, 167, 69, 0.4);
+            }
+            to {
+                box-shadow: 0 0 30px rgba(40, 167, 69, 0.6);
+            }
+        }
+
+        .reveal-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #218838 0%, #1c7c88 100%);
+        }
+
+        .celebration {
+            text-align: center;
+            padding: 2rem;
+            margin: 2rem 0;
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 87, 51, 0.1) 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s ease;
+        }
+
+        .celebration.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .celebration-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffc107 0%, #ff5733 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .modal h2 {
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        .modal p {
+            color: #888;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .close-btn {
+            background: #ffffff;
+            color: #1a1a1a;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .apps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .welcome-section {
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+            }
+
+            .role-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header id="header">
+            <h1>AI Apps</h1>
+            <button class="new-app-btn">
+                <span>+</span>
+                New app
+            </button>
+        </header>
+
+        <div class="tabs" id="tabs">
+            <a href="#" class="tab active">Inspiration</a>
+            <a href="#" class="tab">My apps</a>
+        </div>
+
+        <div class="welcome-section" id="welcomeSection">
+            <div class="welcome-avatar">🤖</div>
+            <h2 class="welcome-title">Welcome to Your AI Workspace! 🚀</h2>
+            <p class="welcome-subtitle">
+                I'm your AI guide. Let me help you discover the perfect tools to supercharge your productivity.
+                First, tell me what kind of work you do so I can show you the most relevant apps!
+            </p>
+            
+            <div class="role-selector">
+                <button class="role-btn" data-role="Developer">💻 Developer</button>
+                <button class="role-btn" data-role="Designer">🎨 Designer</button>
+                <button class="role-btn" data-role="Writer">✍️ Writer</button>
+                <button class="role-btn" data-role="Marketer">📈 Marketer</button>
+                <button class="role-btn" data-role="Student">📚 Student</button>
+                <button class="role-btn" data-role="Manager">👔 Manager</button>
+            </div>
+            
+            <button class="start-btn" onclick="showRecommendedApps()" disabled id="startBtn">
+                Show Me My Apps! ✨
+            </button>
+        </div>
+
+        <div class="apps-section" id="recommendedSection">
+            <div class="section-header">
+                <h2 class="section-title" id="sectionTitle">Your Recommended AI Tools</h2>
+                <p class="section-subtitle" id="sectionSubtitle">Hand-picked for your workflow</p>
+            </div>
+            <div class="apps-grid" id="recommendedGrid">
+            </div>
+        </div>
+
+        <div class="reveal-section" id="revealSection">
+            <div class="reveal-message">
+                🌟 Ready to see more? Let me unlock the full marketplace for you!
+            </div>
+            <button class="reveal-btn" onclick="revealFullMarketplace()">
+                Unlock All Apps 🔓
+            </button>
+        </div>
+
+        <div class="celebration" id="celebration">
+            <h2 class="celebration-title">🎉 Welcome to Your Complete AI Workspace! 🎉</h2>
+            <p style="color: #888; font-size: 1.1rem;">
+                You now have access to all our powerful AI tools. Use the filters above to explore by category,
+                or click any app to learn more. Happy creating! ✨
+            </p>
+        </div>
+
+        <div class="filters" id="filters">
+        </div>
+
+        <div class="apps-section" id="allAppsSection">
+            <div class="apps-grid" id="appsGrid">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle"></h2>
+            <p id="modalDescription"></p>
+            <button class="close-btn" onclick="closeModal()">Launch App</button>
+        </div>
+    </div>
+
+    <script>
+        const apps = [
+            {
+                id: 1,
+                title: "Writing assistant",
+                description: "Generate high-quality content, articles, and copy with advanced AI writing capabilities",
+                category: "Writing",
+                icon: "✍️",
+                gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                details: "Transform your ideas into compelling content with our AI-powered writing assistant. Perfect for blogs, marketing copy, and creative writing."
+            },
+            {
+                id: 2,
+                title: "Code generator",
+                description: "AI-powered code generation, debugging, and optimization across multiple programming languages",
+                category: "Development",
+                icon: "💻",
+                gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+                details: "Accelerate your development workflow with intelligent code suggestions, bug fixes, and optimization recommendations."
+            },
+            {
+                id: 3,
+                title: "Image creator",
+                description: "Create stunning images and artwork from text descriptions using advanced AI models",
+                category: "Creative",
+                icon: "🎨",
+                gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+                details: "Bring your imagination to life with AI-generated images. Create artwork, illustrations, and visual content from simple text prompts."
+            },
+            {
+                id: 4,
+                title: "Data insights",
+                description: "Extract meaningful insights and patterns from your data using intelligent AI analysis",
+                category: "Analytics",
+                icon: "📊",
+                gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+                details: "Unlock the power of your data with intelligent analysis, pattern recognition, and automated insights generation."
+            },
+            {
+                id: 5,
+                title: "Voice synthesizer",
+                description: "Convert text to natural-sounding speech with customizable voices and accents",
+                category: "Audio",
+                icon: "🔊",
+                gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+                details: "Transform text into lifelike speech with customizable voices, perfect for podcasts, presentations, and accessibility."
+            },
+            {
+                id: 6,
+                title: "Smart translator",
+                description: "Instant translation between 100+ languages with context-aware AI understanding",
+                category: "Language",
+                icon: "🌍",
+                gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+                details: "Break down language barriers with accurate, context-aware translations that preserve meaning and cultural nuances."
+            },
+            {
+                id: 7,
+                title: "Video editor",
+                description: "AI-powered video editing with automatic cuts, effects, and optimization features",
+                category: "Creative",
+                icon: "🎬",
+                gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
+                details: "Create professional videos with AI assistance for cutting, effects, transitions, and optimization."
+            },
+            {
+                id: 8,
+                title: "Research assistant",
+                description: "Comprehensive research tool that gathers, analyzes, and summarizes information from multiple sources",
+                category: "Research",
+                icon: "🔍",
+                gradient: "linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)",
+                details: "Accelerate your research with AI that can gather information, fact-check, and provide comprehensive summaries."
+            }
+        ];
+
+        const categories = ['All', 'Writing', 'Development', 'Creative', 'Analytics', 'Audio', 'Language', 'Research'];
+        let activeFilter = 'All';
+        let selectedRole = '';
+        let marketplaceRevealed = false;
+
+        // Role-based app recommendations
+        const roleRecommendations = {
+            'Developer': ['Code generator', 'Research assistant', 'Smart translator'],
+            'Designer': ['Image creator', 'Video editor', 'Writing assistant'],
+            'Writer': ['Writing assistant', 'Research assistant', 'Smart translator'],
+            'Marketer': ['Writing assistant', 'Image creator', 'Data insights'],
+            'Student': ['Research assistant', 'Writing assistant', 'Smart translator'],
+            'Manager': ['Data insights', 'Voice synthesizer', 'Research assistant']
+        };
+
+        const roleMessages = {
+            'Developer': 'Perfect for coding, debugging, and technical research',
+            'Designer': 'Essential tools for creating stunning visuals and content',
+            'Writer': 'Everything you need for research and compelling content',
+            'Marketer': 'Data-driven tools for campaigns and content creation',
+            'Student': 'Research and writing tools to excel in your studies',
+            'Manager': 'Analytics and communication tools for leadership'
+        };
+
+        function setupRoleSelection() {
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedRole = btn.dataset.role;
+                    document.getElementById('startBtn').disabled = false;
+                });
+            });
+        }
+
+        function showRecommendedApps() {
+            if (!selectedRole) return;
+
+            // Hide welcome section
+            document.getElementById('welcomeSection').style.display = 'none';
+            
+            // Update section headers
+            document.getElementById('sectionTitle').textContent = `Perfect for ${selectedRole}s! 🎯`;
+            document.getElementById('sectionSubtitle').textContent = roleMessages[selectedRole];
+            
+            // Show recommended apps section
+            const recommendedSection = document.getElementById('recommendedSection');
+            recommendedSection.classList.add('visible');
+            
+            // Get and render recommended apps
+            const recommendations = roleRecommendations[selectedRole] || [];
+            const recommendedApps = recommendations.map(title => 
+                apps.find(app => app.title === title)
+            ).filter(Boolean);
+            
+            renderRecommendedApps(recommendedApps);
+            
+            // Show reveal section after apps are visible
+            setTimeout(() => {
+                document.getElementById('revealSection').classList.add('visible');
+            }, 1500);
+        }
+
+        function renderRecommendedApps(appsToShow) {
+            const grid = document.getElementById('recommendedGrid');
+            grid.innerHTML = '';
+
+            appsToShow.forEach((app, index) => {
+                const appCard = document.createElement('div');
+                appCard.className = 'app-card';
+                appCard.onclick = () => openApp(app);
+
+                appCard.innerHTML = `
+                    <div class="app-preview" style="background: ${app.gradient}">
+                        <span style="font-size: 4rem;">${app.icon}</span>
+                    </div>
+                    <div class="app-info">
+                        <h3 class="app-title">${app.title}</h3>
+                        <p class="app-description">${app.description}</p>
+                    </div>
+                `;
+
+                grid.appendChild(appCard);
+
+                // Animate in with staggered delay
+                setTimeout(() => {
+                    appCard.classList.add('visible');
+                }, index * 200);
+            });
+        }
+
+        function revealFullMarketplace() {
+            marketplaceRevealed = true;
+            
+            // Hide reveal section
+            document.getElementById('revealSection').style.display = 'none';
+            
+            // Show header and tabs
+            document.getElementById('header').classList.add('visible');
+            document.getElementById('tabs').classList.add('visible');
+            
+            // Show celebration
+            setTimeout(() => {
+                document.getElementById('celebration').classList.add('visible');
+            }, 500);
+            
+            // Show filters
+            setTimeout(() => {
+                document.getElementById('filters').classList.add('visible');
+                renderFilters();
+            }, 1000);
+            
+            // Show all apps
+            setTimeout(() => {
+                document.getElementById('allAppsSection').classList.add('visible');
+                renderAllApps();
+            }, 1500);
+            
+            // Save state
+            localStorage.setItem('onboardingComplete', 'true');
+            localStorage.setItem('userRole', selectedRole);
+        }
+
+        function renderFilters() {
+            const filtersContainer = document.getElementById('filters');
+            filtersContainer.innerHTML = '';
+
+            categories.forEach(category => {
+                const filterPill = document.createElement('button');
+                filterPill.className = `filter-pill ${category === activeFilter ? 'active' : ''}`;
+                filterPill.textContent = category;
+                filterPill.onclick = () => setFilter(category);
+                filtersContainer.appendChild(filterPill);
+            });
+        }
+
+        function setFilter(category) {
+            activeFilter = category;
+            renderFilters();
+            renderAllApps();
+        }
+
+        function renderAllApps() {
+            const grid = document.getElementById('appsGrid');
+            grid.innerHTML = '';
+
+            const filteredApps = activeFilter === 'All' 
+                ? apps 
+                : apps.filter(app => app.category === activeFilter);
+
+            filteredApps.forEach((app, index) => {
+                const appCard = document.createElement('div');
+                appCard.className = 'app-card';
+                appCard.onclick = () => openApp(app);
+
+                appCard.innerHTML = `
+                    <div class="app-preview" style="background: ${app.gradient}">
+                        <span style="font-size: 4rem;">${app.icon}</span>
+                    </div>
+                    <div class="app-info">
+                        <h3 class="app-title">${app.title}</h3>
+                        <p class="app-description">${app.description}</p>
+                    </div>
+                `;
+
+                grid.appendChild(appCard);
+
+                // Animate in with staggered delay
+                setTimeout(() => {
+                    appCard.classList.add('visible');
+                }, index * 100);
+            });
+        }
+
+        function openApp(app) {
+            document.getElementById('modalTitle').textContent = app.title;
+            document.getElementById('modalDescription').textContent = app.details;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Event listeners
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        function init() {
+            if (localStorage.getItem('onboardingComplete') === 'true') {
+                // Skip onboarding, show full marketplace
+                selectedRole = localStorage.getItem('userRole') || 'Developer';
+                document.getElementById('welcomeSection').style.display = 'none';
+                document.getElementById('recommendedSection').style.display = 'none';
+                document.getElementById('revealSection').style.display = 'none';
+                document.getElementById('celebration').style.display = 'none';
+                
+                document.getElementById('header').classList.add('visible');
+                document.getElementById('tabs').classList.add('visible');
+                document.getElementById('filters').classList.add('visible');
+                document.getElementById('allAppsSection').classList.add('visible');
+                
+                renderFilters();
+                renderAllApps();
+            } else {
+                setupRoleSelection();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

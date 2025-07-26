@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Apps - Spotlight Effect</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            transition: all 0.8s ease;
+        }
+
+        .container.spotlight-mode {
+            filter: brightness(0.1) blur(1px);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 400;
+        }
+
+        .new-app-btn {
+            background: #ffffff;
+            color: #1a1a1a;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .new-app-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .tab {
+            color: #888;
+            text-decoration: none;
+            padding: 1rem 0;
+            margin-right: 2rem;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            background: #333;
+            color: #ffffff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .filter-pill.active {
+            background: #ffffff;
+            color: #1a1a1a;
+        }
+
+        .filter-pill:hover {
+            background: #444;
+        }
+
+        .filter-pill.active:hover {
+            background: #f0f0f0;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .app-card {
+            background: #2a2a2a;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            border: 1px solid #333;
+            position: relative;
+        }
+
+        .app-card:hover {
+            transform: translateY(-2px);
+            border-color: #555;
+        }
+
+        .app-card.spotlighted {
+            position: relative;
+            z-index: 1000;
+            transform: scale(1.1) translateY(-20px);
+            border: 3px solid #ffd700;
+            box-shadow: 
+                0 0 100px rgba(255, 215, 0, 0.8),
+                0 0 200px rgba(255, 215, 0, 0.4),
+                0 20px 40px rgba(0, 0, 0, 0.5);
+            filter: brightness(1.2) contrast(1.1);
+            animation: spotlight-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes spotlight-pulse {
+            0%, 100% {
+                box-shadow: 
+                    0 0 100px rgba(255, 215, 0, 0.8),
+                    0 0 200px rgba(255, 215, 0, 0.4),
+                    0 20px 40px rgba(0, 0, 0, 0.5);
+            }
+            50% {
+                box-shadow: 
+                    0 0 150px rgba(255, 215, 0, 1),
+                    0 0 300px rgba(255, 215, 0, 0.6),
+                    0 30px 60px rgba(0, 0, 0, 0.7);
+            }
+        }
+
+        .app-preview {
+            height: 200px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-info {
+            padding: 1.5rem;
+        }
+
+        .app-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .app-description {
+            color: #888;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        /* Spotlight Overlay */
+        .spotlight-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 200px, rgba(0, 0, 0, 0.95) 300px);
+            z-index: 500;
+            opacity: 0;
+            transition: all 0.8s ease;
+            pointer-events: none;
+        }
+
+        .spotlight-overlay.active {
+            opacity: 1;
+        }
+
+        /* Spotlight Presentation */
+        .spotlight-presentation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+            background: radial-gradient(circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%), 
+                transparent 0px, 
+                transparent 150px, 
+                rgba(0, 0, 0, 0.3) 200px,
+                rgba(0, 0, 0, 0.8) 300px,
+                rgba(0, 0, 0, 0.95) 400px);
+        }
+
+        .spotlight-presentation.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .presentation-content {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid #ffd700;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 
+                0 0 100px rgba(255, 215, 0, 0.3),
+                0 20px 40px rgba(0, 0, 0, 0.8);
+            position: relative;
+            animation: presentation-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes presentation-glow {
+            from {
+                box-shadow: 
+                    0 0 100px rgba(255, 215, 0, 0.3),
+                    0 20px 40px rgba(0, 0, 0, 0.8);
+            }
+            to {
+                box-shadow: 
+                    0 0 150px rgba(255, 215, 0, 0.5),
+                    0 30px 60px rgba(0, 0, 0, 0.9);
+            }
+        }
+
+        .presentation-step {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .presentation-step.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .spotlight-title {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .spotlight-subtitle {
+            font-size: 1.2rem;
+            color: #ccc;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .role-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .role-option {
+            background: linear-gradient(135deg, #333 0%, #222 100%);
+            border: 2px solid #444;
+            color: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .role-option:hover {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, #444 0%, #333 100%);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
+        }
+
+        .role-option.selected {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #000;
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
+        }
+
+        .spotlight-button {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #000;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 1rem 0.5rem;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .spotlight-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.5);
+        }
+
+        .spotlight-button:disabled {
+            background: #444;
+            color: #888;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .spotlight-button.secondary {
+            background: linear-gradient(135deg, #444 0%, #333 100%);
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .spotlight-button.secondary:hover {
+            background: linear-gradient(135deg, #555 0%, #444 100%);
+        }
+
+        .app-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .showcase-app {
+            background: linear-gradient(135deg, #333 0%, #222 100%);
+            border: 2px solid #444;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            animation: showcase-appear 0.5s ease var(--delay, 0s) both;
+        }
+
+        @keyframes showcase-appear {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .showcase-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+        }
+
+        .showcase-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #ffd700;
+        }
+
+        .showcase-description {
+            color: #ccc;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .modal h2 {
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        .modal p {
+            color: #888;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .close-btn {
+            background: #ffffff;
+            color: #1a1a1a;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .apps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .presentation-content {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .role-selection {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <header>
+            <h1>AI Apps</h1>
+            <button class="new-app-btn">
+                <span>+</span>
+                New app
+            </button>
+        </header>
+
+        <div class="tabs">
+            <a href="#" class="tab active">Inspiration</a>
+            <a href="#" class="tab">My apps</a>
+        </div>
+
+        <div class="filters" id="filters">
+        </div>
+
+        <div class="apps-grid" id="appsGrid">
+        </div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle"></h2>
+            <p id="modalDescription"></p>
+            <button class="close-btn" onclick="closeModal()">Launch App</button>
+        </div>
+    </div>
+
+    <!-- Spotlight Overlay -->
+    <div class="spotlight-overlay" id="spotlightOverlay"></div>
+
+    <!-- Spotlight Presentation -->
+    <div class="spotlight-presentation" id="spotlightPresentation">
+        <div class="presentation-content">
+            <!-- Step 1: Welcome -->
+            <div class="presentation-step visible" id="step1">
+                <h1 class="spotlight-title">✨ Welcome to AI Apps ✨</h1>
+                <p class="spotlight-subtitle">
+                    Step into the spotlight and discover AI tools that will transform your work! 
+                    Let's create your personalized experience.
+                </p>
+                <div class="role-selection">
+                    <div class="role-option" data-role="Developer">💻<br>Developer</div>
+                    <div class="role-option" data-role="Designer">🎨<br>Designer</div>
+                    <div class="role-option" data-role="Writer">✍️<br>Writer</div>
+                    <div class="role-option" data-role="Marketer">📈<br>Marketer</div>
+                    <div class="role-option" data-role="Student">📚<br>Student</div>
+                    <div class="role-option" data-role="Manager">👔<br>Manager</div>
+                </div>
+                <button class="spotlight-button" onclick="showRoleApps()" disabled id="continueBtn">
+                    Show My Spotlight Tools ✨
+                </button>
+                <button class="spotlight-button secondary" onclick="skipSpotlight()">
+                    Skip Presentation
+                </button>
+            </div>
+
+            <!-- Step 2: App Showcase -->
+            <div class="presentation-step" id="step2" style="display: none;">
+                <h1 class="spotlight-title" id="roleTitle">Perfect for Developers! 🎯</h1>
+                <p class="spotlight-subtitle" id="roleSubtitle">
+                    These hand-picked tools will supercharge your development workflow
+                </p>
+                <div class="app-showcase" id="appShowcase">
+                </div>
+                <button class="spotlight-button" onclick="startSpotlightTour()">
+                    See Them in Action! 🔦
+                </button>
+                <button class="spotlight-button secondary" onclick="finishSpotlight()">
+                    Explore Marketplace
+                </button>
+            </div>
+
+            <!-- Step 3: Tour Complete -->
+            <div class="presentation-step" id="step3" style="display: none;">
+                <h1 class="spotlight-title">🌟 Spotlight Complete! 🌟</h1>
+                <p class="spotlight-subtitle">
+                    You've seen the power of AI in action! The marketplace is now yours to explore. 
+                    Each tool is designed to save you hours of work and unlock new possibilities.
+                </p>
+                <button class="spotlight-button" onclick="finishSpotlight()">
+                    Start Creating! 🚀
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apps = [
+            {
+                id: 1,
+                title: "Writing assistant",
+                description: "Generate high-quality content, articles, and copy with advanced AI writing capabilities",
+                category: "Writing",
+                icon: "✍️",
+                gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                details: "Transform your ideas into compelling content with our AI-powered writing assistant. Perfect for blogs, marketing copy, and creative writing."
+            },
+            {
+                id: 2,
+                title: "Code generator",
+                description: "AI-powered code generation, debugging, and optimization across multiple programming languages",
+                category: "Development",
+                icon: "💻",
+                gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+                details: "Accelerate your development workflow with intelligent code suggestions, bug fixes, and optimization recommendations."
+            },
+            {
+                id: 3,
+                title: "Image creator",
+                description: "Create stunning images and artwork from text descriptions using advanced AI models",
+                category: "Creative",
+                icon: "🎨",
+                gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+                details: "Bring your imagination to life with AI-generated images. Create artwork, illustrations, and visual content from simple text prompts."
+            },
+            {
+                id: 4,
+                title: "Data insights",
+                description: "Extract meaningful insights and patterns from your data using intelligent AI analysis",
+                category: "Analytics",
+                icon: "📊",
+                gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+                details: "Unlock the power of your data with intelligent analysis, pattern recognition, and automated insights generation."
+            },
+            {
+                id: 5,
+                title: "Voice synthesizer",
+                description: "Convert text to natural-sounding speech with customizable voices and accents",
+                category: "Audio",
+                icon: "🔊",
+                gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+                details: "Transform text into lifelike speech with customizable voices, perfect for podcasts, presentations, and accessibility."
+            },
+            {
+                id: 6,
+                title: "Smart translator",
+                description: "Instant translation between 100+ languages with context-aware AI understanding",
+                category: "Language",
+                icon: "🌍",
+                gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+                details: "Break down language barriers with accurate, context-aware translations that preserve meaning and cultural nuances."
+            },
+            {
+                id: 7,
+                title: "Video editor",
+                description: "AI-powered video editing with automatic cuts, effects, and optimization features",
+                category: "Creative",
+                icon: "🎬",
+                gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
+                details: "Create professional videos with AI assistance for cutting, effects, transitions, and optimization."
+            },
+            {
+                id: 8,
+                title: "Research assistant",
+                description: "Comprehensive research tool that gathers, analyzes, and summarizes information from multiple sources",
+                category: "Research",
+                icon: "🔍",
+                gradient: "linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)",
+                details: "Accelerate your research with AI that can gather information, fact-check, and provide comprehensive summaries."
+            }
+        ];
+
+        const categories = ['All', 'Writing', 'Development', 'Creative', 'Analytics', 'Audio', 'Language', 'Research'];
+        let activeFilter = 'All';
+        let selectedRole = '';
+        let currentSpotlightIndex = 0;
+        let recommendedApps = [];
+
+        // Role-based app recommendations
+        const roleRecommendations = {
+            'Developer': ['Code generator', 'Research assistant', 'Smart translator'],
+            'Designer': ['Image creator', 'Video editor', 'Writing assistant'],
+            'Writer': ['Writing assistant', 'Research assistant', 'Smart translator'],
+            'Marketer': ['Writing assistant', 'Image creator', 'Data insights'],
+            'Student': ['Research assistant', 'Writing assistant', 'Smart translator'],
+            'Manager': ['Data insights', 'Voice synthesizer', 'Research assistant']
+        };
+
+        const roleMessages = {
+            'Developer': 'These hand-picked tools will supercharge your development workflow',
+            'Designer': 'Essential creative tools for stunning visual content and designs',
+            'Writer': 'Everything you need for research, writing, and content creation',
+            'Marketer': 'Data-driven tools for campaigns, content, and visual marketing',
+            'Student': 'Research and writing tools to excel in your academic journey',
+            'Manager': 'Analytics and communication tools for effective leadership'
+        };
+
+        function setupRoleSelection() {
+            document.querySelectorAll('.role-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectedRole = option.dataset.role;
+                    document.getElementById('continueBtn').disabled = false;
+                });
+            });
+        }
+
+        function showRoleApps() {
+            if (!selectedRole) return;
+
+            // Hide step 1, show step 2
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+            
+            setTimeout(() => {
+                document.getElementById('step2').classList.add('visible');
+            }, 100);
+
+            // Update content for selected role
+            document.getElementById('roleTitle').textContent = `Perfect for ${selectedRole}s! 🎯`;
+            document.getElementById('roleSubtitle').textContent = roleMessages[selectedRole];
+
+            // Get recommended apps
+            const recommendations = roleRecommendations[selectedRole] || [];
+            recommendedApps = recommendations.map(title => 
+                apps.find(app => app.title === title)
+            ).filter(Boolean);
+
+            // Show app showcase
+            const showcase = document.getElementById('appShowcase');
+            showcase.innerHTML = '';
+
+            recommendedApps.forEach((app, index) => {
+                const showcaseApp = document.createElement('div');
+                showcaseApp.className = 'showcase-app';
+                showcaseApp.style.setProperty('--delay', `${index * 0.2}s`);
+                
+                showcaseApp.innerHTML = `
+                    <div class="showcase-icon">${app.icon}</div>
+                    <div class="showcase-title">${app.title}</div>
+                    <div class="showcase-description">${app.description}</div>
+                `;
+                
+                showcase.appendChild(showcaseApp);
+            });
+        }
+
+        function startSpotlightTour() {
+            // Hide presentation
+            document.getElementById('spotlightPresentation').classList.remove('active');
+            
+            // Start spotlight tour
+            currentSpotlightIndex = 0;
+            showNextSpotlight();
+        }
+
+        function showNextSpotlight() {
+            if (currentSpotlightIndex >= recommendedApps.length) {
+                finishSpotlightTour();
+                return;
+            }
+
+            const app = recommendedApps[currentSpotlightIndex];
+            
+            // Find the app card
+            const appCards = [...document.querySelectorAll('.app-card')];
+            const targetCard = appCards.find(card => 
+                card.querySelector('.app-title').textContent === app.title
+            );
+
+            if (targetCard) {
+                // Clear previous spotlights
+                document.querySelectorAll('.app-card').forEach(card => {
+                    card.classList.remove('spotlighted');
+                });
+
+                // Add spotlight to current card
+                targetCard.classList.add('spotlighted');
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Dim background
+                document.getElementById('container').classList.add('spotlight-mode');
+                document.getElementById('spotlightOverlay').classList.add('active');
+
+                // Move to next after delay
+                setTimeout(() => {
+                    currentSpotlightIndex++;
+                    showNextSpotlight();
+                }, 3000);
+            }
+        }
+
+        function finishSpotlightTour() {
+            // Remove all spotlights
+            document.querySelectorAll('.app-card').forEach(card => {
+                card.classList.remove('spotlighted');
+            });
+
+            // Remove dimming
+            document.getElementById('container').classList.remove('spotlight-mode');
+            document.getElementById('spotlightOverlay').classList.remove('active');
+
+            // Show completion step
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step3').style.display = 'block';
+            document.getElementById('spotlightPresentation').classList.add('active');
+            
+            setTimeout(() => {
+                document.getElementById('step3').classList.add('visible');
+            }, 100);
+        }
+
+        function finishSpotlight() {
+            document.getElementById('spotlightPresentation').classList.remove('active');
+            document.getElementById('spotlightOverlay').classList.remove('active');
+            document.getElementById('container').classList.remove('spotlight-mode');
+            
+            // Remove any remaining spotlights
+            document.querySelectorAll('.app-card').forEach(card => {
+                card.classList.remove('spotlighted');
+            });
+
+            localStorage.setItem('onboardingComplete', 'true');
+            localStorage.setItem('userRole', selectedRole);
+        }
+
+        function skipSpotlight() {
+            finishSpotlight();
+        }
+
+        function renderFilters() {
+            const filtersContainer = document.getElementById('filters');
+            filtersContainer.innerHTML = '';
+
+            categories.forEach(category => {
+                const filterPill = document.createElement('button');
+                filterPill.className = `filter-pill ${category === activeFilter ? 'active' : ''}`;
+                filterPill.textContent = category;
+                filterPill.onclick = () => setFilter(category);
+                filtersContainer.appendChild(filterPill);
+            });
+        }
+
+        function setFilter(category) {
+            activeFilter = category;
+            renderFilters();
+            renderApps();
+        }
+
+        function renderApps() {
+            const grid = document.getElementById('appsGrid');
+            grid.innerHTML = '';
+
+            const filteredApps = activeFilter === 'All' 
+                ? apps 
+                : apps.filter(app => app.category === activeFilter);
+
+            filteredApps.forEach(app => {
+                const appCard = document.createElement('div');
+                appCard.className = 'app-card';
+                appCard.onclick = () => openApp(app);
+
+                appCard.innerHTML = `
+                    <div class="app-preview" style="background: ${app.gradient}">
+                        <span style="font-size: 4rem;">${app.icon}</span>
+                    </div>
+                    <div class="app-info">
+                        <h3 class="app-title">${app.title}</h3>
+                        <p class="app-description">${app.description}</p>
+                    </div>
+                `;
+
+                grid.appendChild(appCard);
+            });
+        }
+
+        function openApp(app) {
+            document.getElementById('modalTitle').textContent = app.title;
+            document.getElementById('modalDescription').textContent = app.details;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Event listeners
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        function init() {
+            renderFilters();
+            renderApps();
+            
+            if (localStorage.getItem('onboardingComplete') !== 'true') {
+                setupRoleSelection();
+                // Show spotlight presentation after delay
+                setTimeout(() => {
+                    document.getElementById('spotlightPresentation').classList.add('active');
+                }, 1000);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

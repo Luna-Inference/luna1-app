@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Apps - Interactive Card Reveal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            transition: all 0.5s ease;
+        }
+
+        .container.dimmed {
+            opacity: 0.2;
+            filter: blur(2px);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 400;
+        }
+
+        .new-app-btn {
+            background: #ffffff;
+            color: #1a1a1a;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .new-app-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .tab {
+            color: #888;
+            text-decoration: none;
+            padding: 1rem 0;
+            margin-right: 2rem;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            background: #333;
+            color: #ffffff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .filter-pill.active {
+            background: #ffffff;
+            color: #1a1a1a;
+        }
+
+        .filter-pill:hover {
+            background: #444;
+        }
+
+        .filter-pill.active:hover {
+            background: #f0f0f0;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .app-card {
+            background: #2a2a2a;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #333;
+            position: relative;
+        }
+
+        .app-card:hover {
+            transform: translateY(-2px);
+            border-color: #555;
+        }
+
+        .app-card.highlighted {
+            transform: scale(1.05) translateY(-8px);
+            border: 3px solid #667eea;
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+            z-index: 100;
+            animation: cardPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes cardPulse {
+            0%, 100% { 
+                box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+            }
+            50% { 
+                box-shadow: 0 25px 50px rgba(102, 126, 234, 0.5);
+            }
+        }
+
+        .app-preview {
+            height: 200px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-info {
+            padding: 1.5rem;
+        }
+
+        .app-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .app-description {
+            color: #888;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        /* Onboarding Overlay */
+        .onboarding-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .onboarding-overlay.hidden {
+            display: none;
+        }
+
+        .onboarding-content {
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #333;
+            position: relative;
+        }
+
+        .agent-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .role-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin: 2rem 0;
+        }
+
+        .role-btn {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+
+        .role-btn:hover {
+            background: #444;
+        }
+
+        .role-btn.selected {
+            background: #667eea;
+            transform: scale(1.05);
+        }
+
+        .continue-btn {
+            background: #667eea;
+            color: #fff;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 2rem;
+            transition: all 0.2s ease;
+        }
+
+        .continue-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .continue-btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+
+        .skip-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+        }
+
+        .skip-btn:hover {
+            color: #fff;
+        }
+
+        /* Agent Explanation Box */
+        .agent-explanation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2a2a2a;
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            text-align: center;
+            z-index: 3000;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            animation: slideInScale 0.5s ease;
+        }
+
+        @keyframes slideInScale {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .agent-explanation.hidden {
+            display: none;
+        }
+
+        .explanation-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 1rem;
+        }
+
+        .explanation-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .next-btn {
+            background: #667eea;
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0 0.5rem;
+        }
+
+        .next-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .modal h2 {
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        .modal p {
+            color: #888;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .close-btn {
+            background: #ffffff;
+            color: #1a1a1a;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .apps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .onboarding-content {
+                padding: 2rem;
+                margin: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <header>
+            <h1>AI Apps</h1>
+            <button class="new-app-btn">
+                <span>+</span>
+                New app
+            </button>
+        </header>
+
+        <div class="tabs">
+            <a href="#" class="tab active">Inspiration</a>
+            <a href="#" class="tab">My apps</a>
+        </div>
+
+        <div class="filters" id="filters">
+        </div>
+
+        <div class="apps-grid" id="appsGrid">
+        </div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle"></h2>
+            <p id="modalDescription"></p>
+            <button class="close-btn" onclick="closeModal()">Launch App</button>
+        </div>
+    </div>
+
+    <!-- Onboarding Overlay -->
+    <div class="onboarding-overlay" id="onboardingOverlay">
+        <div class="onboarding-content">
+            <button class="skip-btn" onclick="skipOnboarding()">Skip tour</button>
+            
+            <div class="agent-avatar">🤖</div>
+            
+            <h2>Welcome to AI Apps! 👋</h2>
+            <p>I'm your AI guide. Let me show you the perfect tools for your work!</p>
+            
+            <div class="role-selector">
+                <button class="role-btn" data-role="Developer">💻 Developer</button>
+                <button class="role-btn" data-role="Designer">🎨 Designer</button>
+                <button class="role-btn" data-role="Writer">✍️ Writer</button>
+                <button class="role-btn" data-role="Marketer">📈 Marketer</button>
+                <button class="role-btn" data-role="Student">📚 Student</button>
+                <button class="role-btn" data-role="Manager">👔 Manager</button>
+            </div>
+            
+            <button class="continue-btn" onclick="startCardReveal()" disabled id="continueBtn">Show Me My Tools</button>
+        </div>
+    </div>
+
+    <!-- Agent Explanation -->
+    <div class="agent-explanation hidden" id="agentExplanation">
+        <div class="explanation-avatar">🤖</div>
+        <div class="explanation-text" id="explanationText"></div>
+        <button class="next-btn" onclick="nextExplanation()">Next</button>
+        <button class="next-btn" onclick="finishTour()">Finish Tour</button>
+    </div>
+
+    <script>
+        const apps = [
+            {
+                id: 1,
+                title: "Writing assistant",
+                description: "Generate high-quality content, articles, and copy with advanced AI writing capabilities",
+                category: "Writing",
+                icon: "✍️",
+                gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                details: "Transform your ideas into compelling content with our AI-powered writing assistant. Perfect for blogs, marketing copy, and creative writing."
+            },
+            {
+                id: 2,
+                title: "Code generator",
+                description: "AI-powered code generation, debugging, and optimization across multiple programming languages",
+                category: "Development",
+                icon: "💻",
+                gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+                details: "Accelerate your development workflow with intelligent code suggestions, bug fixes, and optimization recommendations."
+            },
+            {
+                id: 3,
+                title: "Image creator",
+                description: "Create stunning images and artwork from text descriptions using advanced AI models",
+                category: "Creative",
+                icon: "🎨",
+                gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+                details: "Bring your imagination to life with AI-generated images. Create artwork, illustrations, and visual content from simple text prompts."
+            },
+            {
+                id: 4,
+                title: "Data insights",
+                description: "Extract meaningful insights and patterns from your data using intelligent AI analysis",
+                category: "Analytics",
+                icon: "📊",
+                gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+                details: "Unlock the power of your data with intelligent analysis, pattern recognition, and automated insights generation."
+            },
+            {
+                id: 5,
+                title: "Voice synthesizer",
+                description: "Convert text to natural-sounding speech with customizable voices and accents",
+                category: "Audio",
+                icon: "🔊",
+                gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+                details: "Transform text into lifelike speech with customizable voices, perfect for podcasts, presentations, and accessibility."
+            },
+            {
+                id: 6,
+                title: "Smart translator",
+                description: "Instant translation between 100+ languages with context-aware AI understanding",
+                category: "Language",
+                icon: "🌍",
+                gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+                details: "Break down language barriers with accurate, context-aware translations that preserve meaning and cultural nuances."
+            },
+            {
+                id: 7,
+                title: "Video editor",
+                description: "AI-powered video editing with automatic cuts, effects, and optimization features",
+                category: "Creative",
+                icon: "🎬",
+                gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
+                details: "Create professional videos with AI assistance for cutting, effects, transitions, and optimization."
+            },
+            {
+                id: 8,
+                title: "Research assistant",
+                description: "Comprehensive research tool that gathers, analyzes, and summarizes information from multiple sources",
+                category: "Research",
+                icon: "🔍",
+                gradient: "linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)",
+                details: "Accelerate your research with AI that can gather information, fact-check, and provide comprehensive summaries."
+            }
+        ];
+
+        const categories = ['All', 'Writing', 'Development', 'Creative', 'Analytics', 'Audio', 'Language', 'Research'];
+        let activeFilter = 'All';
+        let selectedRole = '';
+        let currentExplanationIndex = 0;
+        let recommendedApps = [];
+
+        // Role-based app recommendations
+        const roleRecommendations = {
+            'Developer': ['Code generator', 'Research assistant', 'Smart translator'],
+            'Designer': ['Image creator', 'Video editor', 'Writing assistant'],
+            'Writer': ['Writing assistant', 'Research assistant', 'Smart translator'],
+            'Marketer': ['Writing assistant', 'Image creator', 'Data insights'],
+            'Student': ['Research assistant', 'Writing assistant', 'Smart translator'],
+            'Manager': ['Data insights', 'Voice synthesizer', 'Research assistant']
+        };
+
+        // Role-specific explanations
+        const roleExplanations = {
+            'Developer': [
+                "As a developer, the Code Generator will be your best friend! It can write functions, debug code, and suggest optimizations across multiple programming languages.",
+                "The Research Assistant helps you quickly find documentation, best practices, and solutions to coding challenges.",
+                "The Smart Translator is perfect for working with international teams and understanding code comments in different languages."
+            ],
+            'Designer': [
+                "The Image Creator is perfect for designers! Generate concepts, mockups, and artwork from simple text descriptions.",
+                "Use the Video Editor to create stunning motion graphics and promotional videos with AI assistance.",
+                "The Writing Assistant helps you craft compelling copy for your designs and client presentations."
+            ],
+            'Writer': [
+                "The Writing Assistant will supercharge your creativity! Get help with blog posts, articles, stories, and overcoming writer's block.",
+                "The Research Assistant gathers information and sources for your articles in seconds instead of hours.",
+                "The Smart Translator lets you write for global audiences and research content in multiple languages."
+            ],
+            'Marketer': [
+                "The Writing Assistant creates compelling marketing copy, social media posts, and email campaigns that convert.",
+                "Generate eye-catching visuals for campaigns with the Image Creator - no design skills needed!",
+                "The Data Insights tool helps you understand campaign performance and customer behavior patterns."
+            ],
+            'Student': [
+                "The Research Assistant is like having a personal librarian! It gathers sources, summarizes articles, and helps with citations.",
+                "The Writing Assistant helps you structure essays, improve your writing, and beat procrastination.",
+                "The Smart Translator is essential for studying foreign languages and accessing international research."
+            ],
+            'Manager': [
+                "The Data Insights tool transforms your team's data into actionable insights and clear reports for stakeholders.",
+                "Use the Voice Synthesizer to create professional narrations for presentations and training materials.",
+                "The Research Assistant keeps you informed on industry trends and competitor analysis."
+            ]
+        };
+
+        function renderFilters() {
+            const filtersContainer = document.getElementById('filters');
+            filtersContainer.innerHTML = '';
+
+            categories.forEach(category => {
+                const filterPill = document.createElement('button');
+                filterPill.className = `filter-pill ${category === activeFilter ? 'active' : ''}`;
+                filterPill.textContent = category;
+                filterPill.onclick = () => setFilter(category);
+                filtersContainer.appendChild(filterPill);
+            });
+        }
+
+        function setFilter(category) {
+            activeFilter = category;
+            renderFilters();
+            renderApps();
+        }
+
+        function renderApps() {
+            const grid = document.getElementById('appsGrid');
+            grid.innerHTML = '';
+
+            const filteredApps = activeFilter === 'All' 
+                ? apps 
+                : apps.filter(app => app.category === activeFilter);
+
+            filteredApps.forEach(app => {
+                const appCard = document.createElement('div');
+                appCard.className = 'app-card';
+                appCard.onclick = () => openApp(app);
+                appCard.dataset.title = app.title;
+
+                appCard.innerHTML = `
+                    <div class="app-preview" style="background: ${app.gradient}">
+                        <span style="font-size: 4rem;">${app.icon}</span>
+                    </div>
+                    <div class="app-info">
+                        <h3 class="app-title">${app.title}</h3>
+                        <p class="app-description">${app.description}</p>
+                    </div>
+                `;
+
+                grid.appendChild(appCard);
+            });
+        }
+
+        function openApp(app) {
+            document.getElementById('modalTitle').textContent = app.title;
+            document.getElementById('modalDescription').textContent = app.details;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Onboarding functions
+        function setupRoleSelection() {
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedRole = btn.dataset.role;
+                    document.getElementById('continueBtn').disabled = false;
+                });
+            });
+        }
+
+        function startCardReveal() {
+            if (!selectedRole) return;
+
+            // Hide onboarding overlay
+            document.getElementById('onboardingOverlay').classList.add('hidden');
+            
+            // Get recommended apps for the role
+            const recommendations = roleRecommendations[selectedRole] || [];
+            recommendedApps = recommendations.map(title => 
+                apps.find(app => app.title === title)
+            ).filter(Boolean);
+
+            // Dim the marketplace
+            document.getElementById('container').classList.add('dimmed');
+            
+            // Start the card reveal sequence
+            setTimeout(() => {
+                currentExplanationIndex = 0;
+                showNextCard();
+            }, 500);
+        }
+
+        function showNextCard() {
+            if (currentExplanationIndex >= recommendedApps.length) {
+                finishTour();
+                return;
+            }
+
+            const app = recommendedApps[currentExplanationIndex];
+            const explanations = roleExplanations[selectedRole] || [];
+            
+            // Highlight the current app card
+            highlightCard(app.title);
+            
+            // Show explanation
+            const explanationText = explanations[currentExplanationIndex] || 
+                `The ${app.title} is perfect for ${selectedRole.toLowerCase()}s!`;
+            
+            document.getElementById('explanationText').textContent = explanationText;
+            document.getElementById('agentExplanation').classList.remove('hidden');
+        }
+
+        function highlightCard(appTitle) {
+            // Remove previous highlights
+            document.querySelectorAll('.app-card').forEach(card => {
+                card.classList.remove('highlighted');
+            });
+
+            // Highlight the current card
+            const targetCard = [...document.querySelectorAll('.app-card')]
+                .find(card => card.dataset.title === appTitle);
+            
+            if (targetCard) {
+                targetCard.classList.add('highlighted');
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function nextExplanation() {
+            currentExplanationIndex++;
+            document.getElementById('agentExplanation').classList.add('hidden');
+            setTimeout(() => {
+                showNextCard();
+            }, 300);
+        }
+
+        function finishTour() {
+            document.getElementById('agentExplanation').classList.add('hidden');
+            document.getElementById('container').classList.remove('dimmed');
+            
+            // Remove all highlights
+            document.querySelectorAll('.app-card').forEach(card => {
+                card.classList.remove('highlighted');
+            });
+
+            // Save completion
+            localStorage.setItem('onboardingComplete', 'true');
+            localStorage.setItem('userRole', selectedRole);
+        }
+
+        function skipOnboarding() {
+            document.getElementById('onboardingOverlay').classList.add('hidden');
+            localStorage.setItem('onboardingComplete', 'true');
+        }
+
+        // Event listeners
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        function init() {
+            if (localStorage.getItem('onboardingComplete') === 'true') {
+                document.getElementById('onboardingOverlay').classList.add('hidden');
+            } else {
+                setupRoleSelection();
+            }
+            
+            renderFilters();
+            renderApps();
+        }
+
+        init();
+    </script>
+</body>
+</html>

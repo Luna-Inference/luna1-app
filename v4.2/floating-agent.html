@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Apps - Floating Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            min-height: 100vh;
+            color: #ffffff;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 400;
+        }
+
+        .new-app-btn {
+            background: #ffffff;
+            color: #1a1a1a;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .new-app-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .tab {
+            color: #888;
+            text-decoration: none;
+            padding: 1rem 0;
+            margin-right: 2rem;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            background: #333;
+            color: #ffffff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .filter-pill.active {
+            background: #ffffff;
+            color: #1a1a1a;
+        }
+
+        .filter-pill:hover {
+            background: #444;
+        }
+
+        .filter-pill.active:hover {
+            background: #f0f0f0;
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .app-card {
+            background: #2a2a2a;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #333;
+        }
+
+        .app-card:hover {
+            transform: translateY(-2px);
+            border-color: #555;
+        }
+
+        .app-preview {
+            height: 200px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-info {
+            padding: 1.5rem;
+        }
+
+        .app-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .app-description {
+            color: #888;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        /* Floating Agent */
+        .floating-agent {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            z-index: 3000;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: all 2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            animation: float 3s ease-in-out infinite;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-10px) rotate(2deg);
+            }
+            50% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            75% {
+                transform: translateY(-5px) rotate(-2deg);
+            }
+        }
+
+        .floating-agent:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .floating-agent.talking {
+            animation: bounce 0.5s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* Speech Bubble */
+        .speech-bubble {
+            position: fixed;
+            background: #2a2a2a;
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            padding: 1.5rem;
+            max-width: 350px;
+            min-width: 250px;
+            z-index: 2500;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: scale(0.8) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+
+        .speech-bubble.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border: 15px solid transparent;
+        }
+
+        .speech-bubble.bottom::before {
+            bottom: -30px;
+            left: 20px;
+            border-top-color: #667eea;
+        }
+
+        .speech-bubble.top::before {
+            top: -30px;
+            left: 20px;
+            border-bottom-color: #667eea;
+        }
+
+        .speech-bubble.left::before {
+            left: -30px;
+            top: 20px;
+            border-right-color: #667eea;
+        }
+
+        .speech-bubble.right::before {
+            right: -30px;
+            top: 20px;
+            border-left-color: #667eea;
+        }
+
+        .speech-text {
+            color: #fff;
+            font-size: 1rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+
+        .speech-text.typing {
+            border-right: 2px solid #667eea;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { border-right-color: #667eea; }
+            51%, 100% { border-right-color: transparent; }
+        }
+
+        .speech-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .speech-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .speech-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .speech-btn.secondary {
+            background: #333;
+            color: #888;
+        }
+
+        .speech-btn.secondary:hover {
+            background: #444;
+            color: #fff;
+        }
+
+        .voice-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #444;
+        }
+
+        .voice-btn {
+            background: none;
+            border: 1px solid #667eea;
+            color: #667eea;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .voice-btn:hover, .voice-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .voice-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .voice-wave {
+            width: 3px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 2px;
+            animation: wave 1s ease-in-out infinite;
+        }
+
+        .voice-wave:nth-child(2) { animation-delay: 0.1s; }
+        .voice-wave:nth-child(3) { animation-delay: 0.2s; }
+        .voice-wave:nth-child(4) { animation-delay: 0.3s; }
+
+        @keyframes wave {
+            0%, 100% { height: 4px; }
+            50% { height: 12px; }
+        }
+
+        /* Pointing Arrow */
+        .pointing-arrow {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.5s ease;
+            pointer-events: none;
+        }
+
+        .pointing-arrow.visible {
+            opacity: 1;
+            animation: point 1s ease-in-out infinite;
+        }
+
+        @keyframes point {
+            0%, 100% {
+                transform: translateX(0) translateY(0);
+            }
+            50% {
+                transform: translateX(10px) translateY(-5px);
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .modal h2 {
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        .modal p {
+            color: #888;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .close-btn {
+            background: #ffffff;
+            color: #1a1a1a;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .apps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .floating-agent {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+
+            .speech-bubble {
+                max-width: 280px;
+                min-width: 200px;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Apps</h1>
+            <button class="new-app-btn">
+                <span>+</span>
+                New app
+            </button>
+        </header>
+
+        <div class="tabs">
+            <a href="#" class="tab active">Inspiration</a>
+            <a href="#" class="tab">My apps</a>
+        </div>
+
+        <div class="filters" id="filters">
+        </div>
+
+        <div class="apps-grid" id="appsGrid">
+        </div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle"></h2>
+            <p id="modalDescription"></p>
+            <button class="close-btn" onclick="closeModal()">Launch App</button>
+        </div>
+    </div>
+
+    <!-- Floating Agent -->
+    <div class="floating-agent" id="floatingAgent" onclick="toggleSpeech()">🤖</div>
+
+    <!-- Speech Bubble -->
+    <div class="speech-bubble" id="speechBubble">
+        <div class="speech-text" id="speechText"></div>
+        <div class="speech-buttons" id="speechButtons"></div>
+        <div class="voice-controls">
+            <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🔊 Voice</button>
+            <div class="voice-indicator" id="voiceIndicator" style="display: none;">
+                <span>Speaking</span>
+                <div class="voice-wave"></div>
+                <div class="voice-wave"></div>
+                <div class="voice-wave"></div>
+                <div class="voice-wave"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pointing Arrow -->
+    <div class="pointing-arrow" id="pointingArrow">👉</div>
+
+    <script>
+        const apps = [
+            {
+                id: 1,
+                title: "Writing assistant",
+                description: "Generate high-quality content, articles, and copy with advanced AI writing capabilities",
+                category: "Writing",
+                icon: "✍️",
+                gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                details: "Transform your ideas into compelling content with our AI-powered writing assistant. Perfect for blogs, marketing copy, and creative writing."
+            },
+            {
+                id: 2,
+                title: "Code generator",
+                description: "AI-powered code generation, debugging, and optimization across multiple programming languages",
+                category: "Development",
+                icon: "💻",
+                gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+                details: "Accelerate your development workflow with intelligent code suggestions, bug fixes, and optimization recommendations."
+            },
+            {
+                id: 3,
+                title: "Image creator",
+                description: "Create stunning images and artwork from text descriptions using advanced AI models",
+                category: "Creative",
+                icon: "🎨",
+                gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+                details: "Bring your imagination to life with AI-generated images. Create artwork, illustrations, and visual content from simple text prompts."
+            },
+            {
+                id: 4,
+                title: "Data insights",
+                description: "Extract meaningful insights and patterns from your data using intelligent AI analysis",
+                category: "Analytics",
+                icon: "📊",
+                gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+                details: "Unlock the power of your data with intelligent analysis, pattern recognition, and automated insights generation."
+            },
+            {
+                id: 5,
+                title: "Voice synthesizer",
+                description: "Convert text to natural-sounding speech with customizable voices and accents",
+                category: "Audio",
+                icon: "🔊",
+                gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+                details: "Transform text into lifelike speech with customizable voices, perfect for podcasts, presentations, and accessibility."
+            },
+            {
+                id: 6,
+                title: "Smart translator",
+                description: "Instant translation between 100+ languages with context-aware AI understanding",
+                category: "Language",
+                icon: "🌍",
+                gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+                details: "Break down language barriers with accurate, context-aware translations that preserve meaning and cultural nuances."
+            },
+            {
+                id: 7,
+                title: "Video editor",
+                description: "AI-powered video editing with automatic cuts, effects, and optimization features",
+                category: "Creative",
+                icon: "🎬",
+                gradient: "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
+                details: "Create professional videos with AI assistance for cutting, effects, transitions, and optimization."
+            },
+            {
+                id: 8,
+                title: "Research assistant",
+                description: "Comprehensive research tool that gathers, analyzes, and summarizes information from multiple sources",
+                category: "Research",
+                icon: "🔍",
+                gradient: "linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)",
+                details: "Accelerate your research with AI that can gather information, fact-check, and provide comprehensive summaries."
+            }
+        ];
+
+        const categories = ['All', 'Writing', 'Development', 'Creative', 'Analytics', 'Audio', 'Language', 'Research'];
+        let activeFilter = 'All';
+        let currentStep = 0;
+        let speechVisible = false;
+        let voiceEnabled = false;
+        let agentPosition = 0;
+
+        const onboardingSteps = [
+            {
+                text: "Hi there! 👋 I'm your AI assistant. I'll help you discover amazing AI tools! What should I call you?",
+                buttons: [
+                    { text: "I'm Sarah", action: () => setUserName("Sarah") },
+                    { text: "I'm Alex", action: () => setUserName("Alex") },
+                    { text: "Other name", action: () => setUserName("Friend") }
+                ],
+                position: "welcome",
+                arrow: null
+            },
+            {
+                text: "Nice to meet you, {name}! 😊 Want me to show you around? I can highlight the best tools for different types of work!",
+                buttons: [
+                    { text: "Yes, show me!", action: () => nextStep() },
+                    { text: "I'll explore myself", action: () => finishTour() }
+                ],
+                position: "center",
+                arrow: null
+            },
+            {
+                text: "Let me show you the Writing Assistant! ✍️ Perfect for creating content, blogs, and marketing copy in seconds.",
+                buttons: [
+                    { text: "Tell me more", action: () => highlightApp("Writing assistant") },
+                    { text: "Next tool", action: () => nextStep() }
+                ],
+                position: "writing",
+                arrow: "Writing assistant"
+            },
+            {
+                text: "Here's the Image Creator! 🎨 Turn your ideas into stunning visuals with just a text description.",
+                buttons: [
+                    { text: "Sounds cool!", action: () => highlightApp("Image creator") },
+                    { text: "What's next?", action: () => nextStep() }
+                ],
+                position: "image",
+                arrow: "Image creator"
+            },
+            {
+                text: "And the Research Assistant! 🔍 It can gather information from multiple sources and summarize it for you.",
+                buttons: [
+                    { text: "Very useful!", action: () => highlightApp("Research assistant") },
+                    { text: "Continue tour", action: () => nextStep() }
+                ],
+                position: "research",
+                arrow: "Research assistant"
+            },
+            {
+                text: "That's just a taste! 🚀 There are 8 amazing AI tools total. Use the category filters above to explore them all!",
+                buttons: [
+                    { text: "Got it!", action: () => finishTour() },
+                    { text: "Show filters", action: () => pointToFilters() }
+                ],
+                position: "final",
+                arrow: null
+            }
+        ];
+
+        let userName = "there";
+
+        // Agent positioning logic - now relative to apps and responsive
+        function getAppPosition(appTitle) {
+            const appCards = [...document.querySelectorAll('.app-card')];
+            const targetCard = appCards.find(card => 
+                card.querySelector('.app-title').textContent === appTitle
+            );
+            
+            if (targetCard) {
+                const rect = targetCard.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                
+                return {
+                    top: rect.top + scrollTop + rect.height / 2 - 40, // Center vertically on card
+                    left: rect.left + scrollLeft - 100 // Position to the left of the card
+                };
+            }
+            return null;
+        }
+
+        function moveAgent(position) {
+            const agent = document.getElementById('floatingAgent');
+            
+            if (position === 'welcome') {
+                // Top left for welcome
+                agent.style.top = '20vh';
+                agent.style.left = '10vw';
+                agent.style.position = 'fixed';
+            } else if (position === 'center') {
+                // Center of screen
+                agent.style.top = '50vh';
+                agent.style.left = '50vw';
+                agent.style.transform = 'translate(-50%, -50%)';
+                agent.style.position = 'fixed';
+            } else if (position === 'final') {
+                // Top right for final
+                agent.style.top = '20vh';
+                agent.style.right = '10vw';
+                agent.style.left = 'auto';
+                agent.style.position = 'fixed';
+            } else if (position === 'writing' || position === 'image' || position === 'research') {
+                // Attach to specific app cards
+                const appTitleMap = {
+                    'writing': 'Writing assistant',
+                    'image': 'Image creator', 
+                    'research': 'Research assistant'
+                };
+                
+                const appTitle = appTitleMap[position];
+                const appPos = getAppPosition(appTitle);
+                
+                if (appPos) {
+                    agent.style.position = 'absolute';
+                    agent.style.top = appPos.top + 'px';
+                    agent.style.left = appPos.left + 'px';
+                    agent.style.transform = 'none';
+                    agent.style.right = 'auto';
+                }
+            }
+        }
+
+        // Update agent position on scroll and resize
+        function updateAgentPosition() {
+            const agent = document.getElementById('floatingAgent');
+            const currentStep = onboardingSteps[currentStep];
+            
+            if (currentStep && (currentStep.position === 'writing' || currentStep.position === 'image' || currentStep.position === 'research')) {
+                moveAgent(currentStep.position);
+            }
+        }
+
+        // Add event listeners for responsive positioning
+        window.addEventListener('scroll', updateAgentPosition);
+        window.addEventListener('resize', updateAgentPosition);
+
+        function showSpeech(step) {
+            const bubble = document.getElementById('speechBubble');
+            const text = document.getElementById('speechText');
+            const buttons = document.getElementById('speechButtons');
+            const arrow = document.getElementById('pointingArrow');
+            
+            // Position bubble relative to agent with improved responsiveness
+            positionSpeechBubble();
+            
+            // Type text with effect
+            typeText(step.text.replace('{name}', userName), text);
+            
+            // Set up buttons
+            buttons.innerHTML = '';
+            step.buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.className = 'speech-btn';
+                button.textContent = btn.text;
+                button.onclick = btn.action;
+                buttons.appendChild(button);
+            });
+            
+            // Show arrow if specified
+            if (step.arrow) {
+                pointToApp(step.arrow);
+            } else {
+                arrow.classList.remove('visible');
+            }
+            
+            speechVisible = true;
+            
+            // Simulate voice if enabled
+            if (voiceEnabled) {
+                simulateVoice(step.text);
+            }
+        }
+
+        function positionSpeechBubble() {
+            const bubble = document.getElementById('speechBubble');
+            const agent = document.getElementById('floatingAgent');
+            const agentRect = agent.getBoundingClientRect();
+            
+            // Calculate bubble position with better viewport awareness
+            const bubbleWidth = 350;
+            const bubbleHeight = 200;
+            
+            let bubbleTop, bubbleLeft;
+            let bubbleClass = 'speech-bubble visible';
+            
+            // Determine best position relative to agent
+            const spaceBelow = window.innerHeight - agentRect.bottom;
+            const spaceAbove = agentRect.top;
+            const spaceRight = window.innerWidth - agentRect.right;
+            const spaceLeft = agentRect.left;
+            
+            // Priority: right > left > below > above
+            if (spaceRight >= bubbleWidth + 20) {
+                // Position to the right
+                bubbleTop = agentRect.top + agentRect.height/2 - bubbleHeight/2;
+                bubbleLeft = agentRect.right + 20;
+                bubbleClass += ' left';
+            } else if (spaceLeft >= bubbleWidth + 20) {
+                // Position to the left
+                bubbleTop = agentRect.top + agentRect.height/2 - bubbleHeight/2;
+                bubbleLeft = agentRect.left - bubbleWidth - 20;
+                bubbleClass += ' right';
+            } else if (spaceBelow >= bubbleHeight + 20) {
+                // Position below
+                bubbleTop = agentRect.bottom + 20;
+                bubbleLeft = agentRect.left + agentRect.width/2 - bubbleWidth/2;
+                bubbleClass += ' bottom';
+            } else {
+                // Position above
+                bubbleTop = agentRect.top - bubbleHeight - 20;
+                bubbleLeft = agentRect.left + agentRect.width/2 - bubbleWidth/2;
+                bubbleClass += ' top';
+            }
+            
+            // Ensure bubble stays within viewport
+            bubbleLeft = Math.max(20, Math.min(bubbleLeft, window.innerWidth - bubbleWidth - 20));
+            bubbleTop = Math.max(20, Math.min(bubbleTop, window.innerHeight - bubbleHeight - 20));
+            
+            // Apply positioning
+            bubble.className = bubbleClass;
+            bubble.style.position = 'fixed';
+            bubble.style.top = bubbleTop + 'px';
+            bubble.style.left = bubbleLeft + 'px';
+        }
+
+        // Update speech bubble position on scroll/resize
+        function updateSpeechPosition() {
+            if (speechVisible) {
+                positionSpeechBubble();
+            }
+        }
+
+        window.addEventListener('scroll', updateSpeechPosition);
+        window.addEventListener('resize', updateSpeechPosition);
+
+        function typeText(text, element) {
+            element.textContent = '';
+            element.classList.add('typing');
+            
+            let i = 0;
+            const typeInterval = setInterval(() => {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                } else {
+                    element.classList.remove('typing');
+                    clearInterval(typeInterval);
+                }
+            }, 30);
+        }
+
+        function pointToApp(appTitle) {
+            const arrow = document.getElementById('pointingArrow');
+            const appCards = [...document.querySelectorAll('.app-card')];
+            const targetCard = appCards.find(card => 
+                card.querySelector('.app-title').textContent === appTitle
+            );
+            
+            if (targetCard) {
+                const rect = targetCard.getBoundingClientRect();
+                arrow.style.top = (rect.top - 50) + 'px';
+                arrow.style.left = (rect.left - 50) + 'px';
+                arrow.classList.add('visible');
+                
+                // Scroll to card
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function pointToFilters() {
+            const arrow = document.getElementById('pointingArrow');
+            const filters = document.getElementById('filters');
+            const rect = filters.getBoundingClientRect();
+            
+            arrow.style.top = (rect.top - 50) + 'px';
+            arrow.style.left = (rect.left + 100) + 'px';
+            arrow.classList.add('visible');
+            
+            filters.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function highlightApp(appTitle) {
+            // Remove existing highlights
+            document.querySelectorAll('.app-card').forEach(card => {
+                card.style.border = '1px solid #333';
+                card.style.boxShadow = 'none';
+            });
+            
+            // Highlight target app
+            const appCards = [...document.querySelectorAll('.app-card')];
+            const targetCard = appCards.find(card => 
+                card.querySelector('.app-title').textContent === appTitle
+            );
+            
+            if (targetCard) {
+                targetCard.style.border = '3px solid #667eea';
+                targetCard.style.boxShadow = '0 20px 40px rgba(102, 126, 234, 0.3)';
+                
+                setTimeout(() => {
+                    targetCard.style.border = '1px solid #333';
+                    targetCard.style.boxShadow = 'none';
+                }, 3000);
+            }
+        }
+
+        function setUserName(name) {
+            userName = name;
+            nextStep();
+        }
+
+        function nextStep() {
+            currentStep++;
+            if (currentStep < onboardingSteps.length) {
+                const step = onboardingSteps[currentStep];
+                moveAgent(step.position);
+                setTimeout(() => showSpeech(step), 500);
+            } else {
+                finishTour();
+            }
+        }
+
+        function finishTour() {
+            document.getElementById('speechBubble').classList.remove('visible');
+            document.getElementById('pointingArrow').classList.remove('visible');
+            speechVisible = false;
+            
+            // Move agent to corner
+            const agent = document.getElementById('floatingAgent');
+            agent.style.top = 'auto';
+            agent.style.bottom = '2rem';
+            agent.style.right = '2rem';
+            agent.style.left = 'auto';
+            
+            localStorage.setItem('onboardingComplete', 'true');
+        }
+
+        function toggleSpeech() {
+            if (currentStep < onboardingSteps.length && !speechVisible) {
+                const step = onboardingSteps[currentStep];
+                showSpeech(step);
+            } else if (speechVisible) {
+                document.getElementById('speechBubble').classList.remove('visible');
+                speechVisible = false;
+            } else {
+                // Show help
+                const helpStep = {
+                    text: "Hi again! 👋 Need help? Click any app to learn more, or use the filters above to browse by category. I'm always here if you need me!",
+                    buttons: [
+                        { text: "Thanks!", action: () => toggleSpeech() }
+                    ]
+                };
+                showSpeech(helpStep);
+            }
+        }
+
+        function toggleVoice() {
+            voiceEnabled = !voiceEnabled;
+            const btn = document.getElementById('voiceBtn');
+            
+            if (voiceEnabled) {
+                btn.textContent = '🔇 Voice';
+                btn.classList.add('active');
+            } else {
+                btn.textContent = '🔊 Voice';
+                btn.classList.remove('active');
+                document.getElementById('voiceIndicator').style.display = 'none';
+            }
+        }
+
+        function simulateVoice(text) {
+            const indicator = document.getElementById('voiceIndicator');
+            indicator.style.display = 'flex';
+            
+            // Simulate voice duration based on text length
+            const duration = Math.max(2000, text.length * 50);
+            
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, duration);
+        }
+
+        function renderFilters() {
+            const filtersContainer = document.getElementById('filters');
+            filtersContainer.innerHTML = '';
+
+            categories.forEach(category => {
+                const filterPill = document.createElement('button');
+                filterPill.className = `filter-pill ${category === activeFilter ? 'active' : ''}`;
+                filterPill.textContent = category;
+                filterPill.onclick = () => setFilter(category);
+                filtersContainer.appendChild(filterPill);
+            });
+        }
+
+        function setFilter(category) {
+            activeFilter = category;
+            renderFilters();
+            renderApps();
+        }
+
+        function renderApps() {
+            const grid = document.getElementById('appsGrid');
+            grid.innerHTML = '';
+
+            const filteredApps = activeFilter === 'All' 
+                ? apps 
+                : apps.filter(app => app.category === activeFilter);
+
+            filteredApps.forEach(app => {
+                const appCard = document.createElement('div');
+                appCard.className = 'app-card';
+                appCard.onclick = () => openApp(app);
+
+                appCard.innerHTML = `
+                    <div class="app-preview" style="background: ${app.gradient}">
+                        <span style="font-size: 4rem;">${app.icon}</span>
+                    </div>
+                    <div class="app-info">
+                        <h3 class="app-title">${app.title}</h3>
+                        <p class="app-description">${app.description}</p>
+                    </div>
+                `;
+
+                grid.appendChild(appCard);
+            });
+        }
+
+        function openApp(app) {
+            document.getElementById('modalTitle').textContent = app.title;
+            document.getElementById('modalDescription').textContent = app.details;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Event listeners
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        function init() {
+            renderFilters();
+            renderApps();
+            
+            if (localStorage.getItem('onboardingComplete') !== 'true') {
+                // Start onboarding after a delay
+                setTimeout(() => {
+                    const step = onboardingSteps[currentStep];
+                    moveAgent(step.position);
+                    setTimeout(() => showSpeech(step), 1000);
+                }, 2000);
+            } else {
+                // Position agent in corner
+                const agent = document.getElementById('floatingAgent');
+                agent.style.top = 'auto';
+                agent.style.bottom = '2rem';
+                agent.style.right = '2rem';
+                agent.style.left = 'auto';
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

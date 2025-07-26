@@ -7,53 +7,53 @@
 - **"Marketplace Maven"** - Professional but approachable guide  
 - **"Your AI Assistant"** - Adapts personality based on user's job role
 
-## <¯ Creative Onboarding Flows
+## <ï¿½ Creative Onboarding Flows
 
-### 1. **Conversational Welcome**
+### 1. ~~**Conversational Welcome**~~ âŒ
 ```
 "Hi! I'm Aiden, your AI marketplace guide. What should I call you?"
-’ "Nice to meet you, [Name]! What kind of work do you do?"
-’ "Perfect! Let me show you the AI tools that'll supercharge your [job role]..."
+ï¿½ "Nice to meet you, [Name]! What kind of work do you do?"
+ï¿½ "Perfect! Let me show you the AI tools that'll supercharge your [job role]..."
 ```
 
-### 2. **Interactive Card Reveal**
+### 2. ~~**Interactive Card Reveal**~~ âŒ
 - Agent dims the marketplace background
 - Highlights 2-3 relevant apps based on job role
 - "As a [Designer], you'll love our Image Creator and Video Editor..."
 - Cards glow/pulse as agent explains each one
 
-### 3. **Personalized Demo Tour**
+### 3. ~~**Personalized Demo Tour**~~ âŒ
 ```
-Developer ’ Code generator + Research assistant
-Marketer ’ Writing assistant + Image creator  
-Analyst ’ Data insights + Research assistant
-Creative ’ Image creator + Video editor + Voice synthesizer
-Student ’ Research assistant + Writing assistant
-Manager ’ Data insights + Voice synthesizer
+Developer ï¿½ Code generator + Research assistant
+Marketer ï¿½ Writing assistant + Image creator  
+Analyst ï¿½ Data insights + Research assistant
+Creative ï¿½ Image creator + Video editor + Voice synthesizer
+Student ï¿½ Research assistant + Writing assistant
+Manager ï¿½ Data insights + Voice synthesizer
 ```
 
-### 4. **Mini Challenges**
+### 4. ~~**Mini Challenges**~~ âŒ
 - "Want to see the Writing Assistant in action? Tell me a topic you'd write about..."
 - Agent simulates the app working
 - "Imagine that, but 10x faster with AI!"
 - Interactive preview without actually launching the app
 
-### 5. **Progressive Disclosure**
+### 5. **Progressive Disclosure** âœ… **SELECTED**
 - Start with just 3 recommended apps visible
 - "Ready to see more? Let me unlock the full marketplace..."
 - Smooth animation reveals all apps with category filters
 - "Here's your personalized workspace!"
 
-### 6. **Role-Based Walkthrough**
+### 6. ~~**Role-Based Walkthrough**~~ âŒ
 - Different onboarding paths based on job role
 - Custom explanations for each app's relevance
 - "As a content creator, here's how this saves you 5 hours per week..."
 
-## <¨ Visual & Interactive Elements
+## <ï¿½ Visual & Interactive Elements
 
 ### Agent Interaction
 - **Chat bubble overlay** in bottom-right corner
-- **Floating agent avatar** that moves around the screen
+- **Floating agent avatar** that moves around the screen âœ… **SELECTED**
 - **Animated speech bubbles** with typewriter effect
 - **Voice option** with natural speech synthesis
 
@@ -69,7 +69,7 @@ Manager ’ Data insights + Voice synthesizer
 - **Achievement unlocks** - "You've discovered your first AI tool!"
 - **Completion celebration** with confetti animation
 
-## =¡ Advanced Features
+## =ï¿½ Advanced Features
 
 ### Smart Personalization
 - **Dynamic app recommendations** based on job role and interests
@@ -169,7 +169,7 @@ Manager ’ Data insights + Voice synthesizer
 - Seamless transition to main experience
 - **Key takeaway:** Content-driven onboarding
 
-## =€ Implementation Recommendations
+## =ï¿½ Implementation Recommendations
 
 ### Phase 1: Basic Agent
 - Simple chat interface
@@ -203,7 +203,7 @@ Manager ’ Data insights + Voice synthesizer
 - **Time to first app launch**
 - **User satisfaction scores**
 
-## =­ Future Ideas
+## =ï¿½ Future Ideas
 - **AI-powered conversation** - actual LLM integration for natural chat
 - **Video tutorials** - embedded walkthrough videos
 - **Collaborative onboarding** - invite team members during setup
